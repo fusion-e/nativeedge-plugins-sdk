@@ -20,7 +20,8 @@ setuptools.setup(
     author='Gigaspaces.com',
     author_email='hello@getcloudify.org',
     description='Utilities SDK for extending Cloudify',
-    packages=['cloudify_rest_sdk',
+    packages=['cloudify_common_sdk',
+              'cloudify_rest_sdk',
               'cloudify_terminal_sdk'],
     license='LICENSE',
     install_requires=[
