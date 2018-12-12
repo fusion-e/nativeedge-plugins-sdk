@@ -15,7 +15,7 @@
 import setuptools
 
 setuptools.setup(
-    name='cloudify-utilities-plugin',
+    name='cloudify-utilities-plugins-sdk',
     version='0.0.1',
     author='Gigaspaces.com',
     author_email='hello@getcloudify.org',

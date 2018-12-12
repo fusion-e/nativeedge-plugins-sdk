@@ -1,5 +1,5 @@
 ########
-# Copyright (c) 2014-2018 Cloudify Platform Ltd. All rights reserved
+# Copyright (c) 2017-2018 Cloudify Platform Ltd. All rights reserved
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,4 +13,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-LOGGER_NAME = 'rest.sdk'
+
+class RestSdkException(Exception):
+    pass
+
+
+class ExpectationException(RestSdkException):
+    pass
+
+
+class RecoverableStatusCodeCodeException(RestSdkException):
+    pass
+
+
+class WrongTemplateDataException(RestSdkException):
+    pass
+
+
+class RecoverableResponseException(RestSdkException):
+    pass
+
+
+class NonRecoverableResponseException(RestSdkException):
+    pass
