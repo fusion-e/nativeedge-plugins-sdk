@@ -13,9 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import unittest
+import json
+import mock
+
 from cloudify_rest_sdk import utility
 from cloudify_rest_sdk import exceptions
-import json
 
 
 class TestSdk(unittest.TestCase):
@@ -329,6 +331,97 @@ class TestSdk(unittest.TestCase):
             str(error.exception),
             "Response (nonrecoverable) had to be list. Type <type 'str'> "
             "not supported. ")
+
+    def test_process_response(self):
+        parsed_json = json.loads('''{
+            "id": 10,
+            "name": "Clementina DuBuque",
+            "username": "Moriah.Stanton",
+            "email": "Rey.Padberg@karina.biz",
+            "address": {
+                "street": "Kattie Turnpike",
+                "suite": "Suite 198",
+                "city": "Lebsackbury",
+                "zipcode": "31428-2261",
+                "geo": {
+                    "lat": "-38.2386",
+                    "lng": "57.2232"
+                }
+            },
+            "phone": "024-648-3804",
+            "website": "ambrose.net",
+            "company": {
+                "name": "Hoeger LLC",
+                "catchPhrase": "Centralized empowering task-force",
+                "bs": "target end-to-end models"
+            }
+        }''')
+        response = mock.Mock()
+        response.json = mock.Mock(return_value=parsed_json)
+        response.text = '''<object>10</object>'''
+        # json
+        store_props = {}
+        call = {
+            'response_format': 'json',
+            'nonrecoverable_response': [['id', '20']],
+            'response_expectation': [['id', '10']],
+            'response_translation': {
+                "name": ["user-full-name"],
+                "email": ["user-email"],
+                "address": {
+                    "city": ["user-city"],
+                    "zipcode": ["user-city-zip"],
+                    "geo": {
+                        "lat": ["user-city-geo", "latitude"],
+                        "lng": ["user-city-geo", "longnitude"]
+                    }
+                }
+            }
+        }
+        utility._process_response(response, call, store_props)
+        self.assertDictEqual(store_props, {
+            'user-city': u'Lebsackbury',
+            'user-city-geo': {
+                'latitude': u'-38.2386',
+                'longnitude': u'57.2232'
+            },
+            'user-city-zip': u'31428-2261',
+            'user-email': u'Rey.Padberg@karina.biz',
+            'user-full-name': u'Clementina DuBuque'
+        })
+        # raw response
+        store_props = {}
+        call = {
+            'response_format': 'raw',
+        }
+        utility._process_response(response, call, store_props)
+        self.assertDictEqual(store_props, {})
+        # unknown response
+        store_props = {}
+        call = {
+            'response_format': 'other',
+        }
+        with self.assertRaises(
+            exceptions.WrongTemplateDataException
+        ) as error:
+            utility._process_response(response, call, store_props)
+        self.assertEqual(
+            str(error.exception),
+            "Response_format OTHER is not supported. Only json/xml or raw "
+            "response_format is supported")
+        self.assertDictEqual(store_props, {})
+        # xml response
+        store_props = {}
+        call = {
+            'response_format': 'xml',
+            'nonrecoverable_response': [['object', '20']],
+            'response_expectation': [['object', '10']],
+            'response_translation': {
+                "object": ["object_id"]
+            }
+        }
+        utility._process_response(response, call, store_props)
+        self.assertDictEqual(store_props, {'object_id': '10'})
 
 
 if __name__ == '__main__':
