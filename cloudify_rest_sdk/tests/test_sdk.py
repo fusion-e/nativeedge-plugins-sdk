@@ -14,6 +14,7 @@
 # limitations under the License.
 import unittest
 from cloudify_rest_sdk import utility
+from cloudify_rest_sdk import exceptions
 import json
 
 
@@ -40,29 +41,29 @@ class TestSdk(unittest.TestCase):
 
     def test_translate_and_save_v1(self):
         # v1 - {...}
-        jl = json.loads('''{
-                "id": 10,
-                "name": "Clementina DuBuque",
-                "username": "Moriah.Stanton",
-                "email": "Rey.Padberg@karina.biz",
-                "address": {
-                    "street": "Kattie Turnpike",
-                    "suite": "Suite 198",
-                    "city": "Lebsackbury",
-                    "zipcode": "31428-2261",
-                    "geo": {
-                        "lat": "-38.2386",
-                        "lng": "57.2232"
-                    }
-                },
-                "phone": "024-648-3804",
-                "website": "ambrose.net",
-                "company": {
-                    "name": "Hoeger LLC",
-                    "catchPhrase": "Centralized empowering task-force",
-                    "bs": "target end-to-end models"
+        parsed_json = json.loads('''{
+            "id": 10,
+            "name": "Clementina DuBuque",
+            "username": "Moriah.Stanton",
+            "email": "Rey.Padberg@karina.biz",
+            "address": {
+                "street": "Kattie Turnpike",
+                "suite": "Suite 198",
+                "city": "Lebsackbury",
+                "zipcode": "31428-2261",
+                "geo": {
+                    "lat": "-38.2386",
+                    "lng": "57.2232"
                 }
-            }''')
+            },
+            "phone": "024-648-3804",
+            "website": "ambrose.net",
+            "company": {
+                "name": "Hoeger LLC",
+                "catchPhrase": "Centralized empowering task-force",
+                "bs": "target end-to-end models"
+            }
+        }''')
         # directly call translate
         runtime_props = {}
         response_translation = {
@@ -77,7 +78,8 @@ class TestSdk(unittest.TestCase):
                 }
             }
         }
-        utility._translate_and_save_v1(jl, response_translation, runtime_props)
+        utility._translate_and_save_v1(parsed_json, response_translation,
+                                       runtime_props)
         self.assertEqual(runtime_props, {
             'user-city': u'Lebsackbury',
             'user-city-geo': {
@@ -102,7 +104,8 @@ class TestSdk(unittest.TestCase):
                 }
             }
         }
-        utility._translate_and_save(jl, response_translation, runtime_props)
+        utility._translate_and_save(parsed_json, response_translation,
+                                    runtime_props)
         self.assertEqual(runtime_props, {
             'user-city': u'Lebsackbury',
             'user-city-geo': {
@@ -114,29 +117,29 @@ class TestSdk(unittest.TestCase):
             'user-full-name': u'Clementina DuBuque'
         })
         # v1 - [{...}]
-        jl = json.loads('''[{
-                "id": 10,
-                "name": "Clementina DuBuque",
-                "username": "Moriah.Stanton",
-                "email": "Rey.Padberg@karina.biz",
-                "address": {
-                    "street": "Kattie Turnpike",
-                    "suite": "Suite 198",
-                    "city": "Lebsackbury",
-                    "zipcode": "31428-2261",
-                    "geo": {
-                        "lat": "-38.2386",
-                        "lng": "57.2232"
-                    }
-                },
-                "phone": "024-648-3804",
-                "website": "ambrose.net",
-                "company": {
-                    "name": "Hoeger LLC",
-                    "catchPhrase": "Centralized empowering task-force",
-                    "bs": "target end-to-end models"
+        parsed_json = json.loads('''[{
+            "id": 10,
+            "name": "Clementina DuBuque",
+            "username": "Moriah.Stanton",
+            "email": "Rey.Padberg@karina.biz",
+            "address": {
+                "street": "Kattie Turnpike",
+                "suite": "Suite 198",
+                "city": "Lebsackbury",
+                "zipcode": "31428-2261",
+                "geo": {
+                    "lat": "-38.2386",
+                    "lng": "57.2232"
                 }
-            }]''')
+            },
+            "phone": "024-648-3804",
+            "website": "ambrose.net",
+            "company": {
+                "name": "Hoeger LLC",
+                "catchPhrase": "Centralized empowering task-force",
+                "bs": "target end-to-end models"
+            }
+        }]''')
         # directly call translate
         runtime_props = {}
         response_translation = [{
@@ -151,7 +154,8 @@ class TestSdk(unittest.TestCase):
                 }
             }
         }]
-        utility._translate_and_save_v1(jl, response_translation, runtime_props)
+        utility._translate_and_save_v1(parsed_json, response_translation,
+                                       runtime_props)
         self.assertEqual(runtime_props, {
             'user-city': u'Lebsackbury',
             'user-city-geo': {
@@ -166,36 +170,37 @@ class TestSdk(unittest.TestCase):
     def test_translate_and_save_v2(self):
         response_translation = \
             [[['id'], ['params', 'id']], [['payload', 'pages'], ['pages']]]
-        jl = json.loads('''{
-                "id": "6857017661",
-                "payload": {
-                    "pages": [
+        parsed_json = json.loads('''{
+            "id": "6857017661",
+            "payload": {
+                "pages": [
+                    {
+                        "page_name": "marvin",
+                        "action": "edited",
+                        "properties" :
                         {
-                            "page_name": "marvin",
-                            "action": "edited",
-                            "properties" :
-                            {
-                                "color" : "blue"
-                            }
-                        },
-                        {
-                            "page_name": "cool_wool",
-                            "action": "saved",
-                            "properties" :
-                            {
-                                "color" : "red"
-                            }
+                            "color" : "blue"
                         }
-                    ]
-                }
-            }''')
+                    },
+                    {
+                        "page_name": "cool_wool",
+                        "action": "saved",
+                        "properties" :
+                        {
+                            "color" : "red"
+                        }
+                    }
+                ]
+            }
+        }''')
         # directly call translate
         runtime_props = {}
         response_translation = [[
             ['payload', 'pages', ['page_name']],
             ['pages', ['page_name']]
         ]]
-        utility._translate_and_save_v2(jl, response_translation, runtime_props)
+        utility._translate_and_save_v2(parsed_json, response_translation,
+                                       runtime_props)
         self.assertEqual(runtime_props,
                          {'pages': [{'page_name': u'cool_wool'},
                                     {'page_name': u'cool_wool'}]})
@@ -205,7 +210,8 @@ class TestSdk(unittest.TestCase):
             ['payload', 'pages', ['page_name']],
             ['pages', ['page_name']]
         ]]
-        utility._translate_and_save(jl, response_translation, runtime_props)
+        utility._translate_and_save(parsed_json, response_translation,
+                                    runtime_props)
         self.assertEqual(runtime_props,
                          {'pages': [{'page_name': u'cool_wool'},
                                     {'page_name': u'cool_wool'}]})
@@ -245,6 +251,84 @@ class TestSdk(unittest.TestCase):
 
         self.assertDictEqual(runtime_props, {
             'k1': {'k2': {'k3': [{}, {}, {}, {}, {}]}}})
+
+    def test_check_response(self):
+        parsed_json = json.loads('''{
+            "id": 10,
+            "name": "Clementina DuBuque",
+            "username": "Moriah.Stanton",
+            "email": "Rey.Padberg@karina.biz",
+            "address": {
+                "street": "Kattie Turnpike",
+                "suite": "Suite 198",
+                "city": "Lebsackbury",
+                "zipcode": "31428-2261",
+                "geo": {
+                    "lat": "-38.2386",
+                    "lng": "57.2232"
+                }
+            },
+            "phone": "024-648-3804",
+            "website": "ambrose.net",
+            "company": {
+                "name": "Hoeger LLC",
+                "catchPhrase": "Centralized empowering task-force",
+                "bs": "target end-to-end models"
+            }
+        }''')
+        # no check, should be skiped
+        utility._check_response(parsed_json, [], True)
+        # correct check
+        utility._check_response(parsed_json, [['id', '10']], True)
+        # incorect data / Recoverable, filter that data not match
+        with self.assertRaises(
+            exceptions.RecoverableResponseException
+        ) as error:
+            utility._check_response(parsed_json, [['id', '22']], True)
+        self.assertEqual(
+            str(error.exception),
+            'Trying one more time...\nResponse value:10 does not match '
+            'regexp: 22 from response_expectation')
+        # incorect data / NonRecoverable, filter that data match
+        with self.assertRaises(
+            exceptions.NonRecoverableResponseException
+        ) as error:
+            utility._check_response(parsed_json, [['id', '10']], False)
+        self.assertEqual(
+            str(error.exception),
+            'Giving up... \nResponse value: 10 matches regexp:10 from '
+            'nonrecoverable_response. ')
+        # correct data, filter that data not match
+        utility._check_response(parsed_json, [['id', '20']], False)
+        # wrond data structure
+        error_text = 'No key or index "id" in json [{\'id\': 40}]'
+        with self.assertRaises(
+            exceptions.ExpectationException
+        ) as error:
+            utility._check_response([{'id': 40}], [['id', '20']], False)
+        self.assertEqual(str(error.exception), error_text)
+        with self.assertRaises(
+            exceptions.ExpectationException
+        ) as error:
+            utility._check_response([{'id': 40}], [['id', '20']], True)
+        self.assertEqual(str(error.exception), error_text)
+        # wrong checked
+        with self.assertRaises(
+            exceptions.WrongTemplateDataException
+        ) as error:
+            utility._check_response([{'id': 40}], 'AAAA', True)
+        self.assertEqual(
+            str(error.exception),
+            "Response (recoverable) had to be list. Type <type 'str'> "
+            "not supported. ")
+        with self.assertRaises(
+            exceptions.WrongTemplateDataException
+        ) as error:
+            utility._check_response([{'id': 40}], 'AAAA', False)
+        self.assertEqual(
+            str(error.exception),
+            "Response (nonrecoverable) had to be list. Type <type 'str'> "
+            "not supported. ")
 
 
 if __name__ == '__main__':
