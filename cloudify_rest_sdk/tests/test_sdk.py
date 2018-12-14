@@ -423,6 +423,96 @@ class TestSdk(unittest.TestCase):
         utility._process_response(response, call, store_props)
         self.assertDictEqual(store_props, {'object_id': '10'})
 
+    def test_send_request(self):
+        # json request
+        call = {
+            'ssl': True,
+            'path': "/",
+            'method': 'get',
+            'verify': False,
+            'host': 'localhost',
+            'port': -1,
+            'payload': [1, 2, 3],
+            'headers': {"a": "b"},
+            'response_format': 'xml',
+            'nonrecoverable_response': [['object', '20']],
+            'response_expectation': [['object', '10']],
+            'response_translation': {
+                "object": ["object_id"]
+            }
+        }
+        response = mock.Mock()
+        response.json = None
+        response.raise_for_status = mock.Mock()
+        response.text = '''<object>10</object>'''
+        request = mock.Mock(return_value=response)
+        with mock.patch(
+            "cloudify_rest_sdk.utility.requests.request", request
+        ):
+            self.assertEqual(utility._send_request(call), response)
+        request.assert_called_with('get', 'https://localhost:443/',
+                                   data=None, headers={'a': 'b'},
+                                   json=[1, 2, 3],
+                                   verify=False)
+        # xml request
+        call = {
+            'ssl': True,
+            'path': "/xml",
+            'method': 'get',
+            'verify': False,
+            'host': 'localhost',
+            'port': -1,
+            'payload': '<object>11</object>',
+            'payload_format': 'raw',
+            'headers': {"a": "b"},
+            'response_format': 'xml',
+            'nonrecoverable_response': [['object', '20']],
+            'response_expectation': [['object', '10']],
+            'response_translation': {
+                "object": ["object_id"]
+            }
+        }
+        response = mock.Mock()
+        response.json = None
+        response.raise_for_status = mock.Mock()
+        response.text = '''<object>10</object>'''
+        response.status_code = 404
+        request = mock.Mock(return_value=response)
+        with mock.patch(
+            "cloudify_rest_sdk.utility.requests.request", request
+        ):
+            self.assertEqual(utility._send_request(call), response)
+        request.assert_called_with('get', 'https://localhost:443/xml',
+                                   data='<object>11</object>',
+                                   headers={'a': 'b'},
+                                   json=None,
+                                   verify=False)
+        # raise error on request status
+        response.raise_for_status = mock.Mock(
+            side_effect=utility.requests.exceptions.HTTPError('Error!')
+        )
+        with mock.patch(
+            "cloudify_rest_sdk.utility.requests.request", request
+        ):
+            with self.assertRaises(
+                utility.requests.exceptions.HTTPError
+            ) as error:
+                self.assertEqual(utility._send_request(call), response)
+            self.assertEqual(str(error.exception), 'Error!')
+
+        # expected error
+        call['recoverable_codes'] = [404]
+        with mock.patch(
+            "cloudify_rest_sdk.utility.requests.request", request
+        ):
+            with self.assertRaises(
+                exceptions.RecoverableStatusCodeCodeException
+            ) as error:
+                self.assertEqual(utility._send_request(call), response)
+            self.assertEqual(
+                str(error.exception),
+                'Response code 404 defined as recoverable')
+
 
 if __name__ == '__main__':
     unittest.main()
