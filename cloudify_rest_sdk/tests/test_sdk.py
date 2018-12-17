@@ -396,6 +396,13 @@ class TestSdk(unittest.TestCase):
         }
         utility._process_response(response, call, store_props)
         self.assertDictEqual(store_props, {})
+        # text response
+        store_props = {}
+        call = {
+            'response_format': 'text',
+        }
+        utility._process_response(response, call, store_props)
+        self.assertDictEqual(store_props, {'text': '<object>10</object>'})
         # unknown response
         store_props = {}
         call = {
