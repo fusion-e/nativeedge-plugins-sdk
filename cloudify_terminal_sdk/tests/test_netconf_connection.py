@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import mock
-import paramiko
 import unittest
 
 import cloudify_terminal_sdk.netconf_connection as netconf_connection
@@ -127,7 +126,7 @@ class NetConfConnectionMockTest(unittest.TestCase):
         netconf.ssh.close.assert_called_with()
 
     def test_connect_with_password(self):
-        """connect call"""
+        """connect call with password"""
         # ssh mock
         will_be_ssh = mock.Mock()
         will_be_ssh.set_missing_host_key_policy = mock.MagicMock()
@@ -149,13 +148,17 @@ class NetConfConnectionMockTest(unittest.TestCase):
         will_be_ssh.get_transport = mock.MagicMock(
             return_value=transport_mock
         )
-
-        with mock.patch.object(
-            paramiko, 'SSHClient', return_value=will_be_ssh
-        ) as mock_ssh_client:
-            with mock.patch.object(
-                paramiko, 'AutoAddPolicy', return_value="I'm policy"
-            ) as mock_policy:
+        mock_ssh_client = mock.MagicMock(return_value=will_be_ssh)
+        with mock.patch(
+            "cloudify_terminal_sdk.netconf_connection.paramiko.SSHClient",
+            mock_ssh_client
+        ):
+            mock_policy = mock.MagicMock(return_value="I'm policy")
+            with mock.patch(
+                "cloudify_terminal_sdk.netconf_connection.paramiko"
+                ".AutoAddPolicy",
+                mock_policy
+            ):
                 netconf = netconf_connection.connection()
                 message = netconf.connect(
                     "127.0.0.100", "me", hello_string="hi",
@@ -180,7 +183,7 @@ class NetConfConnectionMockTest(unittest.TestCase):
         )
 
     def test_connect_with_key(self):
-        """connect call"""
+        """connect call with key"""
         # ssh mock
         will_be_ssh = mock.Mock()
         will_be_ssh.set_missing_host_key_policy = mock.MagicMock()
@@ -202,15 +205,21 @@ class NetConfConnectionMockTest(unittest.TestCase):
         will_be_ssh.get_transport = mock.MagicMock(
             return_value=transport_mock
         )
-
-        with mock.patch.object(
-            paramiko, 'SSHClient', return_value=will_be_ssh
-        ) as mock_ssh_client:
-            with mock.patch.object(
-                paramiko, 'AutoAddPolicy', return_value="I'm policy"
-            ) as mock_policy:
-                with mock.patch.object(
-                    paramiko.RSAKey, 'from_private_key', return_value="secret"
+        mock_ssh_client = mock.MagicMock(return_value=will_be_ssh)
+        with mock.patch(
+            "cloudify_terminal_sdk.netconf_connection.paramiko.SSHClient",
+            mock_ssh_client
+        ):
+            mock_policy = mock.MagicMock(return_value="I'm policy")
+            with mock.patch(
+                "cloudify_terminal_sdk.netconf_connection.paramiko"
+                ".AutoAddPolicy",
+                mock_policy
+            ):
+                with mock.patch(
+                    "cloudify_terminal_sdk.netconf_connection.paramiko."
+                    "RSAKey.from_private_key",
+                    mock.MagicMock(return_value="secret")
                 ):
                     netconf = netconf_connection.connection()
                     message = netconf.connect(
