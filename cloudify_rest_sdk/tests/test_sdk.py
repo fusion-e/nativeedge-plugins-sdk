@@ -454,6 +454,7 @@ class TestSdk(unittest.TestCase):
                                    data=None, headers={'a': 'b'},
                                    json=[1, 2, 3],
                                    verify=False)
+
         # xml request
         call = {
             'ssl': True,
@@ -487,6 +488,7 @@ class TestSdk(unittest.TestCase):
                                    headers={'a': 'b'},
                                    json=None,
                                    verify=False)
+
         # raise error on request status
         response.raise_for_status = mock.Mock(
             side_effect=utility.requests.exceptions.HTTPError('Error!')
@@ -512,6 +514,90 @@ class TestSdk(unittest.TestCase):
             self.assertEqual(
                 str(error.exception),
                 'Response code 404 defined as recoverable')
+
+        # can't connect
+        request = mock.Mock(
+            side_effect=utility.requests.exceptions.ConnectionError(
+                'check connect')
+        )
+        with mock.patch(
+            "cloudify_rest_sdk.utility.requests.request", request
+        ):
+            with self.assertRaises(
+                utility.requests.exceptions.ConnectionError
+            ) as error:
+                self.assertEqual(utility._send_request(call), response)
+            self.assertEqual(str(error.exception), "check connect")
+
+        # ignore conenction errors
+        call['retry_on_connection_error'] = True
+        request = mock.Mock(
+            side_effect=utility.requests.exceptions.ConnectionError(
+                'check connect')
+        )
+        with mock.patch(
+            "cloudify_rest_sdk.utility.requests.request", request
+        ):
+            with self.assertRaises(
+                exceptions.RecoverableResponseException
+            ) as error:
+                self.assertEqual(utility._send_request(call), response)
+            self.assertEqual(
+                str(error.exception),
+                "ConnectionError check connect has occurred, but flag "
+                "retry_on_connection_error is set. Retrying...")
+
+    def test_process(self):
+        template = """
+            rest_calls:
+            - ssl: true
+              path: "/xml"
+              method: get
+              verify: false
+              host: localhost
+              port: -1
+              payload: '<object>11</object>'
+              payload_format: raw
+              headers:
+                a: b
+              response_format: xml
+              nonrecoverable_response: [['object', '20']]
+              response_expectation: [['object', '10']]
+              response_translation:
+                object:
+                - object_id"""
+        response = mock.Mock()
+        response.json = None
+        response.raise_for_status = mock.Mock()
+        response.text = '''<object>10</object>'''
+        response.status_code = 404
+        request = mock.Mock(return_value=response)
+        with mock.patch(
+            "cloudify_rest_sdk.utility.requests.request", request
+        ):
+            self.assertEqual(
+                utility.process({}, template, {}), {
+                    'calls': [{
+                        'headers': {'a': 'b'},
+                        'host': 'localhost',
+                        'method': 'get',
+                        'nonrecoverable_response': [['object']],
+                        'path': '/xml',
+                        'payload': '<object>11</object>',
+                        'payload_format': 'raw',
+                        'port': -1,
+                        'response_expectation': [['object']],
+                        'response_format': 'xml',
+                        'response_translation': {'object': []},
+                        'ssl': True,
+                        'verify': False
+                    }],
+                    'result_properties': {'object_id': u'10'}})
+        request.assert_called_with('get', 'https://localhost:443/xml',
+                                   data='<object>11</object>',
+                                   headers={'a': 'b'},
+                                   json=None,
+                                   verify=False)
 
 
 if __name__ == '__main__':
