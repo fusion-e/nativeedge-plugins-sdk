@@ -142,6 +142,9 @@ def _process_response(response, call, store_props):
 
         _translate_and_save(json, call.get('response_translation', None),
                             store_props)
+    elif response_format == 'TEXT':
+        logger.debug('response_format text')
+        store_props['text'] = response.text
     elif response_format == 'RAW':
         logger.debug('No action for raw response_format')
     else:
