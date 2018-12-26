@@ -113,7 +113,8 @@ def _send_request(call):
 
     try:
         response.raise_for_status()
-    except requests.exceptions.HTTPError:
+    except requests.exceptions.HTTPError as e:
+        logger.debug(repr(e))
         if response.status_code in call.get('recoverable_codes', []):
             raise RecoverableStatusCodeCodeException(
                 'Response code {} defined as recoverable'.format(
@@ -142,6 +143,9 @@ def _process_response(response, call, store_props):
 
         _translate_and_save(json, call.get('response_translation', None),
                             store_props)
+    elif response_format == 'TEXT':
+        logger.debug('response_format text')
+        store_props['text'] = response.text
     elif response_format == 'RAW':
         logger.debug('No action for raw response_format')
     else:
@@ -183,7 +187,8 @@ def _check_response(json, response, is_recoverable):
 
             try:
                 json = json[key]
-            except (IndexError, KeyError):
+            except (TypeError, IndexError, KeyError) as e:
+                logger.debug(repr(e))
                 raise ExpectationException(
                         'No key or index "{}" in json {}'.format(key, json))
 
