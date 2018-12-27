@@ -1,4 +1,9 @@
 releases:
 
+  v0.0.2:
+  - Reorganize connection code for reuse netconf/terminal ssh connection
+  - Use common exception for all code parts
+  - Add netconf fake server for check clients
+
   v0.0.1:
   - Initial release

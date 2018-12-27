@@ -14,25 +14,40 @@
 # limitations under the License.
 
 
-class RestSdkException(Exception):
+class BaseSdkException(Exception):
     pass
 
 
-class ExpectationException(RestSdkException):
+class ExpectationException(BaseSdkException):
     pass
 
 
-class RecoverableStatusCodeCodeException(RestSdkException):
+class RecoverableStatusCodeCodeException(BaseSdkException):
     pass
 
 
-class WrongTemplateDataException(RestSdkException):
+class WrongTemplateDataException(BaseSdkException):
     pass
 
 
-class RecoverableResponseException(RestSdkException):
+class RecoverableResponseException(BaseSdkException):
     pass
 
 
-class NonRecoverableResponseException(RestSdkException):
+class NonRecoverableResponseException(BaseSdkException):
+    pass
+
+
+# recoverable error based on warning
+class RecoverableWarning(BaseSdkException):
+    pass
+
+
+# recoverable error
+class RecoverableError(BaseSdkException):
+    pass
+
+
+# recoverable error
+class NonRecoverableError(BaseSdkException):
     pass

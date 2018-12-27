@@ -12,17 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import unittest
-from mock import MagicMock, patch, mock_open, Mock, call
+from mock import MagicMock, patch, Mock, call
 
 import cloudify_terminal_sdk.terminal_connection as terminal_connection
+from cloudify_common_sdk import exceptions
 
 
-class TestTasks(unittest.TestCase):
+class TerminalTest(unittest.TestCase):
 
     sleep_mock = None
 
     def setUp(self):
-        super(TestTasks, self).setUp()
+        super(TerminalTest, self).setUp()
         mock_sleep = MagicMock()
         self.sleep_mock = patch('time.sleep', mock_sleep)
         self.sleep_mock.start()
@@ -31,81 +32,7 @@ class TestTasks(unittest.TestCase):
         if self.sleep_mock:
             self.sleep_mock.stop()
             self.sleep_mock = None
-        super(TestTasks, self).tearDown()
-
-    def test_empty_send(self):
-        conn = terminal_connection.RawConnection()
-        conn._conn_send("")
-
-    def test_send(self):
-        conn = terminal_connection.RawConnection()
-        conn.conn = MagicMock()
-        conn.conn.send = MagicMock(return_value=4)
-        conn.conn.closed = False
-        conn.conn.log_file_name = False
-
-        conn._conn_send("abcd")
-
-        conn.conn.send.assert_called_with("abcd")
-
-    def test_send_closed_connection(self):
-        conn = terminal_connection.RawConnection()
-        conn.conn = MagicMock()
-        conn.conn.send = MagicMock(return_value=3)
-        conn.conn.closed = True
-        conn.conn.log_file_name = False
-
-        conn._conn_send("abcd")
-
-        conn.conn.send.assert_called_with("abcd")
-
-    def test_send_troubles(self):
-        conn = terminal_connection.RawConnection()
-        conn.conn = MagicMock()
-        conn.logger = MagicMock()
-        conn.conn.send = MagicMock(return_value=-1)
-        conn.conn.closed = True
-        conn.conn.log_file_name = False
-
-        conn._conn_send("abcd")
-
-        conn.logger.info.assert_called_with("We have issue with send!")
-        conn.conn.send.assert_called_with("abcd")
-
-    def test_send_byte_by_byte(self):
-        conn = terminal_connection.RawConnection()
-        conn.conn = MagicMock()
-        conn.logger = MagicMock()
-        conn.conn.send = Mock(return_value=2)
-        conn.conn.closed = False
-        conn.conn.log_file_name = False
-
-        conn._conn_send("abcd")
-
-        conn.conn.send.assert_has_calls([call('abcd'), call('cd')])
-
-    def test_recv(self):
-        conn = terminal_connection.RawConnection()
-        conn.conn = MagicMock()
-        conn.logger = MagicMock()
-        conn.conn.recv = MagicMock(return_value="AbCd")
-        conn.conn.log_file_name = False
-
-        self.assertEqual(conn._conn_recv(4), "AbCd")
-
-        conn.conn.recv.assert_called_with(4)
-
-    def test_recv_empty(self):
-        conn = terminal_connection.RawConnection()
-        conn.conn = MagicMock()
-        conn.logger = MagicMock()
-        conn.conn.recv = MagicMock(return_value="")
-        conn.conn.log_file_name = False
-
-        self.assertEqual(conn._conn_recv(4), "")
-
-        conn.logger.warn.assert_called_with('We have empty response.')
-        conn.conn.recv.assert_called_with(4)
+        super(TerminalTest, self).tearDown()
 
     def test_find_any_in(self):
         conn = terminal_connection.RawConnection()
@@ -186,58 +113,6 @@ class TestTasks(unittest.TestCase):
 
         conn.conn.close.assert_called_with()
         conn.ssh.close.assert_called_with()
-
-    def test_write_to_log_no_logfile(self):
-        conn = terminal_connection.RawConnection()
-        conn.log_file_name = None
-        conn.logger = MagicMock()
-
-        conn._write_to_log("Some_text")
-        conn.logger.debug.assert_not_called()
-
-    def test_write_to_log_write_file_output(self):
-        conn = terminal_connection.RawConnection()
-        conn.log_file_name = '/proc/read_only_file'
-        conn.logger = MagicMock()
-
-        with patch("os.path.isdir", MagicMock(return_value=True)):
-            fake_file = mock_open()
-            with patch(
-                    '__builtin__.open', fake_file
-            ):
-                conn._write_to_log("Some_text")
-            fake_file.assert_called_once_with('/proc/read_only_file', 'a+')
-            fake_file().write.assert_called_with('Some_text')
-
-    def test_write_to_log_write_file_input(self):
-        conn = terminal_connection.RawConnection()
-        conn.log_file_name = '/proc/read_only_file'
-        conn.logger = MagicMock()
-
-        with patch("os.path.isdir", MagicMock(return_value=True)):
-            fake_file = mock_open()
-            with patch(
-                    '__builtin__.open', fake_file
-            ):
-                conn._write_to_log("Some_text", False)
-
-            fake_file.assert_called_once_with('/proc/read_only_file.in', 'a+')
-            fake_file().write.assert_called_with('Some_text')
-            conn.logger.debug.assert_not_called()
-
-    def test_write_to_log_cantcreate_dir(self):
-        conn = terminal_connection.RawConnection()
-        conn.log_file_name = '/proc/read_only/file'
-        conn.logger = MagicMock()
-
-        with patch("os.path.isdir", MagicMock(return_value=False)):
-            with patch("os.makedirs", MagicMock(side_effect=Exception(
-                "[Errno 13] Permission denied: '/proc/read_only'"
-            ))):
-                conn._write_to_log("Some_text")
-        conn.logger.info.assert_called_with(
-            "[Errno 13] Permission denied: '/proc/read_only'"
-        )
 
     def test_connect_with_password(self):
         ssh_mock = MagicMock()
@@ -363,7 +238,7 @@ class TestTasks(unittest.TestCase):
         conn.logger = MagicMock()
 
         # check with closed connection
-        with self.assertRaises(terminal_connection.RecoverableError) as error:
+        with self.assertRaises(exceptions.RecoverableError) as error:
             conn._cleanup_response(
                 text="prompt> text\n some\nerror",
                 prefix="prompt>",
@@ -384,7 +259,7 @@ class TestTasks(unittest.TestCase):
         conn.conn.closed = False
         # warnings?
         with self.assertRaises(
-            terminal_connection.RecoverableWarning
+            exceptions.RecoverableWarning
         ) as error:
             conn._cleanup_response(
                 text="prompt> text\n some\nerror",
@@ -395,7 +270,7 @@ class TestTasks(unittest.TestCase):
             )
         conn.conn.close.assert_not_called()
         # errors?
-        with self.assertRaises(terminal_connection.RecoverableError) as error:
+        with self.assertRaises(exceptions.RecoverableError) as error:
             conn._cleanup_response(
                 text="prompt> text\n some\nerror",
                 prefix="prompt>",
@@ -407,7 +282,7 @@ class TestTasks(unittest.TestCase):
         # critical?
         conn.conn.close = MagicMock()
         with self.assertRaises(
-            terminal_connection.NonRecoverableError
+            exceptions.NonRecoverableError
         ) as error:
             conn._cleanup_response(
                 text="prompt> text\n some\nerror",

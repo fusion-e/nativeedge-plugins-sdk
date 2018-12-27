@@ -17,7 +17,7 @@ import json
 import mock
 
 from cloudify_rest_sdk import utility
-from cloudify_rest_sdk import exceptions
+from cloudify_common_sdk import exceptions
 
 
 class TestSdk(unittest.TestCase):

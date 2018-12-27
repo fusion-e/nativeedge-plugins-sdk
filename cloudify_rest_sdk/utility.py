@@ -20,8 +20,9 @@ import re
 import xmltodict
 from jinja2 import Template
 import requests
+
 from cloudify_rest_sdk import LOGGER_NAME
-from cloudify_rest_sdk.exceptions import (
+from cloudify_common_sdk.exceptions import (
     RecoverableStatusCodeCodeException,
     ExpectationException,
     WrongTemplateDataException,

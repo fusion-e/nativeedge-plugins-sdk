@@ -10,3 +10,5 @@ requests-mock
 PyYAML
 xmltodict
 nose-exclude
+# for fake netconf server only
+PyCrypto
