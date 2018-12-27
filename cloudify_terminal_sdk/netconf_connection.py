@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from cloudify_common_sdk import exceptions
-import paramiko
-from StringIO import StringIO
+from cloudify_terminal_sdk import base_connection
 
 # final of any package
 NETCONF_1_0_END = "]]>]]>"
@@ -23,7 +22,7 @@ NETCONF_1_0_CAPABILITY = 'urn:ietf:params:netconf:base:1.0'
 NETCONF_1_1_CAPABILITY = 'urn:ietf:params:netconf:base:1.1'
 
 
-class NetConfConnection(object):
+class NetConfConnection(base_connection.SSHConnection):
 
     # ssh connection
     ssh = None
@@ -39,24 +38,9 @@ class NetConfConnection(object):
         port=830
     ):
         """open connection and send xml string by link"""
-        self.ssh = paramiko.SSHClient()
-        self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        if key_content:
-            key = paramiko.RSAKey.from_private_key(
-                StringIO(key_content)
-            )
-            self.ssh.connect(
-                ip, username=user, pkey=key, port=port,
-                allow_agent=False
-            )
-        else:
-            # cisco requered disable allow_agent
-            self.ssh.connect(
-                ip, username=user, password=password, port=port,
-                allow_agent=False, look_for_keys=False
-            )
-        self.chan = self.ssh.get_transport().open_session()
-        self.chan.invoke_subsystem('netconf')
+        self._ssh_connect(ip, user, password, key_content, port)
+        self.conn = self.ssh.get_transport().open_session()
+        self.conn.invoke_subsystem('netconf')
         self.buff = ""
         capabilities = self.send(hello_string)
         return capabilities
@@ -64,20 +48,28 @@ class NetConfConnection(object):
     def send(self, xml):
         """send xml string by connection"""
         if self.current_level == NETCONF_1_1_CAPABILITY:
-            return self._send_1_1(xml)
+            self._send_1_1(xml)
+            return self._recv_1_1()
         else:
-            return self._send_1_0(xml)
+            self._send_1_0(xml)
+            return self._recv_1_0()
 
     def _send_1_0(self, xml):
         """send xml string with NETCONF_1_0_END by connection"""
         if xml:
             message = xml + NETCONF_1_0_END
-            curr_pos = 0
-            while curr_pos < len(message):
-                curr_pos += self.chan.send(message[curr_pos:])
+            self._conn_send(message)
+
+    def _recv_1_0(self):
+        """recv xml string with NETCONF_1_0_END by connection"""
         while self.buff.find(NETCONF_1_0_END) == -1:
-            self.buff += self.chan.recv(8192)
+            self.buff += self._conn_recv(8192)
+            if self.conn.closed:
+                break
         package_end = self.buff.find(NETCONF_1_0_END)
+        # we have already closed connection
+        if package_end == -1:
+            package_end = len(self.buff)
         response = self.buff[:package_end]
         self.buff = self.buff[package_end + len(NETCONF_1_0_END):]
         return response
@@ -88,21 +80,26 @@ class NetConfConnection(object):
             message = "\n#" + str(len(xml)) + "\n"
             message += xml
             message += "\n##\n"
-            curr_pos = 0
-            while curr_pos < len(message):
-                curr_pos += self.chan.send(message[curr_pos:])
+            self._conn_send(message)
+
+    def _recv_1_1(self):
+        """send xml string as package by connection"""
         get_everything = False
         response = ""
         while not get_everything:
             if len(self.buff) < 2:
-                self.buff += self.chan.recv(2)
+                self.buff += self._conn_recv(2)
             # skip new line
             if self.buff[:2] != "\n#":
+                # We have already closed connection
+                # caller shoud stop to ask new messages
+                if not self.buff and self.conn.closed:
+                    return ""
                 raise exceptions.NonRecoverableError("no start")
             self.buff = self.buff[2:]
             # get package length
             while self.buff.find("\n") == -1:
-                self.buff += self.chan.recv(20)
+                self.buff += self._conn_recv(20)
             if self.buff[:2] == "#\n":
                 get_everything = True
                 self.buff = self.buff[2:]
@@ -111,17 +108,16 @@ class NetConfConnection(object):
             self.buff = self.buff[self.buff.find("\n") + 1:]
             # load current package
             while length > len(self.buff):
-                self.buff += self.chan.recv(length - len(self.buff))
+                self.buff += self._conn_recv(length - len(self.buff))
             response += self.buff[:length]
             self.buff = self.buff[length:]
         return response
 
-    def close(self, goodbye_string):
+    def close(self, goodbye_string=None):
         """send xml string by link and close connection"""
-        response = self.send(goodbye_string)
-        try:
-            # sometime code can't close in time
-            self.chan.close()
-        finally:
-            self.ssh.close()
+        response = None
+        if goodbye_string:
+            # we have something to say
+            response = self.send(goodbye_string)
+        self._ssh_close()
         return response
