@@ -15,13 +15,14 @@ import mock
 import unittest
 
 import cloudify_terminal_sdk.netconf_connection as netconf_connection
+from cloudify_common_sdk import exceptions
 
 
 class NetConfConnectionMockTest(unittest.TestCase):
 
     def generate_all_mocks(self):
         """will generate netconf obj with all need mocks"""
-        netconf = netconf_connection.connection()
+        netconf = netconf_connection.NetConfConnection()
         netconf.ssh = mock.Mock()
         netconf.ssh.close = mock.MagicMock()
         netconf.chan = mock.Mock()
@@ -105,7 +106,7 @@ class NetConfConnectionMockTest(unittest.TestCase):
                 "\n1"
             )
         )
-        with self.assertRaises(netconf_connection.NonRecoverableError):
+        with self.assertRaises(exceptions.NonRecoverableError):
             netconf.send("ping")
 
     def test_close(self):
@@ -160,7 +161,7 @@ class NetConfConnectionMockTest(unittest.TestCase):
                 ".AutoAddPolicy",
                 mock_policy
             ):
-                netconf = netconf_connection.connection()
+                netconf = netconf_connection.NetConfConnection()
                 message = netconf.connect(
                     "127.0.0.100", "me", hello_string="hi",
                     password="unknow"
@@ -223,7 +224,7 @@ class NetConfConnectionMockTest(unittest.TestCase):
                     "RSAKey.from_private_key",
                     mock.MagicMock(return_value="secret")
                 ):
-                    netconf = netconf_connection.connection()
+                    netconf = netconf_connection.NetConfConnection()
                     message = netconf.connect(
                         "127.0.0.100", "me", hello_string="hi",
                         key_content="unknow"

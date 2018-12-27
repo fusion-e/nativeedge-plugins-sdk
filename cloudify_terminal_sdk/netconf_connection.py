@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2018 Cloudify Platform Ltd. All rights reserved
+# Copyright (c) 2015-2018 Cloudify Platform Ltd. All rights reserved
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from cloudify_common_sdk import exceptions
 import paramiko
 from StringIO import StringIO
 
@@ -22,12 +23,7 @@ NETCONF_1_0_CAPABILITY = 'urn:ietf:params:netconf:base:1.0'
 NETCONF_1_1_CAPABILITY = 'urn:ietf:params:netconf:base:1.1'
 
 
-# recoverable error
-class NonRecoverableError(Exception):
-    pass
-
-
-class connection(object):
+class NetConfConnection(object):
 
     # ssh connection
     ssh = None
@@ -102,7 +98,7 @@ class connection(object):
                 self.buff += self.chan.recv(2)
             # skip new line
             if self.buff[:2] != "\n#":
-                raise NonRecoverableError("no start")
+                raise exceptions.NonRecoverableError("no start")
             self.buff = self.buff[2:]
             # get package length
             while self.buff.find("\n") == -1:
