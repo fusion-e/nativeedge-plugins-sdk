@@ -11,27 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from cloudify_common_sdk import exceptions
 import paramiko
 import os
 import time
 from StringIO import StringIO
 
 DEFAULT_PROMT = ["#", "$"]
-
-
-# recoverable error based on warning
-class RecoverableWarning(Exception):
-    pass
-
-
-# recoverable error
-class RecoverableError(Exception):
-    pass
-
-
-# recoverable error
-class NonRecoverableError(Exception):
-    pass
 
 
 class BaseConnection(object):
@@ -233,7 +219,7 @@ class RawConnection(BaseConnection):
                                       for warning in warning_examples]
             if self._find_any_in(response, warnings_with_new_line) != -1:
                 # close is not needed, we will rerun later
-                raise RecoverableWarning(
+                raise exceptions.RecoverableWarning(
                     "Looks as we have warning in response: %s" % (text)
                 )
         # check for errors started only from new line
@@ -242,7 +228,7 @@ class RawConnection(BaseConnection):
             if self._find_any_in(response, errors_with_new_line) != -1:
                 if not self.is_closed():
                     self.close()
-                raise RecoverableError(
+                raise exceptions.RecoverableError(
                     "Looks as we have error in response: %s" % (text)
                 )
         # check for criticals started only from new line
@@ -252,7 +238,7 @@ class RawConnection(BaseConnection):
             if self._find_any_in(response, criticals_with_new_line) != -1:
                 if not self.is_closed():
                     self.close()
-                raise NonRecoverableError(
+                raise exceptions.NonRecoverableError(
                     "Looks as we have critical in response: %s" % (text)
                 )
         return response.strip()
