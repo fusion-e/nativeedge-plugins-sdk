@@ -359,10 +359,44 @@ class TestSdk(unittest.TestCase):
         response = mock.Mock()
         response.json = mock.Mock(return_value=parsed_json)
         response.text = '''<object>10</object>'''
+        response.headers = {
+            'Content-Type': "application/json"
+        }
+        response.cookies = mock.Mock()
+        response.cookies.get_dict = mock.Mock(return_value={'a': 'b'})
         # json
         store_props = {}
         call = {
             'response_format': 'json',
+            'nonrecoverable_response': [['id', '20']],
+            'response_expectation': [['id', '10']],
+            'response_translation': {
+                "name": ["user-full-name"],
+                "email": ["user-email"],
+                "address": {
+                    "city": ["user-city"],
+                    "zipcode": ["user-city-zip"],
+                    "geo": {
+                        "lat": ["user-city-geo", "latitude"],
+                        "lng": ["user-city-geo", "longnitude"]
+                    }
+                }
+            }
+        }
+        utility._process_response(response, call, store_props)
+        self.assertDictEqual(store_props, {
+            'user-city': u'Lebsackbury',
+            'user-city-geo': {
+                'latitude': u'-38.2386',
+                'longnitude': u'57.2232'
+            },
+            'user-city-zip': u'31428-2261',
+            'user-email': u'Rey.Padberg@karina.biz',
+            'user-full-name': u'Clementina DuBuque'
+        })
+        # auto json
+        store_props = {}
+        call = {
             'nonrecoverable_response': [['id', '20']],
             'response_expectation': [['id', '10']],
             'response_translation': {
@@ -414,7 +448,7 @@ class TestSdk(unittest.TestCase):
             utility._process_response(response, call, store_props)
         self.assertEqual(
             str(error.exception),
-            "Response_format OTHER is not supported. Only json/xml or raw "
+            "Response_format 'other' is not supported. Only json/xml or raw "
             "response_format is supported")
         self.assertDictEqual(store_props, {})
         # xml response
@@ -429,6 +463,24 @@ class TestSdk(unittest.TestCase):
         }
         utility._process_response(response, call, store_props)
         self.assertDictEqual(store_props, {'object_id': '10'})
+        # auto xml response
+        response.headers = {
+            'Content-Type': 'application/xml'
+        }
+        store_props = {}
+        call = {
+            'nonrecoverable_response': [['object', '20']],
+            'response_expectation': [['object', '10']],
+            'response_translation': {
+                "object": ["object_id"]
+            },
+            'header_translation': {
+                "Content-Type": ["content_type"]
+            }
+        }
+        utility._process_response(response, call, store_props)
+        self.assertDictEqual(store_props, {'object_id': '10',
+                                           'content_type': 'application/xml'})
 
     def test_send_request(self):
         # json request
@@ -453,6 +505,9 @@ class TestSdk(unittest.TestCase):
         response.raise_for_status = mock.Mock()
         response.text = '''<object>10</object>'''
         request = mock.Mock(return_value=response)
+        response.headers = {}
+        response.cookies = mock.Mock()
+        response.cookies.get_dict = mock.Mock(return_value={'a': 'b'})
         with mock.patch(
             "cloudify_rest_sdk.utility.requests.request", request
         ):
@@ -460,6 +515,7 @@ class TestSdk(unittest.TestCase):
         request.assert_called_with('get', 'https://localhost:443/',
                                    data=None, headers={'a': 'b'},
                                    json=[1, 2, 3],
+                                   params=None,
                                    verify=False)
 
         # xml request
@@ -485,6 +541,9 @@ class TestSdk(unittest.TestCase):
         response.raise_for_status = mock.Mock()
         response.text = '''<object>10</object>'''
         response.status_code = 404
+        response.headers = {}
+        response.cookies = mock.Mock()
+        response.cookies.get_dict = mock.Mock(return_value={'a': 'b'})
         request = mock.Mock(return_value=response)
         with mock.patch(
             "cloudify_rest_sdk.utility.requests.request", request
@@ -494,6 +553,7 @@ class TestSdk(unittest.TestCase):
                                    data='<object>11</object>',
                                    headers={'a': 'b'},
                                    json=None,
+                                   params=None,
                                    verify=False)
 
         # raise error on request status
@@ -555,6 +615,7 @@ class TestSdk(unittest.TestCase):
                 "retry_on_connection_error is set. Retrying...")
 
     def test_process(self):
+        # without params
         template = """
             rest_calls:
             - ssl: true
@@ -578,6 +639,11 @@ class TestSdk(unittest.TestCase):
         response.raise_for_status = mock.Mock()
         response.text = '''<object>10</object>'''
         response.status_code = 404
+        response.headers = {
+            'Content-Type': "application/json"
+        }
+        response.cookies = mock.Mock()
+        response.cookies.get_dict = mock.Mock(return_value={'a': 'b'})
         request = mock.Mock(return_value=response)
         with mock.patch(
             "cloudify_rest_sdk.utility.requests.request", request
@@ -604,6 +670,75 @@ class TestSdk(unittest.TestCase):
                                    data='<object>11</object>',
                                    headers={'a': 'b'},
                                    json=None,
+                                   params=None,
+                                   verify=False)
+        # urlencode
+        template = """
+            rest_calls:
+            - ssl: true
+              path: "/xml"
+              method: get
+              verify: false
+              host: localhost
+              port: -1
+              payload:
+                object: 11
+              payload_format: urlencoded
+              headers:
+                a: b
+              response_format: xml
+              nonrecoverable_response: [['object', '20']]
+              response_expectation: [['object', '10']]
+              cookies_translation:
+                a:
+                - a
+              response_translation:
+                object:
+                - object_id"""
+        response = mock.Mock()
+        response.json = None
+        response.raise_for_status = mock.Mock()
+        response.text = '''<object>10</object>'''
+        response.status_code = 404
+        response.headers = {
+            'Content-Type': "application/json"
+        }
+        response.cookies = mock.Mock()
+        response.cookies.get_dict = mock.Mock(return_value={'a': 'b'})
+        request = mock.Mock(return_value=response)
+        with mock.patch(
+            "cloudify_rest_sdk.utility.requests.request", request
+        ):
+            self.assertEqual(
+                utility.process({}, template, {}),
+                {
+                    'calls': [{
+                        'headers': {'a': 'b'},
+                        'host': 'localhost',
+                        'method': 'get',
+                        'nonrecoverable_response': [['object']],
+                        'path': '/xml',
+                        'payload': {
+                            'object': 11
+                        },
+                        'payload_format': 'urlencoded',
+                        'port': -1,
+                        'response_expectation': [['object']],
+                        'response_format': 'xml',
+                        'response_translation': {'object': []},
+                        'cookies_translation': {'a': []},
+                        'ssl': True,
+                        'verify': False
+                    }],
+                    'result_properties': {
+                        'object_id': '10',
+                        'a': 'b'
+                    }})
+        request.assert_called_with('get', 'https://localhost:443/xml',
+                                   data=None,
+                                   headers={'a': 'b'},
+                                   json=None,
+                                   params={'object': 11},
                                    verify=False)
 
 
