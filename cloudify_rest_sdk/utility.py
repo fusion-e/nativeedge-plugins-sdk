@@ -78,17 +78,16 @@ def _send_request(call):
         # check if payload can be used as json
         payload_format = call.get('payload_format', 'json')
         payload_data = call.get('payload', None)
+        params = call.get('params', {})
         if payload_format == 'json':
             json_payload = payload_data
-            params = None
             data = None
         elif payload_format == 'urlencoded' and isinstance(payload_data, dict):
             json_payload = None
-            params = payload_data
+            params.update(payload_data)
             data = None
         else:
             json_payload = None
-            params = None
             data = payload_data
 
         try:
