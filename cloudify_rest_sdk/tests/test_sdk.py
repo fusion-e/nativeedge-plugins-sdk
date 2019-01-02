@@ -515,7 +515,7 @@ class TestSdk(unittest.TestCase):
         request.assert_called_with('get', 'https://localhost:443/',
                                    data=None, headers={'a': 'b'},
                                    json=[1, 2, 3],
-                                   params=None,
+                                   params={},
                                    verify=False)
 
         # xml request
@@ -553,7 +553,7 @@ class TestSdk(unittest.TestCase):
                                    data='<object>11</object>',
                                    headers={'a': 'b'},
                                    json=None,
-                                   params=None,
+                                   params={},
                                    verify=False)
 
         # raise error on request status
@@ -670,7 +670,7 @@ class TestSdk(unittest.TestCase):
                                    data='<object>11</object>',
                                    headers={'a': 'b'},
                                    json=None,
-                                   params=None,
+                                   params={},
                                    verify=False)
         # urlencode
         template = """
