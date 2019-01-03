@@ -76,19 +76,27 @@ def _send_request(call):
                                          call['path'])
         logger.debug('Full url: {}'.format(repr(full_url)))
         # check if payload can be used as json
-        if call.get('payload_format', 'json') == 'json':
+        payload_format = call.get('payload_format', 'json')
+        payload_data = call.get('payload', None)
+        params = call.get('params', {})
+        if payload_format == 'json':
+            json_payload = payload_data
             data = None
-            json_payload = call.get('payload', None)
-        else:
-            data = call.get('payload', None)
+        elif payload_format == 'urlencoded' and isinstance(payload_data, dict):
             json_payload = None
+            params.update(payload_data)
+            data = None
+        else:
+            json_payload = None
+            data = payload_data
 
         try:
             response = requests.request(call['method'], full_url,
                                         headers=call.get('headers', None),
-                                        data=data,
+                                        verify=call.get('verify', True),
                                         json=json_payload,
-                                        verify=call['verify'])
+                                        params=params,
+                                        data=data)
         except requests.exceptions.ConnectionError as e:
             logger.debug('ConnectionError for host: {}'.format(repr(host)))
 
@@ -128,14 +136,36 @@ def _process_response(response, call, store_props):
     logger.debug('Process Response: {}'.format(repr(response)))
     logger.debug('Call: {}'.format(repr(call)))
     logger.debug('Store props: {}'.format(repr(store_props)))
+    logger.debug('Store headers: {}'.format(repr(response.headers)))
 
-    response_format = call.get('response_format', 'json').upper()
-    if re.match('JSON|XML', response_format):
-        if response_format == 'JSON':
-            logger.debug('Response format is json')
+    # process headers
+    if response.headers:
+        _translate_and_save(response.headers,
+                            call.get('header_translation', None),
+                            store_props)
+    # process cookies
+    if response.cookies:
+        _translate_and_save(response.cookies.get_dict(),
+                            call.get('cookies_translation', None),
+                            store_props)
+    # process body
+    response_format = call.get('response_format', 'auto').lower()
+    if response_format == 'auto':
+        if response.headers.get('Content-Type'):
+            response_content_type = response.headers['Content-Type'].lower()
+            if response_content_type.startswith("application/json"):
+                response_format = 'json'
+            elif (
+                response_content_type.startswith('text/xml') or
+                response_content_type.startswith('application/xml')
+            ):
+                response_format = 'xml'
+            logger.debug('Detected type is {}'.format(repr(response_format)))
+    logger.debug('Response format is {}'.format(repr(response_format)))
+    if response_format == 'json' or response_format == 'xml':
+        if response_format == 'json':
             json = response.json()
         else:  # XML
-            logger.debug('Response format is xml')
             json = xmltodict.parse(response.text)
             logger.debug('XML transformed to dict: {}'.format(repr(json)))
 
@@ -144,16 +174,15 @@ def _process_response(response, call, store_props):
 
         _translate_and_save(json, call.get('response_translation', None),
                             store_props)
-    elif response_format == 'TEXT':
-        logger.debug('response_format text')
+    elif response_format == 'text':
         store_props['text'] = response.text
-    elif response_format == 'RAW':
+    elif response_format == 'raw':
         logger.debug('No action for raw response_format')
     else:
         raise WrongTemplateDataException(
             "Response_format {} is not supported. "
             "Only json/xml or raw response_format is supported".format(
-                response_format))
+                repr(response_format)))
 
 
 def _check_response(json, response, is_recoverable):

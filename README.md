@@ -7,6 +7,136 @@ Utilities SDK for extending Cloudify features.
 
 ## Contents:
 
+### Rest Yaml Template format.
+
+* `rest_calls`: Top level list of calls.
+  * `port`: Connection port, for `-1` pors selected by `ssl` value.
+  * `ssl`: Use https connection.
+  * `hosts`: Optional, List of rest servers, use value from `host`.
+  * `host`: Optional, rest server address.
+  * `path`: Url path.
+  * `payload_format`: Optional, payload format for request, supported: `json`,
+    `urlencoded`, `raw`. By default: `json`.
+  * `payload`: Optional, payload data.
+  * `params`: Optional, url params.
+  * `method`: Request method.
+  * `headers`: Optional, headers for set.
+  * `verify`: Optional, check https certificates. By default: `true`.
+  * `recoverable_codes`: Optional, non critical http codes, will run retry on
+    failure.
+  * `header_translation`: Optional, rules for translate headers for save in
+    response.
+  * `cookies_translation`: Optional, rules for translate cookies for save in
+    response.
+  * `response_translation`: Optional, rules for translate response body for
+    save in response.
+  * `response_format`: Optional, response type, supported: `json`, `xml`,
+    `text`, `auto` and `raw`. By default: `auto`. If set to `auto` - format
+    detected by response headers.
+  * `nonrecoverable_response`: Optional, unaccepted responses.
+  * `response_expectation`: Optional, accepted responses.
+
+#### Suported transformation rules Version 1:
+
+Body:
+```json
+{
+    "id": 10,
+    "name": "Clementina DuBuque",
+    "username": "Moriah.Stanton",
+    "email": "Rey.Padberg@karina.biz",
+    "address": {
+        "street": "Kattie Turnpike",
+        "suite": "Suite 198",
+        "city": "Lebsackbury",
+        "zipcode": "31428-2261",
+        "geo": {
+            "lat": "-38.2386",
+            "lng": "57.2232"
+        }
+    },
+    "phone": "024-648-3804",
+    "website": "ambrose.net",
+    "company": {
+        "name": "Hoeger LLC",
+        "catchPhrase": "Centralized empowering task-force",
+        "bs": "target end-to-end models"
+    }
+}
+```
+
+Transformation rule:
+```json
+{
+    "name": ["user-full-name"],
+    "email": ["user-email"],
+    "address": {
+        "city": ["user-city"],
+        "zipcode": ["user-city-zip"],
+        "geo": {
+            "lat": ["user-city-geo", "latitude"],
+            "lng": ["user-city-geo", "longnitude"]
+        }
+    }
+}
+```
+
+Result:
+```json
+{
+    "user-city": "Lebsackbury",
+    "user-city-geo": {
+        "latitude": "-38.2386",
+        "longnitude": "57.2232"
+    },
+    "user-city-zip": "31428-2261",
+    "user-email": "Rey.Padberg@karina.biz",
+    "user-full-name": "Clementina DuBuque"
+}
+```
+
+#### Suported transformation rules Version 2:
+
+Body:
+```json
+{
+    "id": "6857017661",
+    "payload": {
+        "pages": [
+            {
+                "page_name": "marvin",
+                "action": "edited",
+                "properties" :
+                {
+                    "color" : "blue"
+                }
+            },
+            {
+                "page_name": "cool_wool",
+                "action": "saved",
+                "properties" :
+                {
+                    "color" : "red"
+                }
+            }
+        ]
+    }
+}
+```
+
+Transformation rule:
+```json
+[[
+    ["payload", "pages", ["page_name"]],
+    ["pages", ["page_name"]]
+]]
+```
+
+Result:
+```json
+{"pages": [{"page_name": "cool_wool"},
+           {"page_name": "cool_wool"}]}
+```
 
 ## Versions:
 
