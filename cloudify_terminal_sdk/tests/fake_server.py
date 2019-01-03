@@ -23,7 +23,16 @@ from StringIO import StringIO
 from Crypto.PublicKey import RSA
 from cloudify_terminal_sdk import netconf_connection
 
+# configs
 debug_1_1 = True
+netconf_user = "netconf"
+netconf_password = "netconf"
+netconf_port = 2200
+netconf_host = "localhost"
+
+print("Netconf started on {}:{} with credentials {}:{} with {} version."
+      .format(netconf_host, netconf_port, netconf_user, netconf_password,
+              "1.1" if debug_1_1 else "1.0"))
 
 key = RSA.generate(2048)
 privatekey = key.exportKey()
@@ -61,7 +70,7 @@ class Server(paramiko.ServerInterface):
 try:
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    sock.bind(("", 2200))
+    sock.bind((netconf_host, netconf_port))
 except Exception as e:
     print("Exception: " + repr(e))
     sys.exit(1)
@@ -78,7 +87,7 @@ print("Got a connection!")
 
 transport = paramiko.Transport(client)
 transport.add_server_key(host_key)
-server = Server("netconf", "netconf")
+server = Server(netconf_user, netconf_password)
 try:
     transport.start_server(server=server)
 except paramiko.SSHException:

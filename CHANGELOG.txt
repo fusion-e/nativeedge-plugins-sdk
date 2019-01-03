@@ -1,5 +1,12 @@
 releases:
 
+  v0.0.3:
+  - Autocheck content type by headers
+  - Save headers to response by filtering
+  - Use headers in request
+  - Add urlencoded parameters support
+  - Merge params with urlencoded payloads
+
   v0.0.2:
   - Reorganize connection code for reuse netconf/terminal ssh connection
   - Use common exception for all code parts
