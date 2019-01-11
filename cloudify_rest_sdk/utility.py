@@ -36,27 +36,35 @@ TEMPLATE_PROPERTY_RETRY_ON_CONNECTION_ERROR = 'retry_on_connection_error'
 
 
 #  request_props (port, ssl, verify, hosts )
-def process(params, template, request_props):
+def process(params, template, request_props, prerender=False,
+            resource_callback=False):
     logger.info('Template:\n{}...'.format(str(template)[:4096]))
-    template_yaml = yaml.load(template)
+    if prerender:
+        template_engine = Template(template)
+        rendered_call = template_engine.render(params)
+        template_yaml = yaml.load(rendered_call)
+    else:
+        template_yaml = yaml.load(template)
     result_properties = {}
     calls = []
     for call in template_yaml['rest_calls']:
         call_with_request_props = request_props.copy()
-        logger.debug('Call \n {}'.format(call))
+        logger.debug('Call: {}'.format(repr(call)))
         # enrich params with items stored in runtime props by prev calls
         params.update(result_properties)
-        call = str(call)
-        # Remove quotation marks before and after jinja blocks
-        call = re.sub(r'\'\{\%', '{%', call)
-        call = re.sub(r'\%\}\'', '%}', call)
-        template_engine = Template(call)
-        rendered_call = template_engine.render(params)
-        call = ast.literal_eval(rendered_call)
+        if not prerender:
+            call = str(call)
+            # Remove quotation marks before and after jinja blocks
+            call = re.sub(r'\'\{\%', '{%', call)
+            call = re.sub(r'\%\}\'', '%}', call)
+            template_engine = Template(call)
+            rendered_call = template_engine.render(params)
+            call = ast.literal_eval(rendered_call)
         calls.append(call)
         logger.debug('Rendered call: {}'.format(repr(call)))
         call_with_request_props.update(call)
-        response = _send_request(call_with_request_props)
+        response = _send_request(call_with_request_props,
+                                 resource_callback=resource_callback)
         _process_response(response, call, result_properties)
     result_properties = {'result_properties': result_properties,
                          'calls': calls}
@@ -79,7 +87,12 @@ def _send_request(call, resource_callback=None):
         # check if payload can be used as json
         payload_format = call.get('payload_format', 'json')
         payload_data = call.get('payload', None)
+        # check that we have some raw payload
+        if resource_callback and call.get('raw_payload'):
+            payload_data = resource_callback(call.get('raw_payload'))
+        # url params
         params = call.get('params', {})
+        # combine payloads and params
         if payload_format == 'json':
             json_payload = payload_data
             data = None
@@ -90,7 +103,7 @@ def _send_request(call, resource_callback=None):
         else:
             json_payload = None
             data = payload_data
-
+        # run request
         try:
             response = requests.request(call['method'], full_url,
                                         headers=call.get('headers', None),

@@ -382,7 +382,130 @@ class TestSdk(unittest.TestCase):
                 "ConnectionError check connect has occurred, but flag "
                 "retry_on_connection_error is set. Retrying...")
 
-    def test_process(self):
+    def test_process_pre_render(self):
+        # without params
+        template = """
+            rest_calls:
+            - ssl: true
+              path: "/xml"
+              method: get
+              verify: false
+              host: localhost
+              port: -1
+              payload: {{ payload }}
+              payload_format: raw
+              headers:
+                a: b
+              response_format: xml
+              nonrecoverable_response: [['object', '20']]
+              response_expectation: [['object', '10']]
+              response_translation:
+                object:
+                - object_id"""
+        response = mock.Mock()
+        response.json = None
+        response.raise_for_status = mock.Mock()
+        response.text = '''<object>10</object>'''
+        response.status_code = 404
+        response.headers = {
+            'Content-Type': "application/json"
+        }
+        response.cookies = mock.Mock()
+        response.cookies.get_dict = mock.Mock(return_value={'a': 'b'})
+        request = mock.Mock(return_value=response)
+        with mock.patch(
+            "cloudify_rest_sdk.utility.requests.request", request
+        ):
+            self.assertEqual(
+                utility.process({'payload': '<object>11</object>'}, template,
+                                {}, prerender=True), {
+                    'calls': [{
+                        'headers': {'a': 'b'},
+                        'host': 'localhost',
+                        'method': 'get',
+                        'nonrecoverable_response': [['object']],
+                        'path': '/xml',
+                        'payload': '<object>11</object>',
+                        'payload_format': 'raw',
+                        'port': -1,
+                        'response_expectation': [['object']],
+                        'response_format': 'xml',
+                        'response_translation': {'object': []},
+                        'ssl': True,
+                        'verify': False
+                    }],
+                    'result_properties': {'object_id': u'10'}})
+        request.assert_called_with('get', 'https://localhost:443/xml',
+                                   data='<object>11</object>',
+                                   headers={'a': 'b'},
+                                   json=None,
+                                   params={},
+                                   verify=False)
+        # check rawpayload
+        template = """
+            rest_calls:
+            - ssl: true
+              path: "/xml"
+              method: get
+              verify: false
+              host: localhost
+              port: -1
+              raw_payload: payload.xml
+              payload: {{ payload }}
+              payload_format: raw
+              headers:
+                a: b
+              response_format: xml
+              nonrecoverable_response: [['object', '20']]
+              response_expectation: [['object', '10']]
+              response_translation:
+                object:
+                - object_id"""
+        payload_callback = mock.Mock(return_value="<object>22</object>")
+        response = mock.Mock()
+        response.json = None
+        response.raise_for_status = mock.Mock()
+        response.text = '''<object>10</object>'''
+        response.status_code = 404
+        response.headers = {
+            'Content-Type': "application/json"
+        }
+        response.cookies = mock.Mock()
+        response.cookies.get_dict = mock.Mock(return_value={'a': 'b'})
+        request = mock.Mock(return_value=response)
+        with mock.patch(
+            "cloudify_rest_sdk.utility.requests.request", request
+        ):
+            self.assertEqual(
+                utility.process({'payload': '<object>11</object>'}, template,
+                                {}, prerender=True,
+                                resource_callback=payload_callback), {
+                    'calls': [{
+                        'headers': {'a': 'b'},
+                        'host': 'localhost',
+                        'method': 'get',
+                        'nonrecoverable_response': [['object']],
+                        'path': '/xml',
+                        'raw_payload': 'payload.xml',
+                        'payload': '<object>11</object>',
+                        'payload_format': 'raw',
+                        'port': -1,
+                        'response_expectation': [['object']],
+                        'response_format': 'xml',
+                        'response_translation': {'object': []},
+                        'ssl': True,
+                        'verify': False
+                    }],
+                    'result_properties': {'object_id': u'10'}})
+        request.assert_called_with('get', 'https://localhost:443/xml',
+                                   data='<object>22</object>',
+                                   headers={'a': 'b'},
+                                   json=None,
+                                   params={},
+                                   verify=False)
+        payload_callback.assert_called_with('payload.xml')
+
+    def test_process_post_render(self):
         # without params
         template = """
             rest_calls:
@@ -436,6 +559,54 @@ class TestSdk(unittest.TestCase):
                     'result_properties': {'object_id': u'10'}})
         request.assert_called_with('get', 'https://localhost:443/xml',
                                    data='<object>11</object>',
+                                   headers={'a': 'b'},
+                                   json=None,
+                                   params={},
+                                   verify=False)
+        # check post apply parameters
+        template = """
+            rest_calls:
+            - ssl: true
+              path: "/xml"
+              method: get
+              verify: false
+              host: localhost
+              port: -1
+              payload: "{% if custom is not string %}{{custom}}{% endif %}"
+              payload_format: raw
+              headers:
+                a: b
+              response_format: xml
+              nonrecoverable_response: [['object', '20']]
+              response_expectation: [['object', '10']]
+              response_translation:
+                object:
+                - object_id"""
+        request = mock.Mock(return_value=response)
+        with mock.patch(
+            "cloudify_rest_sdk.utility.requests.request", request
+        ):
+            self.assertEqual(
+                utility.process({'custom': [1, 2, 3]}, template,
+                                {}, ), {
+                    'calls': [{
+                        'headers': {'a': 'b'},
+                        'host': 'localhost',
+                        'method': 'get',
+                        'nonrecoverable_response': [['object']],
+                        'path': '/xml',
+                        'payload': [1, 2, 3],
+                        'payload_format': 'raw',
+                        'port': -1,
+                        'response_expectation': [['object']],
+                        'response_format': 'xml',
+                        'response_translation': {'object': []},
+                        'ssl': True,
+                        'verify': False
+                    }],
+                    'result_properties': {'object_id': u'10'}})
+        request.assert_called_with('get', 'https://localhost:443/xml',
+                                   data=[1, 2, 3],
                                    headers={'a': 'b'},
                                    json=None,
                                    params={},

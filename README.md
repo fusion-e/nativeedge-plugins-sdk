@@ -18,12 +18,16 @@ Utilities SDK for extending Cloudify features.
   * `payload_format`: Optional, payload format for request, supported: `json`,
     `urlencoded`, `raw`. By default: `json`.
   * `payload`: Optional, payload data.
+  * `raw_payload`: Optional, raw payload data name avaible by callback.
   * `params`: Optional, url params.
   * `method`: Request method.
   * `headers`: Optional, headers for set.
   * `verify`: Optional, check https certificates. By default: `true`.
   * `recoverable_codes`: Optional, non critical http codes, will run retry on
     failure.
+  * `translation_format`: Optional, translation rules format, supported: `v1`,
+    `v2`, `v3` and `auto`. By default: `auto`. If set to `auto` - format
+    detected by translation rules itself.
   * `header_translation`: Optional, rules for translate headers for save in
     response.
   * `cookies_translation`: Optional, rules for translate cookies for save in
@@ -136,6 +140,31 @@ Result:
 ```json
 {"pages": [{"page_name": "cool_wool"},
            {"page_name": "cool_wool"}]}
+```
+
+#### Suported transformation rules Version 3:
+
+Body:
+```json
+{
+    "a": {
+        "b": "c"
+    }
+}
+```
+
+Transformation rule:
+```json
+{
+    "g": ["a", "b"]
+}
+```
+
+Result:
+```json
+{
+    "g": "c"
+}
 ```
 
 ## Versions:
