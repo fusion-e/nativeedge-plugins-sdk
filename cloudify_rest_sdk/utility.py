@@ -22,6 +22,7 @@ from jinja2 import Template
 import requests
 
 from cloudify_rest_sdk import LOGGER_NAME
+from cloudify_common_sdk.filters import translate_and_save
 from cloudify_common_sdk.exceptions import (
     RecoverableStatusCodeCodeException,
     ExpectationException,
@@ -62,7 +63,7 @@ def process(params, template, request_props):
     return result_properties
 
 
-def _send_request(call):
+def _send_request(call, resource_callback=None):
     logger.debug('Request props: {}'.format(repr(call)))
     port = call['port']
     ssl = call['ssl']
@@ -137,17 +138,18 @@ def _process_response(response, call, store_props):
     logger.debug('Call: {}'.format(repr(call)))
     logger.debug('Store props: {}'.format(repr(store_props)))
     logger.debug('Store headers: {}'.format(repr(response.headers)))
+    translation_version = call.get('translation_format', 'auto')
 
     # process headers
     if response.headers:
-        _translate_and_save(response.headers,
-                            call.get('header_translation', None),
-                            store_props)
+        translate_and_save(logger, response.headers,
+                           call.get('header_translation', None),
+                           store_props, translation_version)
     # process cookies
     if response.cookies:
-        _translate_and_save(response.cookies.get_dict(),
-                            call.get('cookies_translation', None),
-                            store_props)
+        translate_and_save(logger, response.cookies.get_dict(),
+                           call.get('cookies_translation', None),
+                           store_props, translation_version)
     # process body
     response_format = call.get('response_format', 'auto').lower()
     if response_format == 'auto':
@@ -172,8 +174,9 @@ def _process_response(response, call, store_props):
         _check_response(json, call.get('nonrecoverable_response'), False)
         _check_response(json, call.get('response_expectation'), True)
 
-        _translate_and_save(json, call.get('response_translation', None),
-                            store_props)
+        translate_and_save(logger, json,
+                           call.get('response_translation', None),
+                           store_props, translation_version)
     elif response_format == 'text':
         store_props['text'] = response.text
     elif response_format == 'raw':
@@ -234,96 +237,3 @@ def _check_response(json, response, is_recoverable):
                 "Response value:{} does not match regexp: {} "
                 "from response_expectation".format(
                     str(json), str(pattern)))
-
-
-def _check_if_v2(response_translation):
-    # check if response_translation is list of list of 2 elements
-    if isinstance(response_translation, list) and \
-            isinstance(response_translation[0], list) and \
-            len(response_translation[0]) == 2 and \
-            isinstance(response_translation[0][0], list) and \
-            isinstance(response_translation[0][1], list):
-        return True
-    return False
-
-
-def _translate_and_save(response_json, response_translation, runtime_dict):
-    if _check_if_v2(response_translation):
-        _translate_and_save_v2(response_json, response_translation,
-                               runtime_dict)
-    else:
-        _translate_and_save_v1(response_json, response_translation,
-                               runtime_dict)
-
-
-def _translate_and_save_v2(response_json, response_translation, runtime_dict):
-    for translation in response_translation:
-        json = response_json
-        for idx, key in enumerate(translation[0]):
-            if isinstance(key, list):
-                _prepare_runtime_props_for_list(runtime_dict,
-                                                translation[1],
-                                                len(json))
-                for response_list_idx, response_list_value in enumerate(json):
-                    list_path = translation[0][idx+1:]
-                    list_path.insert(0, key[0])
-                    list_path.insert(0, response_list_idx)
-                    list_path_arg = [[
-                        list_path,
-                        _prepare_runtime_props_path_for_list(
-                            translation[1], response_list_idx)
-                    ]]
-                    _translate_and_save_v2(json, list_path_arg, runtime_dict)
-                return
-            else:
-                json = json[key]
-        _save(runtime_dict, translation[1], json)
-
-
-def _translate_and_save_v1(response_json, response_translation, runtime_dict):
-    if isinstance(response_translation, list):
-        for idx, val in enumerate(response_translation):
-            if isinstance(val, (list, dict)):
-                _translate_and_save_v1(response_json[idx], val, runtime_dict)
-            else:
-                _save(runtime_dict, response_translation, response_json)
-    elif isinstance(response_translation, dict):
-        for key, value in response_translation.items():
-            _translate_and_save_v1(response_json[key], value, runtime_dict)
-
-
-def _save(runtime_properties_dict_or_subdict, list, value):
-    first_el = list.pop(0)
-    if len(list) == 0:
-        runtime_properties_dict_or_subdict[first_el] = value
-    else:
-        runtime_properties_dict_or_subdict[
-            first_el] = \
-                runtime_properties_dict_or_subdict.get(
-                    first_el, {}) if isinstance(
-            runtime_properties_dict_or_subdict, dict) else \
-                runtime_properties_dict_or_subdict[first_el]
-        _save(runtime_properties_dict_or_subdict[first_el], list, value)
-
-
-def _prepare_runtime_props_path_for_list(runtime_props_path, idx):
-    path = list(runtime_props_path)
-    last_one = path[-1]
-    if isinstance(last_one, list):
-        path.pop()
-        path.append(idx)
-        path.extend(last_one)
-    else:
-        path.append(idx)
-    return path
-
-
-def _prepare_runtime_props_for_list(runtime_props, runtime_props_path, count):
-    for l_idx, value in enumerate(runtime_props_path):
-        if value == runtime_props_path[-1] or \
-                isinstance(runtime_props_path[l_idx+1], list):
-            runtime_props[value] = [{}] * count
-            return
-        else:
-            runtime_props[value] = runtime_props.get(value, {})
-            runtime_props = runtime_props[value]
