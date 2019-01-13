@@ -22,238 +22,6 @@ from cloudify_common_sdk import exceptions
 
 class TestSdk(unittest.TestCase):
 
-    def test__check_if_v2(self):
-        # version 2
-        self.assertTrue(utility._check_if_v2([[['id'], ['params', 'id']],
-                                              [['type', '{{actor}}', 'id'],
-                                               ['aktorowe', 'id']]]))
-        # version 1
-        self.assertFalse(utility._check_if_v2({
-            "name": ["user-full-name"],
-            "email": ["user-email"],
-            "address": {
-                "city": ["user-city"],
-                "zipcode": ["user-city-zip"],
-                "geo": {
-                    "lat": ["user-city-geo", "latitude"],
-                    "lng": ["user-city-geo", "longnitude"]
-                }
-            }
-        }))
-
-    def test_translate_and_save_v1(self):
-        # v1 - {...}
-        parsed_json = json.loads('''{
-            "id": 10,
-            "name": "Clementina DuBuque",
-            "username": "Moriah.Stanton",
-            "email": "Rey.Padberg@karina.biz",
-            "address": {
-                "street": "Kattie Turnpike",
-                "suite": "Suite 198",
-                "city": "Lebsackbury",
-                "zipcode": "31428-2261",
-                "geo": {
-                    "lat": "-38.2386",
-                    "lng": "57.2232"
-                }
-            },
-            "phone": "024-648-3804",
-            "website": "ambrose.net",
-            "company": {
-                "name": "Hoeger LLC",
-                "catchPhrase": "Centralized empowering task-force",
-                "bs": "target end-to-end models"
-            }
-        }''')
-        # directly call translate
-        runtime_props = {}
-        response_translation = {
-            "name": ["user-full-name"],
-            "email": ["user-email"],
-            "address": {
-                "city": ["user-city"],
-                "zipcode": ["user-city-zip"],
-                "geo": {
-                    "lat": ["user-city-geo", "latitude"],
-                    "lng": ["user-city-geo", "longnitude"]
-                }
-            }
-        }
-        utility._translate_and_save_v1(parsed_json, response_translation,
-                                       runtime_props)
-        self.assertEqual(runtime_props, {
-            'user-city': u'Lebsackbury',
-            'user-city-geo': {
-                'latitude': u'-38.2386',
-                'longnitude': u'57.2232'
-            },
-            'user-city-zip': u'31428-2261',
-            'user-email': u'Rey.Padberg@karina.biz',
-            'user-full-name': u'Clementina DuBuque'
-        })
-        # inderect call translate
-        runtime_props = {}
-        response_translation = {
-            "name": ["user-full-name"],
-            "email": ["user-email"],
-            "address": {
-                "city": ["user-city"],
-                "zipcode": ["user-city-zip"],
-                "geo": {
-                    "lat": ["user-city-geo", "latitude"],
-                    "lng": ["user-city-geo", "longnitude"]
-                }
-            }
-        }
-        utility._translate_and_save(parsed_json, response_translation,
-                                    runtime_props)
-        self.assertEqual(runtime_props, {
-            'user-city': u'Lebsackbury',
-            'user-city-geo': {
-                'latitude': u'-38.2386',
-                'longnitude': u'57.2232'
-            },
-            'user-city-zip': u'31428-2261',
-            'user-email': u'Rey.Padberg@karina.biz',
-            'user-full-name': u'Clementina DuBuque'
-        })
-        # v1 - [{...}]
-        parsed_json = json.loads('''[{
-            "id": 10,
-            "name": "Clementina DuBuque",
-            "username": "Moriah.Stanton",
-            "email": "Rey.Padberg@karina.biz",
-            "address": {
-                "street": "Kattie Turnpike",
-                "suite": "Suite 198",
-                "city": "Lebsackbury",
-                "zipcode": "31428-2261",
-                "geo": {
-                    "lat": "-38.2386",
-                    "lng": "57.2232"
-                }
-            },
-            "phone": "024-648-3804",
-            "website": "ambrose.net",
-            "company": {
-                "name": "Hoeger LLC",
-                "catchPhrase": "Centralized empowering task-force",
-                "bs": "target end-to-end models"
-            }
-        }]''')
-        # directly call translate
-        runtime_props = {}
-        response_translation = [{
-            "name": ["user-full-name"],
-            "email": ["user-email"],
-            "address": {
-                "city": ["user-city"],
-                "zipcode": ["user-city-zip"],
-                "geo": {
-                    "lat": ["user-city-geo", "latitude"],
-                    "lng": ["user-city-geo", "longnitude"]
-                }
-            }
-        }]
-        utility._translate_and_save_v1(parsed_json, response_translation,
-                                       runtime_props)
-        self.assertEqual(runtime_props, {
-            'user-city': u'Lebsackbury',
-            'user-city-geo': {
-                'latitude': u'-38.2386',
-                'longnitude': u'57.2232'
-            },
-            'user-city-zip': u'31428-2261',
-            'user-email': u'Rey.Padberg@karina.biz',
-            'user-full-name': u'Clementina DuBuque'
-        })
-
-    def test_translate_and_save_v2(self):
-        response_translation = \
-            [[['id'], ['params', 'id']], [['payload', 'pages'], ['pages']]]
-        parsed_json = json.loads('''{
-            "id": "6857017661",
-            "payload": {
-                "pages": [
-                    {
-                        "page_name": "marvin",
-                        "action": "edited",
-                        "properties" :
-                        {
-                            "color" : "blue"
-                        }
-                    },
-                    {
-                        "page_name": "cool_wool",
-                        "action": "saved",
-                        "properties" :
-                        {
-                            "color" : "red"
-                        }
-                    }
-                ]
-            }
-        }''')
-        # directly call translate
-        runtime_props = {}
-        response_translation = [[
-            ['payload', 'pages', ['page_name']],
-            ['pages', ['page_name']]
-        ]]
-        utility._translate_and_save_v2(parsed_json, response_translation,
-                                       runtime_props)
-        self.assertEqual(runtime_props,
-                         {'pages': [{'page_name': u'cool_wool'},
-                                    {'page_name': u'cool_wool'}]})
-        # inderect call translate
-        runtime_props = {}
-        response_translation = [[
-            ['payload', 'pages', ['page_name']],
-            ['pages', ['page_name']]
-        ]]
-        utility._translate_and_save(parsed_json, response_translation,
-                                    runtime_props)
-        self.assertEqual(runtime_props,
-                         {'pages': [{'page_name': u'cool_wool'},
-                                    {'page_name': u'cool_wool'}]})
-
-    def test_prepare_runtime_props_path_for_list(self):
-        self.assertListEqual(
-            utility._prepare_runtime_props_path_for_list(
-                ['key1', ['k2', 'k3']], 2),
-            ['key1', 2, 'k2', 'k3'])
-
-        self.assertListEqual(
-            utility._prepare_runtime_props_path_for_list(
-                ['key1', 'k2', 'k3'],
-                1),
-            ['key1', 'k2', 'k3', 1])
-
-        self.assertListEqual(
-            utility._prepare_runtime_props_path_for_list(
-                ['key1', ['k2', ['k3']]],
-                2),
-            ['key1', 2, 'k2', ['k3']])
-
-        self.assertListEqual(
-            utility._prepare_runtime_props_path_for_list(
-                ['key1', 'k2', ['k3']], 1),
-            ['key1', 'k2', 1, 'k3'])
-
-    def test_prepare_runtime_props_for_list(self):
-        runtime_props = {}
-        utility._prepare_runtime_props_for_list(runtime_props,
-                                                ['key1', ['k2', 'k3']], 2)
-        self.assertDictEqual(runtime_props, {'key1': [{}, {}]})
-
-        runtime_props = {}
-        utility._prepare_runtime_props_for_list(runtime_props,
-                                                ['k1', 'k2', 'k3'], 5)
-
-        self.assertDictEqual(runtime_props, {
-            'k1': {'k2': {'k3': [{}, {}, {}, {}, {}]}}})
-
     def test_check_response(self):
         parsed_json = json.loads('''{
             "id": 10,
@@ -614,7 +382,130 @@ class TestSdk(unittest.TestCase):
                 "ConnectionError check connect has occurred, but flag "
                 "retry_on_connection_error is set. Retrying...")
 
-    def test_process(self):
+    def test_process_pre_render(self):
+        # without params
+        template = """
+            rest_calls:
+            - ssl: true
+              path: "/xml"
+              method: get
+              verify: false
+              host: localhost
+              port: -1
+              payload: {{ payload }}
+              payload_format: raw
+              headers:
+                a: b
+              response_format: xml
+              nonrecoverable_response: [['object', '20']]
+              response_expectation: [['object', '10']]
+              response_translation:
+                object:
+                - object_id"""
+        response = mock.Mock()
+        response.json = None
+        response.raise_for_status = mock.Mock()
+        response.text = '''<object>10</object>'''
+        response.status_code = 404
+        response.headers = {
+            'Content-Type': "application/json"
+        }
+        response.cookies = mock.Mock()
+        response.cookies.get_dict = mock.Mock(return_value={'a': 'b'})
+        request = mock.Mock(return_value=response)
+        with mock.patch(
+            "cloudify_rest_sdk.utility.requests.request", request
+        ):
+            self.assertEqual(
+                utility.process({'payload': '<object>11</object>'}, template,
+                                {}, prerender=True), {
+                    'calls': [{
+                        'headers': {'a': 'b'},
+                        'host': 'localhost',
+                        'method': 'get',
+                        'nonrecoverable_response': [['object']],
+                        'path': '/xml',
+                        'payload': '<object>11</object>',
+                        'payload_format': 'raw',
+                        'port': -1,
+                        'response_expectation': [['object']],
+                        'response_format': 'xml',
+                        'response_translation': {'object': []},
+                        'ssl': True,
+                        'verify': False
+                    }],
+                    'result_properties': {'object_id': u'10'}})
+        request.assert_called_with('get', 'https://localhost:443/xml',
+                                   data='<object>11</object>',
+                                   headers={'a': 'b'},
+                                   json=None,
+                                   params={},
+                                   verify=False)
+        # check rawpayload
+        template = """
+            rest_calls:
+            - ssl: true
+              path: "/xml"
+              method: get
+              verify: false
+              host: localhost
+              port: -1
+              raw_payload: payload.xml
+              payload: {{ payload }}
+              payload_format: raw
+              headers:
+                a: b
+              response_format: xml
+              nonrecoverable_response: [['object', '20']]
+              response_expectation: [['object', '10']]
+              response_translation:
+                object:
+                - object_id"""
+        payload_callback = mock.Mock(return_value="<object>22</object>")
+        response = mock.Mock()
+        response.json = None
+        response.raise_for_status = mock.Mock()
+        response.text = '''<object>10</object>'''
+        response.status_code = 404
+        response.headers = {
+            'Content-Type': "application/json"
+        }
+        response.cookies = mock.Mock()
+        response.cookies.get_dict = mock.Mock(return_value={'a': 'b'})
+        request = mock.Mock(return_value=response)
+        with mock.patch(
+            "cloudify_rest_sdk.utility.requests.request", request
+        ):
+            self.assertEqual(
+                utility.process({'payload': '<object>11</object>'}, template,
+                                {}, prerender=True,
+                                resource_callback=payload_callback), {
+                    'calls': [{
+                        'headers': {'a': 'b'},
+                        'host': 'localhost',
+                        'method': 'get',
+                        'nonrecoverable_response': [['object']],
+                        'path': '/xml',
+                        'raw_payload': 'payload.xml',
+                        'payload': '<object>11</object>',
+                        'payload_format': 'raw',
+                        'port': -1,
+                        'response_expectation': [['object']],
+                        'response_format': 'xml',
+                        'response_translation': {'object': []},
+                        'ssl': True,
+                        'verify': False
+                    }],
+                    'result_properties': {'object_id': u'10'}})
+        request.assert_called_with('get', 'https://localhost:443/xml',
+                                   data='<object>22</object>',
+                                   headers={'a': 'b'},
+                                   json=None,
+                                   params={},
+                                   verify=False)
+        payload_callback.assert_called_with('payload.xml')
+
+    def test_process_post_render(self):
         # without params
         template = """
             rest_calls:
@@ -668,6 +559,54 @@ class TestSdk(unittest.TestCase):
                     'result_properties': {'object_id': u'10'}})
         request.assert_called_with('get', 'https://localhost:443/xml',
                                    data='<object>11</object>',
+                                   headers={'a': 'b'},
+                                   json=None,
+                                   params={},
+                                   verify=False)
+        # check post apply parameters
+        template = """
+            rest_calls:
+            - ssl: true
+              path: "/xml"
+              method: get
+              verify: false
+              host: localhost
+              port: -1
+              payload: "{% if custom is not string %}{{custom}}{% endif %}"
+              payload_format: raw
+              headers:
+                a: b
+              response_format: xml
+              nonrecoverable_response: [['object', '20']]
+              response_expectation: [['object', '10']]
+              response_translation:
+                object:
+                - object_id"""
+        request = mock.Mock(return_value=response)
+        with mock.patch(
+            "cloudify_rest_sdk.utility.requests.request", request
+        ):
+            self.assertEqual(
+                utility.process({'custom': [1, 2, 3]}, template,
+                                {}, ), {
+                    'calls': [{
+                        'headers': {'a': 'b'},
+                        'host': 'localhost',
+                        'method': 'get',
+                        'nonrecoverable_response': [['object']],
+                        'path': '/xml',
+                        'payload': [1, 2, 3],
+                        'payload_format': 'raw',
+                        'port': -1,
+                        'response_expectation': [['object']],
+                        'response_format': 'xml',
+                        'response_translation': {'object': []},
+                        'ssl': True,
+                        'verify': False
+                    }],
+                    'result_properties': {'object_id': u'10'}})
+        request.assert_called_with('get', 'https://localhost:443/xml',
+                                   data=[1, 2, 3],
                                    headers={'a': 'b'},
                                    json=None,
                                    params={},
