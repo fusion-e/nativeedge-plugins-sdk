@@ -103,9 +103,15 @@ def _send_request(call, resource_callback=None):
         else:
             json_payload = None
             data = payload_data
+        # auth
+        auth = None
+        if 'auth' in call:
+            auth = (call['auth'].get('user'),
+                    call['auth'].get('password'))
         # run request
         try:
             response = requests.request(call['method'], full_url,
+                                        auth=auth,
                                         headers=call.get('headers', None),
                                         verify=call.get('verify', True),
                                         json=json_payload,

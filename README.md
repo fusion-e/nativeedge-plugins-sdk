@@ -39,6 +39,9 @@ Utilities SDK for extending Cloudify features.
     detected by response headers.
   * `nonrecoverable_response`: Optional, unaccepted responses.
   * `response_expectation`: Optional, accepted responses.
+  * `auth`: Optional, Authentication credentials.
+    * `user`: user name,
+    * `password`: password.
 
 #### Suported transformation rules Version 1:
 

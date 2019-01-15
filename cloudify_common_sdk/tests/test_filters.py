@@ -279,6 +279,26 @@ class TestFilters(unittest.TestCase):
                                    translation_version="v3")
         self.assertEqual(runtime_props, {'g': 'c'})
 
+    def test_translate_and_save_empty_translate(self):
+        runtime_props = {}
+        parsed_json = {'a': 'b'}
+        for possible_empty in ([], {}, None):
+            # force v1
+            filters.translate_and_save(Mock(), parsed_json,
+                                       possible_empty, runtime_props,
+                                       translation_version="v1")
+            self.assertEqual(runtime_props, {})
+            # force v2
+            filters.translate_and_save(Mock(), parsed_json,
+                                       possible_empty, runtime_props,
+                                       translation_version="v2")
+            self.assertEqual(runtime_props, {})
+            # force v3
+            filters.translate_and_save(Mock(), parsed_json,
+                                       possible_empty, runtime_props,
+                                       translation_version="v3")
+            self.assertEqual(runtime_props, {})
+
     def test_prepare_runtime_props_path_for_list(self):
         self.assertListEqual(
             filters._prepare_runtime_props_path_for_list(
