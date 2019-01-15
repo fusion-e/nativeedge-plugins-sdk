@@ -91,6 +91,9 @@ def _translate_and_save_v1(response_json, response_translation, runtime_dict):
 
 
 def _translate_and_save_v2(response_json, response_translation, runtime_dict):
+    if not response_translation:
+        # skip any empty translation rules
+        return
     for translation in response_translation:
         json = response_json
         for idx, key in enumerate(translation[0]):
@@ -117,6 +120,7 @@ def _translate_and_save_v2(response_json, response_translation, runtime_dict):
 def _check_if_v2(response_translation):
     # check if response_translation is list of list of 2 elements
     if isinstance(response_translation, list) and \
+            len(response_translation) and \
             isinstance(response_translation[0], list) and \
             len(response_translation[0]) == 2 and \
             isinstance(response_translation[0][0], list) and \
@@ -127,6 +131,9 @@ def _check_if_v2(response_translation):
 
 def _translate_and_save_v3(logger, response_json, response_translation,
                            runtime_dict):
+    if not response_translation:
+        # skip any empty translation rules
+        return
     for param_name in response_translation:
         runtime_dict[param_name] = get_field_value_recursive(
             logger, response_json, response_translation[param_name])
