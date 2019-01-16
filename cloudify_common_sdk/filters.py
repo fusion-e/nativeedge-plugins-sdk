@@ -150,3 +150,15 @@ def translate_and_save(logger, response_json, response_translation,
     else:
         _translate_and_save_v1(response_json, response_translation,
                                runtime_dict)
+
+
+def shorted_text(obj, size=1024):
+    if isinstance(obj, basestring):
+        text = obj
+    else:
+        text = repr(obj)
+    if size <= 3:
+        return text[:size]
+    elif len(text) > size:
+        return text[:size-3] + "..."
+    return text

@@ -1,5 +1,10 @@
 releases:
 
+  v0.0.5:
+  - Fixes for translation 'v3'
+  - Support auth headers
+  - Limit rest log messages to 1024
+
   v0.0.4:
   - Support raw_payload in rest sdk
   - Support hardcoded translation_format version in rest sdk
