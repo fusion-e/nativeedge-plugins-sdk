@@ -335,6 +335,12 @@ class TestFilters(unittest.TestCase):
         self.assertDictEqual(runtime_props, {
             'k1': {'k2': {'k3': [{}, {}, {}, {}, {}]}}})
 
+    def test_shorted_text(self):
+        self.assertEqual(filters.shorted_text("12345", 3), "123")
+        self.assertEqual(filters.shorted_text("12345", 4), "1...")
+        self.assertEqual(filters.shorted_text("12345", 5), "12345")
+        self.assertEqual(filters.shorted_text({"a": "b"}), "{'a': 'b'}")
+
 
 if __name__ == '__main__':
     unittest.main()
