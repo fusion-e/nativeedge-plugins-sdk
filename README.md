@@ -14,17 +14,18 @@ Utilities SDK for extending Cloudify features.
   * `ssl`: Use https connection.
   * `hosts`: Optional, List of rest servers, use value from `host`.
   * `host`: Optional, rest server address.
-  * `path`: Url path.
+  * `path`: Represents URI of REST call.
   * `payload_format`: Optional, payload format for request, supported: `json`,
     `urlencoded`, `raw`. By default: `json`.
-  * `payload`: Optional, payload data.
+  * `payload`: Optional, YAML representation of data that is to be sent as
+    payload in REST call.
   * `raw_payload`: Optional, raw payload data name avaible by callback.
   * `params`: Optional, url params.
-  * `method`: Request method.
+  * `method`: REST method (GET/PUT/POST/PATCH/DELETE).
   * `headers`: Optional, headers for set.
   * `verify`: Optional, check https certificates. By default: `true`.
-  * `recoverable_codes`: Optional, non critical http codes, will run retry on
-    failure.
+  * `recoverable_codes`: Optional, non critical recoverable http codes, will
+    triger operation retry on failure.
   * `translation_format`: Optional, translation rules format, supported: `v1`,
     `v2`, `v3` and `auto`. By default: `auto`. If set to `auto` - format
     detected by translation rules itself.
@@ -33,12 +34,21 @@ Utilities SDK for extending Cloudify features.
   * `cookies_translation`: Optional, rules for translate cookies for save in
     response.
   * `response_translation`: Optional, rules for translate response body for
-    save in response.
+    save in response (`runtime properties`).
   * `response_format`: Optional, response type, supported: `json`, `xml`,
     `text`, `auto` and `raw`. By default: `auto`. If set to `auto` - format
     detected by response headers.
-  * `nonrecoverable_response`: Optional, unaccepted responses.
-  * `response_expectation`: Optional, accepted responses.
+  * `nonrecoverable_response`: Optional, unaccepted responses. Response which
+    is raising non-recoverable error and triggers workflow to stop (give up).
+  * `response_expectation`: Optional, accepted responses. What we expect in a
+    response content. If response is different than specified, system is
+    raising recoverable error and trying until response is equal to specified.
+  * `retry_on_connection_error`: try to send request again even in case when
+    REST endpoint is not available (ConnectionError). It may be useful in cases
+    that we need to wait for some REST service to be up.
+  * `auth`: Optional, Authentication credentials.
+    * `user`: user name,
+    * `password`: password.
 
 #### Suported transformation rules Version 1:
 
