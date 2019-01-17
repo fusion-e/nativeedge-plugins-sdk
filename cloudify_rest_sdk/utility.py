@@ -22,7 +22,7 @@ from jinja2 import Template
 import requests
 
 from cloudify_rest_sdk import LOGGER_NAME
-from cloudify_common_sdk.filters import translate_and_save
+from cloudify_common_sdk.filters import translate_and_save, shorted_text
 from cloudify_common_sdk.exceptions import (
     RecoverableStatusCodeCodeException,
     ExpectationException,
@@ -38,7 +38,7 @@ TEMPLATE_PROPERTY_RETRY_ON_CONNECTION_ERROR = 'retry_on_connection_error'
 #  request_props (port, ssl, verify, hosts )
 def process(params, template, request_props, prerender=False,
             resource_callback=False):
-    logger.info('Template:\n{}...'.format(str(template)[:4096]))
+    logger.info('Template:\n{}'.format(shorted_text(template)))
     if prerender:
         template_engine = Template(template)
         rendered_call = template_engine.render(params)
@@ -49,7 +49,7 @@ def process(params, template, request_props, prerender=False,
     calls = []
     for call in template_yaml['rest_calls']:
         call_with_request_props = request_props.copy()
-        logger.debug('Call: {}'.format(repr(call)))
+        logger.debug('Call: {}'.format(shorted_text(call)))
         # enrich params with items stored in runtime props by prev calls
         params.update(result_properties)
         if not prerender:
@@ -61,7 +61,7 @@ def process(params, template, request_props, prerender=False,
             rendered_call = template_engine.render(params)
             call = ast.literal_eval(rendered_call)
         calls.append(call)
-        logger.debug('Rendered call: {}'.format(repr(call)))
+        logger.debug('Rendered call: {}'.format(shorted_text(call)))
         call_with_request_props.update(call)
         response = _send_request(call_with_request_props,
                                  resource_callback=resource_callback)
@@ -72,7 +72,7 @@ def process(params, template, request_props, prerender=False,
 
 
 def _send_request(call, resource_callback=None):
-    logger.debug('Request props: {}'.format(repr(call)))
+    logger.debug('Request props: {}'.format(shorted_text(call)))
     port = call['port']
     ssl = call['ssl']
     if port == -1:
@@ -103,9 +103,15 @@ def _send_request(call, resource_callback=None):
         else:
             json_payload = None
             data = payload_data
+        # auth
+        auth = None
+        if 'auth' in call:
+            auth = (call['auth'].get('user'),
+                    call['auth'].get('password'))
         # run request
         try:
             response = requests.request(call['method'], full_url,
+                                        auth=auth,
                                         headers=call.get('headers', None),
                                         verify=call.get('verify', True),
                                         json=json_payload,
@@ -131,7 +137,7 @@ def _send_request(call, resource_callback=None):
                 raise
 
     logger.info('Response content: \n{}...'
-                .format(str(response.content)[:4096]))
+                .format(shorted_text(response.content)))
     logger.info('Status code: {}'.format(repr(response.status_code)))
 
     try:
@@ -147,10 +153,10 @@ def _send_request(call, resource_callback=None):
 
 
 def _process_response(response, call, store_props):
-    logger.debug('Process Response: {}'.format(repr(response)))
-    logger.debug('Call: {}'.format(repr(call)))
-    logger.debug('Store props: {}'.format(repr(store_props)))
-    logger.debug('Store headers: {}'.format(repr(response.headers)))
+    logger.debug('Process Response: {}'.format(shorted_text(response)))
+    logger.debug('Call: {}'.format(shorted_text(call)))
+    logger.debug('Store props: {}'.format(shorted_text(store_props)))
+    logger.debug('Store headers: {}'.format(shorted_text(response.headers)))
     translation_version = call.get('translation_format', 'auto')
 
     # process headers
@@ -182,7 +188,8 @@ def _process_response(response, call, store_props):
             json = response.json()
         else:  # XML
             json = xmltodict.parse(response.text)
-            logger.debug('XML transformed to dict: {}'.format(repr(json)))
+            logger.debug('XML transformed to dict: {}'
+                         .format(shorted_text(json)))
 
         _check_response(json, call.get('nonrecoverable_response'), False)
         _check_response(json, call.get('response_expectation'), True)
@@ -204,10 +211,10 @@ def _process_response(response, call, store_props):
 def _check_response(json, response, is_recoverable):
     if not is_recoverable:
         logger.debug('Check response (nonrecoverable) in json: {} by {}'
-                     .format(repr(json), repr(response)))
+                     .format(shorted_text(json), repr(response)))
     else:
         logger.debug('Check response (recoverable) in json: {} by {}'
-                     .format(repr(json), repr(response)))
+                     .format(shorted_text(json), repr(response)))
 
     if not response:
         return

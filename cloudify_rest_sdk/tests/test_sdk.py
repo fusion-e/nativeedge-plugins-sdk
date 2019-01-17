@@ -258,6 +258,10 @@ class TestSdk(unittest.TestCase):
             'method': 'get',
             'verify': False,
             'host': 'localhost',
+            'auth': {
+                'user': 'someone',
+                'password': 'check'
+            },
             'port': -1,
             'payload': [1, 2, 3],
             'headers': {"a": "b"},
@@ -284,6 +288,7 @@ class TestSdk(unittest.TestCase):
                                    data=None, headers={'a': 'b'},
                                    json=[1, 2, 3],
                                    params={},
+                                   auth=('someone', 'check'),
                                    verify=False)
 
         # xml request
@@ -322,6 +327,7 @@ class TestSdk(unittest.TestCase):
                                    headers={'a': 'b'},
                                    json=None,
                                    params={},
+                                   auth=None,
                                    verify=False)
 
         # raise error on request status
@@ -440,6 +446,7 @@ class TestSdk(unittest.TestCase):
                                    headers={'a': 'b'},
                                    json=None,
                                    params={},
+                                   auth=None,
                                    verify=False)
         # check rawpayload
         template = """
@@ -502,6 +509,7 @@ class TestSdk(unittest.TestCase):
                                    headers={'a': 'b'},
                                    json=None,
                                    params={},
+                                   auth=None,
                                    verify=False)
         payload_callback.assert_called_with('payload.xml')
 
@@ -562,6 +570,7 @@ class TestSdk(unittest.TestCase):
                                    headers={'a': 'b'},
                                    json=None,
                                    params={},
+                                   auth=None,
                                    verify=False)
         # check post apply parameters
         template = """
@@ -610,6 +619,7 @@ class TestSdk(unittest.TestCase):
                                    headers={'a': 'b'},
                                    json=None,
                                    params={},
+                                   auth=None,
                                    verify=False)
         # urlencode
         template = """
@@ -678,6 +688,7 @@ class TestSdk(unittest.TestCase):
                                    headers={'a': 'b'},
                                    json=None,
                                    params={'object': 11},
+                                   auth=None,
                                    verify=False)
 
 

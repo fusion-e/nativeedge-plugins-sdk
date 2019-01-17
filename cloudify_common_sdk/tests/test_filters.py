@@ -279,6 +279,26 @@ class TestFilters(unittest.TestCase):
                                    translation_version="v3")
         self.assertEqual(runtime_props, {'g': 'c'})
 
+    def test_translate_and_save_empty_translate(self):
+        runtime_props = {}
+        parsed_json = {'a': 'b'}
+        for possible_empty in ([], {}, None):
+            # force v1
+            filters.translate_and_save(Mock(), parsed_json,
+                                       possible_empty, runtime_props,
+                                       translation_version="v1")
+            self.assertEqual(runtime_props, {})
+            # force v2
+            filters.translate_and_save(Mock(), parsed_json,
+                                       possible_empty, runtime_props,
+                                       translation_version="v2")
+            self.assertEqual(runtime_props, {})
+            # force v3
+            filters.translate_and_save(Mock(), parsed_json,
+                                       possible_empty, runtime_props,
+                                       translation_version="v3")
+            self.assertEqual(runtime_props, {})
+
     def test_prepare_runtime_props_path_for_list(self):
         self.assertListEqual(
             filters._prepare_runtime_props_path_for_list(
@@ -314,6 +334,12 @@ class TestFilters(unittest.TestCase):
 
         self.assertDictEqual(runtime_props, {
             'k1': {'k2': {'k3': [{}, {}, {}, {}, {}]}}})
+
+    def test_shorted_text(self):
+        self.assertEqual(filters.shorted_text("12345", 3), "123")
+        self.assertEqual(filters.shorted_text("12345", 4), "1...")
+        self.assertEqual(filters.shorted_text("12345", 5), "12345")
+        self.assertEqual(filters.shorted_text({"a": "b"}), "{'a': 'b'}")
 
 
 if __name__ == '__main__':
