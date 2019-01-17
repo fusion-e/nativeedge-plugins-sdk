@@ -120,7 +120,7 @@ def _translate_and_save_v2(response_json, response_translation, runtime_dict):
 def _check_if_v2(response_translation):
     # check if response_translation is list of list of 2 elements
     if isinstance(response_translation, list) and \
-            len(response_translation) and \
+            response_translation and \
             isinstance(response_translation[0], list) and \
             len(response_translation[0]) == 2 and \
             isinstance(response_translation[0][0], list) and \
