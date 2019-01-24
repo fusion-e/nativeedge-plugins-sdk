@@ -47,6 +47,10 @@ def process(params, template, request_props, prerender=False,
         template_yaml = yaml.load(template)
     result_properties = {}
     calls = []
+    if not template_yaml or not template_yaml.get('rest_calls'):
+        logger.debug('Empty call list')
+        return {}
+
     for call in template_yaml['rest_calls']:
         call_with_request_props = request_props.copy()
         logger.debug('Call: {}'.format(shorted_text(call)))
