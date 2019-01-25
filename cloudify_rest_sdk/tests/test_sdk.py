@@ -513,6 +513,15 @@ class TestSdk(unittest.TestCase):
                                    verify=False)
         payload_callback.assert_called_with('payload.xml')
 
+    def test_process_empty(self):
+        # no calls in template
+        template = """
+            rest_calls:
+        """
+        self.assertEqual(utility.process({}, template, {}), {})
+        # empty template
+        self.assertEqual(utility.process({}, "", {}), {})
+
     def test_process_post_render(self):
         # without params
         template = """
