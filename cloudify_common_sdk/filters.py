@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from jinja2 import Environment
+import xmltodict
 
 
 def get_field_value_recursive(logger, properties, path):
@@ -153,6 +155,7 @@ def translate_and_save(logger, response_json, response_translation,
 
 
 def shorted_text(obj, size=1024):
+    """Limit text to size"""
     if isinstance(obj, basestring):
         text = obj
     else:
@@ -162,3 +165,26 @@ def shorted_text(obj, size=1024):
     elif len(text) > size:
         return text[:size-3] + "..."
     return text
+
+
+def _toxml(value):
+    """toxml filter"""
+    XML_PREFIX = '<?xml version="1.0" encoding="utf-8"?>'
+
+    result = ""
+    for el in value:
+        part_xml = xmltodict.unparse({el: value[el]}, pretty=False)
+        # remove xml prefix
+        if part_xml[:len(XML_PREFIX)] == XML_PREFIX:
+            part_xml = part_xml[len(XML_PREFIX):]
+        result += part_xml.strip()
+
+    return result
+
+
+def render_template(template_txt, params):
+    """Render Jinja template"""
+    env = Environment()
+    env.filters["toxml"] = _toxml
+    template = env.from_string(template_txt)
+    return template.render(params)

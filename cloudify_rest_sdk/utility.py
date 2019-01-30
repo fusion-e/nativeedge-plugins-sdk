@@ -18,11 +18,14 @@ import logging
 import ast
 import re
 import xmltodict
-from jinja2 import Template
 import requests
 
 from cloudify_rest_sdk import LOGGER_NAME
-from cloudify_common_sdk.filters import translate_and_save, shorted_text
+from cloudify_common_sdk.filters import (
+    translate_and_save,
+    shorted_text,
+    render_template
+)
 from cloudify_common_sdk.exceptions import (
     RecoverableStatusCodeCodeException,
     ExpectationException,
@@ -40,8 +43,7 @@ def process(params, template, request_props, prerender=False,
             resource_callback=False):
     logger.info('Template:\n{}'.format(shorted_text(template)))
     if prerender:
-        template_engine = Template(template)
-        rendered_call = template_engine.render(params)
+        rendered_call = render_template(template, params)
         template_yaml = yaml.load(rendered_call)
     else:
         template_yaml = yaml.load(template)
@@ -61,8 +63,7 @@ def process(params, template, request_props, prerender=False,
             # Remove quotation marks before and after jinja blocks
             call = re.sub(r'\'\{\%', '{%', call)
             call = re.sub(r'\%\}\'', '%}', call)
-            template_engine = Template(call)
-            rendered_call = template_engine.render(params)
+            rendered_call = render_template(call, params)
             call = ast.literal_eval(rendered_call)
         calls.append(call)
         logger.debug('Rendered call: {}'.format(shorted_text(call)))
