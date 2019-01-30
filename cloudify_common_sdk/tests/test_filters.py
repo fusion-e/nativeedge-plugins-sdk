@@ -341,6 +341,14 @@ class TestFilters(unittest.TestCase):
         self.assertEqual(filters.shorted_text("12345", 5), "12345")
         self.assertEqual(filters.shorted_text({"a": "b"}), "{'a': 'b'}")
 
+    def test_render_template(self):
+        self.assertEqual(
+            filters.render_template('{{a|tojson}}', {'a': {'b': 'c'}}),
+            '{"b": "c"}')
+        self.assertEqual(
+            filters.render_template('{{a|toxml}}', {'a': {'b': 'c'}}),
+            '<b>c</b>')
+
 
 if __name__ == '__main__':
     unittest.main()

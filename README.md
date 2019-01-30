@@ -50,6 +50,9 @@ Utilities SDK for extending Cloudify features.
     * `user`: user name,
     * `password`: password.
 
+In tempalate supported all Jinja filters, e.g. `{{a|tojson}}` and additional
+`{{a|toxml}}` filter.
+
 #### Suported transformation rules Version 1:
 
 Body:

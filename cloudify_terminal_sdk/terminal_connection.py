@@ -115,8 +115,8 @@ class RawConnection(TextConnection):
                 have_correct_prefix = True
 
         if have_correct_prefix:
-                # looks as we have correct line
-                response = text[prefix_pos + len(prefix):]
+            # looks as we have correct line
+            response = text[prefix_pos + len(prefix):]
         else:
             # skip first line(where must be echo from commands input)
             if "\n" in text:
