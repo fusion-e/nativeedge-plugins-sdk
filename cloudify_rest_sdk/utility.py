@@ -179,7 +179,10 @@ def _process_response(response, call, store_props):
     if response_format == 'auto':
         if response.headers.get('Content-Type'):
             response_content_type = response.headers['Content-Type'].lower()
-            if response_content_type.startswith("application/json"):
+            if (
+                response_content_type.startswith("application/json") or
+                response_content_type.startswith("text/json")
+            ):
                 response_format = 'json'
             elif (
                 response_content_type.startswith('text/xml') or
@@ -187,6 +190,9 @@ def _process_response(response, call, store_props):
             ):
                 response_format = 'xml'
             logger.debug('Detected type is {}'.format(repr(response_format)))
+        # for backward compatibility set json for unknown types
+        if response_format == 'auto':
+            response_format = 'json'
     logger.debug('Response format is {}'.format(repr(response_format)))
     if response_format == 'json' or response_format == 'xml':
         if response_format == 'json':
