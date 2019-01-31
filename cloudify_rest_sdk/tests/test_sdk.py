@@ -249,6 +249,38 @@ class TestSdk(unittest.TestCase):
         utility._process_response(response, call, store_props)
         self.assertDictEqual(store_props, {'object_id': '10',
                                            'content_type': 'application/xml'})
+        # can't use autodetected type, failback to json
+        response.headers = {
+            'Content-Type': "json-alias"
+        }
+        store_props = {}
+        call = {
+            'nonrecoverable_response': [['id', '20']],
+            'response_expectation': [['id', '10']],
+            'response_translation': {
+                "name": ["user-full-name"],
+                "email": ["user-email"],
+                "address": {
+                    "city": ["user-city"],
+                    "zipcode": ["user-city-zip"],
+                    "geo": {
+                        "lat": ["user-city-geo", "latitude"],
+                        "lng": ["user-city-geo", "longnitude"]
+                    }
+                }
+            }
+        }
+        utility._process_response(response, call, store_props)
+        self.assertDictEqual(store_props, {
+            'user-city': u'Lebsackbury',
+            'user-city-geo': {
+                'latitude': u'-38.2386',
+                'longnitude': u'57.2232'
+            },
+            'user-city-zip': u'31428-2261',
+            'user-email': u'Rey.Padberg@karina.biz',
+            'user-full-name': u'Clementina DuBuque'
+        })
 
     def test_send_request(self):
         # json request

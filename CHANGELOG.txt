@@ -2,6 +2,8 @@ releases:
 
   v0.0.7:
   - Add `toxml` filter to rest sdk.
+  - Failback to `json` for response_format==`auto` if can't detect real type
+    in rest sdk.
 
   v0.0.6:
   - Correctly process empty call list in rest sdk
