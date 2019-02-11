@@ -16,13 +16,14 @@ import setuptools
 
 setuptools.setup(
     name='cloudify-utilities-plugins-sdk',
-    version='0.0.7',
+    version='0.0.8',
     author='Cloudify Platform Ltd.',
     author_email='hello@cloudify.co',
     description='Utilities SDK for extending Cloudify',
     packages=['cloudify_common_sdk',
               'cloudify_rest_sdk',
-              'cloudify_terminal_sdk'],
+              'cloudify_terminal_sdk',
+              'cloudify_secrets_sdk'],
     license='LICENSE',
     install_requires=[
         'paramiko',  # terminal
