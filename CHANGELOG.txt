@@ -1,5 +1,8 @@
 releases:
 
+  v0.0.8:
+  - Add `files` and `files_raw` to rest sdk.
+
   v0.0.7:
   - Add `toxml` filter to rest sdk.
   - Failback to `json` for response_format==`auto` if can't detect real type
@@ -14,8 +17,8 @@ releases:
   - Limit rest log messages to 1024
 
   v0.0.4:
-  - Support raw_payload in rest sdk
-  - Support hardcoded translation_format version in rest sdk
+  - Support `raw_payload` in rest sdk
+  - Support hardcoded `translation_format` version in rest sdk
   - Support prerender template in rest sdk
 
   v0.0.3:

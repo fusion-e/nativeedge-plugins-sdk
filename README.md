@@ -19,7 +19,10 @@ Utilities SDK for extending Cloudify features.
     `urlencoded`, `raw`. By default: `json`.
   * `payload`: Optional, YAML representation of data that is to be sent as
     payload in REST call.
+  * `files`: Optional, YAML representation of data that is to be sent as
+    files in REST call.
   * `raw_payload`: Optional, raw payload data name avaible by callback.
+  * `raw_files`: Optional, raw files data name avaible by callback.
   * `params`: Optional, url params.
   * `method`: REST method (GET/PUT/POST/PATCH/DELETE).
   * `headers`: Optional, headers for set.
