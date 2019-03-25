@@ -19,6 +19,7 @@ import ast
 import re
 import xmltodict
 import requests
+from StringIO import StringIO
 
 from cloudify_rest_sdk import LOGGER_NAME
 from cloudify_common_sdk.filters import (
@@ -97,6 +98,26 @@ def _send_request(call, resource_callback=None):
             payload_data = resource_callback(call.get('raw_payload'))
         # url params
         params = call.get('params', {})
+        # files magic
+        files_merged = {}
+        files = {}
+        files_raw = call.get("files_raw", {})
+        # add all raw files
+        for name in files_raw:
+            files_merged[name] = resource_callback(files_raw[name])
+        # add inline files
+        files_merged.update(call.get("files", {}))
+        # convert files strcut to correct type
+        for name in files_merged:
+            if isinstance(files_raw[name], list):
+                # convert to correct struct
+                files[name] = tuple(files_raw[name])
+            elif isinstance(files_raw[name], basestring):
+                # send string as file
+                files[name] = StringIO(files_raw[name])
+            else:
+                # let's request decide about format
+                files[name] = files_raw[name]
         # combine payloads and params
         if payload_format == 'json':
             json_payload = payload_data
@@ -121,6 +142,7 @@ def _send_request(call, resource_callback=None):
                                         verify=call.get('verify', True),
                                         json=json_payload,
                                         params=params,
+                                        files=files if files else None,
                                         data=data)
         except requests.exceptions.ConnectionError as e:
             logger.debug('ConnectionError for host: {}'.format(repr(host)))

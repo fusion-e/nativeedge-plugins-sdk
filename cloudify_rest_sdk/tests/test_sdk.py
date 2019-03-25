@@ -320,7 +320,155 @@ class TestSdk(unittest.TestCase):
                                    data=None, headers={'a': 'b'},
                                    json=[1, 2, 3],
                                    params={},
+                                   files=None,
                                    auth=('someone', 'check'),
+                                   verify=False)
+
+        # raw_files with string
+        call = {
+            'ssl': True,
+            'path': "/xml",
+            'method': 'get',
+            'verify': False,
+            'host': 'localhost',
+            'port': -1,
+            'files_raw': {
+                'file': 'some_name'
+            },
+            'headers': {"a": "b"},
+            'response_format': 'xml',
+            'nonrecoverable_response': [['object', '20']],
+            'response_expectation': [['object', '10']],
+            'response_translation': {
+                "object": ["object_id"]
+            }
+        }
+        response = mock.Mock()
+        response.json = None
+        response.raise_for_status = mock.Mock()
+        response.text = '''<object>10</object>'''
+        response.status_code = 404
+        response.headers = {}
+        response.cookies = mock.Mock()
+        response.cookies.get_dict = mock.Mock(return_value={'a': 'b'})
+        request = mock.Mock(return_value=response)
+        response_callback = mock.Mock(return_value="abc")
+
+        def _fake_StringIO(a):
+            return a
+
+        with mock.patch(
+            "cloudify_rest_sdk.utility.requests.request", request
+        ):
+            with mock.patch(
+                "cloudify_rest_sdk.utility.StringIO", _fake_StringIO
+            ):
+                self.assertEqual(
+                    utility._send_request(call, response_callback),
+                    response)
+        request.assert_called_with('get', 'https://localhost:443/xml',
+                                   data=None,
+                                   headers={'a': 'b'},
+                                   json=None,
+                                   params={},
+                                   files={'file': 'some_name'},
+                                   auth=None,
+                                   verify=False)
+
+        # raw_files with list
+        call = {
+            'ssl': True,
+            'path': "/xml",
+            'method': 'get',
+            'verify': False,
+            'host': 'localhost',
+            'port': -1,
+            'files_raw': {
+                'file': ['a', 'b', 'c']
+            },
+            'headers': {"a": "b"},
+            'response_format': 'xml',
+            'nonrecoverable_response': [['object', '20']],
+            'response_expectation': [['object', '10']],
+            'response_translation': {
+                "object": ["object_id"]
+            }
+        }
+        response = mock.Mock()
+        response.json = None
+        response.raise_for_status = mock.Mock()
+        response.text = '''<object>10</object>'''
+        response.status_code = 404
+        response.headers = {}
+        response.cookies = mock.Mock()
+        response.cookies.get_dict = mock.Mock(return_value={'a': 'b'})
+        request = mock.Mock(return_value=response)
+        response_callback = mock.Mock(return_value="abc")
+
+        def _fake_StringIO(a):
+            return a
+
+        with mock.patch(
+            "cloudify_rest_sdk.utility.requests.request", request
+        ):
+            self.assertEqual(
+                utility._send_request(call, response_callback),
+                response)
+        request.assert_called_with('get', 'https://localhost:443/xml',
+                                   data=None,
+                                   headers={'a': 'b'},
+                                   json=None,
+                                   params={},
+                                   files={'file': ('a', 'b', 'c')},
+                                   auth=None,
+                                   verify=False)
+
+        # raw_files with tuple
+        call = {
+            'ssl': True,
+            'path': "/xml",
+            'method': 'get',
+            'verify': False,
+            'host': 'localhost',
+            'port': -1,
+            'files_raw': {
+                'file': ('a', 'b', 'c')
+            },
+            'headers': {"a": "b"},
+            'response_format': 'xml',
+            'nonrecoverable_response': [['object', '20']],
+            'response_expectation': [['object', '10']],
+            'response_translation': {
+                "object": ["object_id"]
+            }
+        }
+        response = mock.Mock()
+        response.json = None
+        response.raise_for_status = mock.Mock()
+        response.text = '''<object>10</object>'''
+        response.status_code = 404
+        response.headers = {}
+        response.cookies = mock.Mock()
+        response.cookies.get_dict = mock.Mock(return_value={'a': 'b'})
+        request = mock.Mock(return_value=response)
+        response_callback = mock.Mock(return_value="abc")
+
+        def _fake_StringIO(a):
+            return a
+
+        with mock.patch(
+            "cloudify_rest_sdk.utility.requests.request", request
+        ):
+            self.assertEqual(
+                utility._send_request(call, response_callback),
+                response)
+        request.assert_called_with('get', 'https://localhost:443/xml',
+                                   data=None,
+                                   headers={'a': 'b'},
+                                   json=None,
+                                   params={},
+                                   files={'file': ('a', 'b', 'c')},
+                                   auth=None,
                                    verify=False)
 
         # xml request
@@ -359,6 +507,7 @@ class TestSdk(unittest.TestCase):
                                    headers={'a': 'b'},
                                    json=None,
                                    params={},
+                                   files=None,
                                    auth=None,
                                    verify=False)
 
@@ -478,6 +627,7 @@ class TestSdk(unittest.TestCase):
                                    headers={'a': 'b'},
                                    json=None,
                                    params={},
+                                   files=None,
                                    auth=None,
                                    verify=False)
         # check rawpayload
@@ -541,6 +691,7 @@ class TestSdk(unittest.TestCase):
                                    headers={'a': 'b'},
                                    json=None,
                                    params={},
+                                   files=None,
                                    auth=None,
                                    verify=False)
         payload_callback.assert_called_with('payload.xml')
@@ -611,6 +762,7 @@ class TestSdk(unittest.TestCase):
                                    headers={'a': 'b'},
                                    json=None,
                                    params={},
+                                   files=None,
                                    auth=None,
                                    verify=False)
         # check post apply parameters
@@ -660,6 +812,7 @@ class TestSdk(unittest.TestCase):
                                    headers={'a': 'b'},
                                    json=None,
                                    params={},
+                                   files=None,
                                    auth=None,
                                    verify=False)
         # urlencode
@@ -729,6 +882,7 @@ class TestSdk(unittest.TestCase):
                                    headers={'a': 'b'},
                                    json=None,
                                    params={'object': 11},
+                                   files=None,
                                    auth=None,
                                    verify=False)
 
