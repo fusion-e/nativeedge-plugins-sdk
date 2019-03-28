@@ -371,7 +371,7 @@ class TestSdk(unittest.TestCase):
                                    headers={'a': 'b'},
                                    json=None,
                                    params={},
-                                   files={'file': 'some_name'},
+                                   files={'file': 'abc'},
                                    auth=None,
                                    verify=False)
 
@@ -383,7 +383,7 @@ class TestSdk(unittest.TestCase):
             'verify': False,
             'host': 'localhost',
             'port': -1,
-            'files_raw': {
+            'files': {
                 'file': ['a', 'b', 'c']
             },
             'headers': {"a": "b"},
@@ -431,7 +431,7 @@ class TestSdk(unittest.TestCase):
             'verify': False,
             'host': 'localhost',
             'port': -1,
-            'files_raw': {
+            'files': {
                 'file': ('a', 'b', 'c')
             },
             'headers': {"a": "b"},
