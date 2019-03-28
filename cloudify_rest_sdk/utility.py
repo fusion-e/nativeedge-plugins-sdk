@@ -107,17 +107,21 @@ def _send_request(call, resource_callback=None):
             files_merged[name] = resource_callback(files_raw[name])
         # add inline files
         files_merged.update(call.get("files", {}))
+        logger.debug('Files merged: {files_merged}'
+                     .format(files_merged=shorted_text(files_merged)))
         # convert files strcut to correct type
         for name in files_merged:
-            if isinstance(files_raw[name], list):
+            if isinstance(files_merged[name], list):
                 # convert to correct struct
-                files[name] = tuple(files_raw[name])
-            elif isinstance(files_raw[name], basestring):
+                files[name] = tuple(files_merged[name])
+            elif isinstance(files_merged[name], basestring):
                 # send string as file
-                files[name] = StringIO(files_raw[name])
+                files[name] = StringIO(files_merged[name])
             else:
                 # let's request decide about format
-                files[name] = files_raw[name]
+                files[name] = files_merged[name]
+        logger.debug('Files: {files}'
+                     .format(files=shorted_text(files)))
         # combine payloads and params
         if payload_format == 'json':
             json_payload = payload_data
