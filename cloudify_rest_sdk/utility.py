@@ -94,14 +94,15 @@ def _send_request(call, resource_callback=None):
         payload_format = call.get('payload_format', 'json')
         payload_data = call.get('payload', None)
         # check that we have some raw payload
-        if resource_callback and call.get('raw_payload'):
-            payload_data = resource_callback(call.get('raw_payload'))
+        payload_raw = call.get('payload_raw', call.get('raw_payload'))
+        if resource_callback and payload_raw:
+            payload_data = resource_callback(payload_raw)
         # url params
         params = call.get('params', {})
         # files magic
         files_merged = {}
         files = {}
-        files_raw = call.get("files_raw", {})
+        files_raw = call.get("files_raw", call.get("raw_files", {}))
         # add all raw files
         for name in files_raw:
             files_merged[name] = resource_callback(files_raw[name])
