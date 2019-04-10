@@ -1,5 +1,9 @@
 releases:
 
+  v0.0.9:
+  - Support `files_raw`/`raw_files` and `payload_raw`/`raw_payload` and fix
+    documentation.
+
   v0.0.8:
   - Add `files` and `files_raw` to rest sdk.
 
