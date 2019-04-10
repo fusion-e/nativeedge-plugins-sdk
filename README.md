@@ -22,7 +22,7 @@ Utilities SDK for extending Cloudify features.
   * `files`: Optional, YAML representation of data that is to be sent as
     files in REST call.
   * `raw_payload`: Optional, raw payload data name avaible by callback.
-  * `raw_files`: Optional, raw files data name avaible by callback.
+  * `files_raw`: Optional, raw files data name avaible by callback.
   * `params`: Optional, url params.
   * `method`: REST method (GET/PUT/POST/PATCH/DELETE).
   * `headers`: Optional, headers for set.
