@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import six
 import mock
 import unittest
 
@@ -122,10 +123,18 @@ class SSHConnectionTest(unittest.TestCase):
 
         with mock.patch("os.path.isdir", mock.Mock(return_value=True)):
             fake_file = mock.mock_open()
-            with mock.patch(
-                    '__builtin__.open', fake_file
-            ):
-                conn._write_to_log("Some_text")
+            if six.PY3:
+                # python 3
+                with mock.patch(
+                        'builtins.open', fake_file
+                ):
+                    conn._write_to_log("Some_text")
+            else:
+                # python 2
+                with mock.patch(
+                        '__builtin__.open', fake_file
+                ):
+                    conn._write_to_log("Some_text")
             fake_file.assert_called_once_with('/proc/read_only_file', 'a+')
             fake_file().write.assert_called_with('Some_text')
 
@@ -136,11 +145,18 @@ class SSHConnectionTest(unittest.TestCase):
 
         with mock.patch("os.path.isdir", mock.Mock(return_value=True)):
             fake_file = mock.mock_open()
-            with mock.patch(
-                    '__builtin__.open', fake_file
-            ):
-                conn._write_to_log("Some_text", False)
-
+            if six.PY3:
+                # python 3
+                with mock.patch(
+                        'builtins.open', fake_file
+                ):
+                    conn._write_to_log("Some_text", False)
+            else:
+                # python 2
+                with mock.patch(
+                        '__builtin__.open', fake_file
+                ):
+                    conn._write_to_log("Some_text", False)
             fake_file.assert_called_once_with('/proc/read_only_file.in', 'a+')
             fake_file().write.assert_called_with('Some_text')
             conn.logger.debug.assert_not_called()

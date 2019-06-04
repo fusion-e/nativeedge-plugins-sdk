@@ -28,5 +28,6 @@ setuptools.setup(
         'paramiko',  # terminal
         "Jinja2>=2.7.2",  # terminal
         'pyyaml',  # cloudinit and rest
+        'requests', # rest
         'xmltodict']  # rest
 )
