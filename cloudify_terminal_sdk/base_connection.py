@@ -14,7 +14,7 @@
 import os
 import time
 import paramiko
-from StringIO import StringIO
+from six import StringIO
 
 
 class BaseConnection(object):
