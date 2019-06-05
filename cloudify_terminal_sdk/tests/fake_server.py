@@ -19,7 +19,7 @@ import socket
 import sys
 import paramiko
 import xmltodict
-from StringIO import StringIO
+from six import StringIO
 from Crypto.PublicKey import RSA
 from cloudify_terminal_sdk import netconf_connection
 

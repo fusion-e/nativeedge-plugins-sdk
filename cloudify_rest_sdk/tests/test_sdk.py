@@ -15,6 +15,7 @@
 import unittest
 import json
 import mock
+import six
 
 from cloudify_rest_sdk import utility
 from cloudify_common_sdk import exceptions
@@ -87,18 +88,34 @@ class TestSdk(unittest.TestCase):
             exceptions.WrongTemplateDataException
         ) as error:
             utility._check_response([{'id': 40}], 'AAAA', True)
-        self.assertEqual(
-            str(error.exception),
-            "Response (recoverable) had to be list. Type <type 'str'> "
-            "not supported. ")
+        if six.PY3:
+            # python 3
+            self.assertEqual(
+                str(error.exception),
+                "Response (recoverable) had to be list. Type <class 'str'> "
+                "not supported. ")
+        else:
+            # python 2
+            self.assertEqual(
+                str(error.exception),
+                "Response (recoverable) had to be list. Type <type 'str'> "
+                "not supported. ")
         with self.assertRaises(
             exceptions.WrongTemplateDataException
         ) as error:
             utility._check_response([{'id': 40}], 'AAAA', False)
-        self.assertEqual(
-            str(error.exception),
-            "Response (nonrecoverable) had to be list. Type <type 'str'> "
-            "not supported. ")
+        if six.PY3:
+            # python 3
+            self.assertEqual(
+                str(error.exception),
+                "Response (nonrecoverable) had to be list. Type <class 'str'> "
+                "not supported. ")
+        else:
+            # python 2
+            self.assertEqual(
+                str(error.exception),
+                "Response (nonrecoverable) had to be list. Type <type 'str'> "
+                "not supported. ")
 
     def test_process_response(self):
         parsed_json = json.loads('''{

@@ -13,6 +13,7 @@
 # limitations under the License.
 from jinja2 import Environment
 import xmltodict
+from six import string_types
 
 
 def get_field_value_recursive(logger, properties, path):
@@ -156,7 +157,7 @@ def translate_and_save(logger, response_json, response_translation,
 
 def shorted_text(obj, size=1024):
     """Limit text to size"""
-    if isinstance(obj, basestring):
+    if isinstance(obj, string_types):
         text = obj
     else:
         text = repr(obj)

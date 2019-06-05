@@ -159,7 +159,7 @@ class NetConfConnectionTest(unittest.TestCase):
                 "ok" + netconf_connection.NETCONF_1_0_END
             )
         )
-        channel_mock.send = mock.MagicMock()
+        channel_mock.send = mock.MagicMock(return_value=1024)
         channel_mock.invoke_subsystem = mock.MagicMock()
         # transport mock
         transport_mock = mock.MagicMock()
@@ -202,7 +202,7 @@ class NetConfConnectionTest(unittest.TestCase):
                 "ok" + netconf_connection.NETCONF_1_0_END
             )
         )
-        channel_mock.send = mock.MagicMock()
+        channel_mock.send = mock.MagicMock(return_value=1024)
         channel_mock.invoke_subsystem = mock.MagicMock()
         # transport mock
         transport_mock = mock.MagicMock()
