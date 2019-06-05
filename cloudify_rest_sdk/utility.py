@@ -19,7 +19,7 @@ import ast
 import re
 import xmltodict
 import requests
-from StringIO import StringIO
+from six import StringIO, string_types
 
 from cloudify_rest_sdk import LOGGER_NAME
 from cloudify_common_sdk.filters import (
@@ -115,7 +115,7 @@ def _send_request(call, resource_callback=None):
             if isinstance(files_merged[name], list):
                 # convert to correct struct
                 files[name] = tuple(files_merged[name])
-            elif isinstance(files_merged[name], basestring):
+            elif isinstance(files_merged[name], string_types):
                 # send string as file
                 files[name] = StringIO(files_merged[name])
             else:
