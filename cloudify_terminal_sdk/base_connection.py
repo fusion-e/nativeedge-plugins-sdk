@@ -90,6 +90,7 @@ class BaseConnection(object):
             if self.conn:
                 # sometime code can't close in time
                 self.conn.close()
+                self.conn = None
         finally:
             pass
 
@@ -100,21 +101,23 @@ class SSHConnection(BaseConnection):
         super(SSHConnection, self).__init__(*args, **kwargs)
         self.ssh = None
 
-    def _ssh_connect(self, ip, user, password, key_content, port):
+    def _ssh_connect(self, ip, user, password, key_content, port,
+                     allow_agent=False):
         """open ssh connection"""
         self.ssh = paramiko.SSHClient()
         self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-        # cisco requered disable for allow_agent
+        # cisco required allow_agent equal to False
         if key_content:
             key = paramiko.RSAKey.from_private_key(
                 StringIO(key_content)
             )
             self.ssh.connect(ip, username=user, pkey=key, port=port, timeout=5,
-                             allow_agent=False)
+                             allow_agent=allow_agent)
         else:
             self.ssh.connect(ip, username=user, password=password, port=port,
-                             timeout=5, allow_agent=False, look_for_keys=False)
+                             timeout=5, allow_agent=allow_agent,
+                             look_for_keys=False)
 
     def reuse_connection(self, ssh, conn):
         """Reuse already established connection"""
@@ -126,6 +129,7 @@ class SSHConnection(BaseConnection):
         self._conn_close()
         if self.ssh:
             self.ssh.close()
+            self.ssh = None
 
     def __del__(self):
         """Close connections for sure"""
