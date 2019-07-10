@@ -1,5 +1,9 @@
 releases:
 
+  v0.0.10:
+  - Python 3.6 support
+  - Add experimental support for smart devices with shell extension support.
+
   v0.0.9:
   - Support `files_raw`/`raw_files` and `payload_raw`/`raw_payload` and fix
     documentation.
