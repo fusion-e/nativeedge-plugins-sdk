@@ -39,6 +39,7 @@ class TerminalTest(unittest.TestCase):
 
         self.assertEqual(conn._find_any_in("abcd\n$abc", ["$", "#"]), 5)
         self.assertEqual(conn._find_any_in("abcd\n>abc", ["$", "#"]), -1)
+        self.assertEqual(conn._find_any_in("abcd\n>abc", []), -1)
 
     def test_delete_backspace(self):
         conn = terminal_connection.RawConnection()
@@ -109,10 +110,16 @@ class TerminalTest(unittest.TestCase):
         conn.ssh = MagicMock()
         conn.ssh.close = MagicMock()
 
+        # save mocks
+        _conn_mock = conn.conn
+        _ssh_mock = conn.ssh
+
+        # run commands
         conn.close()
 
-        conn.conn.close.assert_called_with()
-        conn.ssh.close.assert_called_with()
+        # check calls
+        _conn_mock.close.assert_called_with()
+        _ssh_mock.close.assert_called_with()
 
     def test_connect_with_password(self):
         ssh_mock = MagicMock()
@@ -150,7 +157,7 @@ class TerminalTest(unittest.TestCase):
         self.assertEqual(conn.logger, "logger")
         self.assertEqual(conn.log_file_name, "log_file_name")
 
-    def test_connect(self):
+    def test_connect_raw(self):
         conn_mock = MagicMock()
         conn_mock.recv = MagicMock(return_value="some_prompt#")
         ssh_mock = MagicMock()
@@ -164,6 +171,34 @@ class TerminalTest(unittest.TestCase):
                              prompt_check=None),
                 "some_prompt"
             )
+
+    def test_connect_smart_prompt(self):
+        ssh_mock = MagicMock()
+        ssh_mock.connect = MagicMock()
+        ssh_mock.invoke_shell = MagicMock(return_value=None)
+        conn = terminal_connection.SmartConnection(
+            logger=MagicMock(), log_file_name=None)
+        with patch("paramiko.SSHClient", MagicMock(return_value=ssh_mock)):
+            self.assertEqual(
+                conn.connect("ip", "user", "password", None, port=44,
+                             prompt_check=['>']),
+                "ip"
+            )
+        ssh_mock.invoke_shell.assert_not_called()
+
+    def test_connect_smart(self):
+        ssh_mock = MagicMock()
+        ssh_mock.connect = MagicMock()
+        ssh_mock.invoke_shell = MagicMock(return_value=None)
+        conn = terminal_connection.SmartConnection(
+            logger=MagicMock(), log_file_name=None)
+        with patch("paramiko.SSHClient", MagicMock(return_value=ssh_mock)):
+            self.assertEqual(
+                conn.connect("ip", "user", "password", None, port=44,
+                             prompt_check=None),
+                "ip"
+            )
+        ssh_mock.invoke_shell.assert_not_called()
 
     def test_cleanup_response_empty(self):
         conn = terminal_connection.RawConnection()
@@ -251,12 +286,16 @@ class TerminalTest(unittest.TestCase):
 
         self.assertEqual(
             str(error.exception),
-            'Looks as we have error in response: prompt> text\n some\nerror'
+            'Looks as we have error in response:  text\n some\nerror'
         )
 
         # check with alive connection
         conn.conn = MagicMock()
         conn.conn.closed = False
+
+        # save mocks
+        _conn_mock = conn.conn
+
         # warnings?
         with self.assertRaises(
             exceptions.RecoverableWarning
@@ -268,7 +307,8 @@ class TerminalTest(unittest.TestCase):
                 error_examples=[],
                 critical_examples=[]
             )
-        conn.conn.close.assert_not_called()
+        _conn_mock.close.assert_not_called()
+
         # errors?
         with self.assertRaises(exceptions.RecoverableError) as error:
             conn._cleanup_response(
@@ -278,9 +318,15 @@ class TerminalTest(unittest.TestCase):
                 error_examples=['error'],
                 critical_examples=[]
             )
-        conn.conn.close.assert_called_with()
+        _conn_mock.close.assert_called_with()
+        self.assertFalse(conn.conn)
+        conn.conn = _conn_mock
+
         # critical?
         conn.conn.close = MagicMock()
+        # save mocks
+        _conn_mock = conn.conn
+        # check with close
         with self.assertRaises(
             exceptions.NonRecoverableError
         ) as error:
@@ -291,9 +337,9 @@ class TerminalTest(unittest.TestCase):
                 error_examples=[],
                 critical_examples=['error']
             )
-        conn.conn.close.assert_called_with()
+        _conn_mock.close.assert_called_with()
 
-    def test_run_with_closed_connection(self):
+    def test_run_raw_with_closed_connection(self):
         conn = terminal_connection.RawConnection()
         conn.logger = MagicMock()
         conn.conn = MagicMock()
@@ -303,6 +349,28 @@ class TerminalTest(unittest.TestCase):
         self.assertEqual(conn.run("test"), "")
 
         conn.conn.send.assert_called_with("test\n")
+
+    def test_run_smart_with_closed_connection(self):
+        conn = terminal_connection.SmartConnection()
+        conn.logger = MagicMock()
+
+        mock_conn = MagicMock()
+        mock_conn.closed = True
+        mock_conn.send = MagicMock(return_value=5)
+        mock_conn.recv = MagicMock(side_effect=["result", ""])
+
+        mock_transport = MagicMock()
+        mock_transport.open_session = MagicMock(return_value=mock_conn)
+        conn.ssh = MagicMock()
+        conn.ssh.get_transport = MagicMock(return_value=mock_transport)
+
+        self.assertEqual(conn.run("test"), "result")
+
+        mock_conn.exec_command.assert_called_with("test")
+        mock_conn.send.assert_not_called()
+        conn.ssh.get_transport.assert_called_with()
+        mock_transport.open_session.assert_called_with()
+        mock_conn.get_pty.assert_called_with()
 
     def test_run_with_closed_connection_after_twice_check(self):
         conn = terminal_connection.RawConnection()
@@ -367,7 +435,7 @@ class TerminalTest(unittest.TestCase):
 
         conn.conn.send.assert_called_with("test\n")
 
-    def test_run_return_without_delay_with_responses(self):
+    def test_run_raw_return_without_delay_with_responses(self):
         conn = terminal_connection.RawConnection()
         conn.logger = MagicMock()
         conn.conn = MagicMock()
@@ -384,6 +452,49 @@ class TerminalTest(unittest.TestCase):
         )
 
         conn.conn.send.assert_has_calls([call("test\n"), call('no')])
+
+    def test_run_smart_return_without_delay_with_responses(self):
+        conn = terminal_connection.SmartConnection()
+        conn.logger = MagicMock()
+
+        _responses = ["", "", "", "ok\n#", "\nmessage, yes?"]
+
+        class _fake_conn(object):
+
+            call_count = 0
+
+            def exec_command(self, _):
+                pass
+
+            def get_pty(self):
+                pass
+
+            def send(self, text):
+                return len(text)
+
+            def recv(self, size):
+                self.call_count += 1
+                return _responses.pop()
+
+            def close(self):
+                pass
+
+            @property
+            def closed(self):
+                return (self.call_count >= 2)
+
+        mock_transport = MagicMock()
+        mock_transport.open_session = MagicMock(return_value=_fake_conn())
+        conn.ssh = MagicMock()
+        conn.ssh.get_transport = MagicMock(return_value=mock_transport)
+
+        self.assertEqual(
+            conn.run("test", responses=[{
+                'question': 'yes?',
+                'answer': 'no'
+            }]),
+            "message, yes?ok\n#"
+        )
 
 
 if __name__ == '__main__':
