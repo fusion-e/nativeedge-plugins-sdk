@@ -122,6 +122,9 @@ class SmartConnection(TextConnection):
         if not prompt_check:
             prompt_check = DEFAULT_PROMT
 
+        if self.logger:
+            self.logger.debug("Run: {command}".format(command=repr(command)))
+
         self.conn = self.ssh.get_transport().open_session()
         self.conn.get_pty()
         self.conn.exec_command(command)
