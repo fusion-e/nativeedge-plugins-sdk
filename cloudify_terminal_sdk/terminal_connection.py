@@ -15,6 +15,7 @@ from cloudify_common_sdk import exceptions
 from cloudify_terminal_sdk import base_connection
 
 DEFAULT_PROMT = ["#", "$"]
+LINE_SIZE = 256
 
 
 class TextConnection(base_connection.SSHConnection):
@@ -35,10 +36,16 @@ class TextConnection(base_connection.SSHConnection):
 
     # search/cleanup in buf
     def _find_any_in(self, buff, promt_check):
+        # no prompt
+        if not promt_check:
+            return -1
+
+        # search possible promt
         for code in promt_check:
             position = buff.find(code)
             if position != -1:
                 return position
+
         # no promt codes
         return -1
 
@@ -53,6 +60,123 @@ class TextConnection(base_connection.SSHConnection):
             backspace = text.find("\b")
         return text
 
+    def _check_responses(self, response, warning_examples, error_examples,
+                         critical_examples):
+        # check for warnings started only from new line
+        if warning_examples:
+            warnings_with_new_line = ["\n" + warning
+                                      for warning in warning_examples]
+            if self._find_any_in(response, warnings_with_new_line) != -1:
+                # close is not needed, we will rerun later
+                raise exceptions.RecoverableWarning(
+                    "Looks as we have warning in response: {response}"
+                    .format(response=response)
+                )
+
+        # check for errors started only from new line
+        if error_examples:
+            errors_with_new_line = ["\n" + error for error in error_examples]
+            if self._find_any_in(response, errors_with_new_line) != -1:
+                if not self.is_closed():
+                    self.close()
+                raise exceptions.RecoverableError(
+                    "Looks as we have error in response: {response}"
+                    .format(response=response)
+                )
+
+        # check for criticals started only from new line
+        if critical_examples:
+            criticals_with_new_line = ["\n" + critical
+                                       for critical in critical_examples]
+            if self._find_any_in(response, criticals_with_new_line) != -1:
+                if not self.is_closed():
+                    self.close()
+                raise exceptions.NonRecoverableError(
+                    "Looks as we have critical in response: {response}"
+                    .format(response=response)
+                )
+
+    def close(self):
+        """close connection"""
+        self._ssh_close()
+
+
+class SmartConnection(TextConnection):
+
+    # ssh connection
+    ssh = None
+
+    def connect(self, ip, user, password=None, key_content=None, port=22,
+                prompt_check=None):
+        """open connection"""
+        if self.logger and prompt_check:
+            self.logger.debug("Prompt check for smart devices disabled.")
+
+        self._ssh_connect(ip, user, password, key_content, port,
+                          allow_agent=True)
+        return ip
+
+    def run(self, command, prompt_check=None, warning_examples=None,
+            error_examples=None, critical_examples=None,
+            responses=None):
+        if not prompt_check:
+            prompt_check = DEFAULT_PROMT
+
+        if self.logger:
+            self.logger.debug("Run: {command}".format(command=repr(command)))
+
+        self.conn = self.ssh.get_transport().open_session()
+        self.conn.get_pty()
+        self.conn.exec_command(command)
+
+        # whole message from server
+        message_from_server = ""
+        # last recieved message
+        last_message = self.conn.closed  # force read if connection closed
+
+        while not self.conn.closed:
+            last_message = self._conn_recv(LINE_SIZE)
+            self.buff += last_message
+            self.buff = self._delete_backspace(self.buff)
+
+            # separate finished lines from raw block
+            while self.buff.find("\n") != -1:
+                line = self.buff[:self.buff.find("\n") + 1]
+                self.buff = self.buff[len(line):]
+                message_from_server += line
+                # we have in current line question?
+                self._send_response(line, responses)
+
+            # we have in buff question?
+            question_mark = self._send_response(self.buff, responses)
+            if question_mark != -1:
+                line = self.buff[:question_mark]
+                self.buff = self.buff[question_mark:]
+                message_from_server += line
+
+            # check possible promt in the last line of buffer
+            code_position = self._find_any_in(self.buff, prompt_check)
+            if code_position != -1 and self.logger and prompt_check:
+                self.logger.debug("Possible prompt in {buff}"
+                                  .format(buff=self.buff))
+
+        # try to load end of buffer
+        while last_message:
+            last_message = self._conn_recv(LINE_SIZE)
+            self.buff += last_message
+
+        # close connection
+        self.conn.close()
+        self.conn = None
+
+        # add rest of buffer
+        message_from_server += self.buff
+
+        # fully loaded
+        self._check_responses(message_from_server, warning_examples,
+                              error_examples, critical_examples)
+        return message_from_server.strip()
+
 
 class RawConnection(TextConnection):
 
@@ -65,11 +189,12 @@ class RawConnection(TextConnection):
         if not prompt_check:
             prompt_check = DEFAULT_PROMT
 
-        self._ssh_connect(ip, user, password, key_content, port)
+        self._ssh_connect(ip, user, password, key_content, port,
+                          allow_agent=False)
         self.conn = self.ssh.invoke_shell()
 
         while self._find_any_in(self.buff, prompt_check) == -1:
-            self.buff += self._conn_recv(256)
+            self.buff += self._conn_recv(LINE_SIZE)
             self.buff = self._delete_backspace(self.buff)
 
         self.hostname = ""
@@ -123,35 +248,8 @@ class RawConnection(TextConnection):
                 response = text[text.find("\n"):]
             else:
                 response = text
-
-        # check for warnings started only from new line
-        if warning_examples:
-            warnings_with_new_line = ["\n" + warning
-                                      for warning in warning_examples]
-            if self._find_any_in(response, warnings_with_new_line) != -1:
-                # close is not needed, we will rerun later
-                raise exceptions.RecoverableWarning(
-                    "Looks as we have warning in response: %s" % (text)
-                )
-        # check for errors started only from new line
-        if error_examples:
-            errors_with_new_line = ["\n" + error for error in error_examples]
-            if self._find_any_in(response, errors_with_new_line) != -1:
-                if not self.is_closed():
-                    self.close()
-                raise exceptions.RecoverableError(
-                    "Looks as we have error in response: %s" % (text)
-                )
-        # check for criticals started only from new line
-        if critical_examples:
-            criticals_with_new_line = ["\n" + critical
-                                       for critical in critical_examples]
-            if self._find_any_in(response, criticals_with_new_line) != -1:
-                if not self.is_closed():
-                    self.close()
-                raise exceptions.NonRecoverableError(
-                    "Looks as we have critical in response: %s" % (text)
-                )
+        self._check_responses(response, warning_examples, error_examples,
+                              critical_examples)
         return response.strip()
 
     def run(self, command, prompt_check=None, warning_examples=None,
@@ -225,7 +323,3 @@ class RawConnection(TextConnection):
                                       warning_examples=warning_examples,
                                       error_examples=error_examples,
                                       critical_examples=critical_examples)
-
-    def close(self):
-        """close connection"""
-        self._ssh_close()

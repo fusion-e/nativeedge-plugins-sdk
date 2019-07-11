@@ -10,7 +10,7 @@ Utilities SDK for extending Cloudify features.
 ### Rest Yaml Template format.
 
 * `rest_calls`: Top level list of calls.
-  * `port`: Connection port, for `-1` pors selected by `ssl` value.
+  * `port`: Connection port, for `-1` port selected by `ssl` value.
   * `ssl`: Use https connection.
   * `hosts`: Optional, List of rest servers, use value from `host`.
   * `host`: Optional, rest server address.
