@@ -16,7 +16,7 @@ import setuptools
 
 setuptools.setup(
     name='cloudify-utilities-plugins-sdk',
-    version='0.0.9',
+    version='0.0.10',
     author='Cloudify Platform Ltd.',
     author_email='hello@cloudify.co',
     description='Utilities SDK for extending Cloudify',
@@ -28,6 +28,6 @@ setuptools.setup(
         'paramiko',  # terminal
         "Jinja2>=2.7.2",  # terminal
         'pyyaml',  # cloudinit and rest
-        'requests', # rest
+        'requests',  # rest
         'xmltodict']  # rest
 )
