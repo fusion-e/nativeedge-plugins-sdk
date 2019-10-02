@@ -1,3 +1,5 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 # Copyright (c) 2017-2018 Cloudify Platform Ltd. All rights reserved
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -340,6 +342,9 @@ class TestFilters(unittest.TestCase):
         self.assertEqual(filters.shorted_text("12345", 4), "1...")
         self.assertEqual(filters.shorted_text("12345", 5), "12345")
         self.assertEqual(filters.shorted_text({"a": "b"}), "{'a': 'b'}")
+        self.assertEqual(
+            filters.shorted_text("very long unicode строчка", 22),
+            'very long unicode ...')
 
     def test_render_template(self):
         self.assertEqual(
