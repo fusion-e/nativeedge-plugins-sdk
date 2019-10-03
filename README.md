@@ -29,6 +29,8 @@ Utilities SDK for extending Cloudify features.
   * `verify`: Optional, check https certificates. By default: `true`.
   * `recoverable_codes`: Optional, non critical recoverable http codes, will
     triger operation retry on failure.
+  * `successful_codes`: Optional, non critical http error codes, will
+    be accepted as successful.
   * `translation_format`: Optional, translation rules format, supported: `v1`,
     `v2`, `v3` and `auto`. By default: `auto`. If set to `auto` - format
     detected by translation rules itself.
