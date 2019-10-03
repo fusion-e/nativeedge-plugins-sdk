@@ -15,6 +15,7 @@
 # limitations under the License.
 import unittest
 import json
+import six
 from mock import Mock
 
 import cloudify_common_sdk.filters as filters
@@ -342,9 +343,15 @@ class TestFilters(unittest.TestCase):
         self.assertEqual(filters.shorted_text("12345", 4), "1...")
         self.assertEqual(filters.shorted_text("12345", 5), "12345")
         self.assertEqual(filters.shorted_text({"a": "b"}), "{'a': 'b'}")
-        self.assertEqual(
-            filters.shorted_text("very long unicode строчка", 22),
-            'very long unicode ...')
+
+        if six.PY2:
+            self.assertEqual(
+                filters.shorted_text("very long unicode строчка", 22),
+                'very long unicode ...')
+        elif six.PY3:
+            self.assertEqual(
+                filters.shorted_text("very long unicode строчка", 22),
+                'very long unicode с...')
 
     def test_render_template(self):
         self.assertEqual(
