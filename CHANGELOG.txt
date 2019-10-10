@@ -3,6 +3,7 @@ releases:
   v0.0.11:
   - Try to trim messages to valid utf8 string
   - Add support for RestApi with http error codes as successful results.
+  - Add ftp logic
 
   v0.0.10:
   - Python 3.6 support
