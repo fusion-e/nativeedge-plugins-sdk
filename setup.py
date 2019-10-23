@@ -14,16 +14,30 @@
 
 import setuptools
 
+
 setuptools.setup(
     name='cloudify-utilities-plugins-sdk',
     version='0.0.10',
     author='Cloudify Platform Ltd.',
     author_email='hello@cloudify.co',
     description='Utilities SDK for extending Cloudify',
+    long_description="""
+        # Cloudify Utilities SDK
+
+        Utilities SDK for extending Cloudify features.
+    """,
+    long_description_content_type="text/markdown",
+    license='Apache License 2.0',
+    url="https://github.com/cloudify-incubator/cloudify-utilities-plugins-sdk",
+    classifiers=[
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: Apache Software License",
+        "Operating System :: OS Independent",
+    ],
     packages=['cloudify_common_sdk',
               'cloudify_rest_sdk',
               'cloudify_terminal_sdk'],
-    license='LICENSE',
     install_requires=[
         'paramiko',  # terminal
         "Jinja2>=2.7.2",  # terminal
