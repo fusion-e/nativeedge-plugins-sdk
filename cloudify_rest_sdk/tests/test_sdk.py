@@ -549,10 +549,18 @@ class TestSdk(unittest.TestCase):
             with self.assertRaises(
                 exceptions.RecoverableStatusCodeCodeException
             ) as error:
-                self.assertEqual(utility._send_request(call), response)
+                utility._send_request(call)
             self.assertEqual(
                 str(error.exception),
                 'Response code 404 defined as recoverable')
+
+        # expected error accepted as successful
+        call['recoverable_codes'] = []
+        call['successful_codes'] = [404]
+        with mock.patch(
+            "cloudify_rest_sdk.utility.requests.request", request
+        ):
+            self.assertEqual(utility._send_request(call), response)
 
         # can't connect
         request = mock.Mock(

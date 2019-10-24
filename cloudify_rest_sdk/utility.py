@@ -180,7 +180,15 @@ def _send_request(call, resource_callback=None):
             raise RecoverableStatusCodeCodeException(
                 'Response code {} defined as recoverable'.format(
                     response.status_code))
-        raise
+        if response.status_code not in call.get('successful_codes', []):
+            # code is not marked as successful
+            raise
+
+        # success?
+        logger.debug(
+            'Response code {} defined as successful.'.format(
+                response.status_code))
+
     return response
 
 
