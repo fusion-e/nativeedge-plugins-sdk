@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2018 Cloudify Platform Ltd. All rights reserved
+# Copyright (c) 2016-2019 Cloudify Platform Ltd. All rights reserved
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
 # limitations under the License.
 from jinja2 import Environment
 import xmltodict
-from six import string_types
+from six import string_types, ensure_text
 
 
 def get_field_value_recursive(logger, properties, path):
@@ -155,6 +155,15 @@ def translate_and_save(logger, response_json, response_translation,
                                runtime_dict)
 
 
+def __correct_substr(text, size):
+    """check that substring is still valid utf8"""
+    while True:
+        try:
+            return ensure_text(text[:size])
+        except Exception:
+            size -= 1
+
+
 def shorted_text(obj, size=1024):
     """Limit text to size"""
     if isinstance(obj, string_types):
@@ -162,9 +171,9 @@ def shorted_text(obj, size=1024):
     else:
         text = repr(obj)
     if size <= 3:
-        return text[:size]
+        return __correct_substr(text, size)
     elif len(text) > size:
-        return text[:size-3] + "..."
+        return __correct_substr(text, size-3) + "..."
     return text
 
 
