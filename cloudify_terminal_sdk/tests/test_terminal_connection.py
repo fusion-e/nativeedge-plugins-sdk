@@ -165,10 +165,23 @@ class TerminalTest(unittest.TestCase):
         ssh_mock.invoke_shell = MagicMock(return_value=conn_mock)
         conn = terminal_connection.RawConnection(
             logger=MagicMock(), log_file_name=None)
+        # without responses
         with patch("paramiko.SSHClient", MagicMock(return_value=ssh_mock)):
             self.assertEqual(
                 conn.connect("ip", "user", "password", None, port=44,
                              prompt_check=None),
+                "some_prompt"
+            )
+        conn_mock.send = MagicMock(return_value=7)
+        conn_mock.recv = MagicMock(
+            return_value="Confirm Password:\nsome_prompt#")
+        # with responses
+        with patch("paramiko.SSHClient", MagicMock(return_value=ssh_mock)):
+            self.assertEqual(
+                conn.connect("ip", "user", "password", None, port=44,
+                             prompt_check=None,
+                             responses=[{"question": "Confirm Password:",
+                                         "answer": "123456"}]),
                 "some_prompt"
             )
 
@@ -178,10 +191,19 @@ class TerminalTest(unittest.TestCase):
         ssh_mock.invoke_shell = MagicMock(return_value=None)
         conn = terminal_connection.SmartConnection(
             logger=MagicMock(), log_file_name=None)
+        # prompt
         with patch("paramiko.SSHClient", MagicMock(return_value=ssh_mock)):
             self.assertEqual(
                 conn.connect("ip", "user", "password", None, port=44,
                              prompt_check=['>']),
+                "ip"
+            )
+        # responses
+        with patch("paramiko.SSHClient", MagicMock(return_value=ssh_mock)):
+            self.assertEqual(
+                conn.connect("ip", "user", "password", None, port=44,
+                             responses=[{"question": "Confirm Password:",
+                                         "answer": "123456"}]),
                 "ip"
             )
         ssh_mock.invoke_shell.assert_not_called()

@@ -107,10 +107,14 @@ class SmartConnection(TextConnection):
     ssh = None
 
     def connect(self, ip, user, password=None, key_content=None, port=22,
-                prompt_check=None):
+                prompt_check=None, responses=None):
         """open connection"""
         if self.logger and prompt_check:
-            self.logger.debug("Prompt check for smart devices disabled.")
+            self.logger.debug(
+                "Prompt check for smart devices is unsuported.")
+        if self.logger and responses:
+            self.logger.debug(
+                "Welcome responses for smart devices is unsuported.")
 
         self._ssh_connect(ip, user, password, key_content, port,
                           allow_agent=True)
@@ -184,18 +188,36 @@ class RawConnection(TextConnection):
     ssh = None
 
     def connect(self, ip, user, password=None, key_content=None, port=22,
-                prompt_check=None):
+                prompt_check=None, responses=None):
         """open connection"""
         if not prompt_check:
             prompt_check = DEFAULT_PROMT
+
+        if not responses:
+            responses = []
 
         self._ssh_connect(ip, user, password, key_content, port,
                           allow_agent=False)
         self.conn = self.ssh.invoke_shell()
 
+        if self.logger:
+            self.logger.debug("I am waiting welcome message.")
+
         while self._find_any_in(self.buff, prompt_check) == -1:
             self.buff += self._conn_recv(LINE_SIZE)
             self.buff = self._delete_backspace(self.buff)
+            # if we have something like question
+            if responses:
+                search_list = [res['question'] for res in responses]
+                if self._find_any_in(self.buff, search_list) != -1:
+                    # we have in buff question?
+                    question_mark = self._send_response(self.buff, responses)
+                    if question_mark != -1:
+                        line = self.buff[:question_mark]
+                        self.buff = self.buff[question_mark:]
+                        if self.logger:
+                            self.logger.debug("Server asked: {line}"
+                                              .format(line=line))
 
         self.hostname = ""
         # looks as we have some hostname
