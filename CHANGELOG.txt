@@ -5,6 +5,7 @@ releases:
   - Add support for RestApi with http error codes as successful results.
   - Add ftp logic. Experemental.
   - Add ovf parse code. Experemental.
+  - Add responses support for pre welcome comminication in raw terminal connect.
 
   v0.0.10:
   - Python 3.6 support

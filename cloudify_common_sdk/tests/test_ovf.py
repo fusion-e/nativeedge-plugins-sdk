@@ -522,6 +522,106 @@ VIRTUAL_BOX_2_0 = [{
 
 class TestOVF(unittest.TestCase):
 
+    def test_multiply_size(self):
+        self.assertEqual(ovf.multiply_size("kilobyte"), 1024)
+        self.assertEqual(ovf.multiply_size("megabyte"), 1024 ** 2)
+        self.assertEqual(ovf.multiply_size("megabytes"), 1024 ** 2)
+        self.assertEqual(ovf.multiply_size("gigabyte"), 1024 ** 3)
+        self.assertEqual(ovf.multiply_size("terabyte"), 1024 ** 4)
+        with self.assertRaises(Exception):
+            ovf.multiply_size("byte * 2 ^ two")
+
+    def test_get_default_option(self):
+        self.assertEqual(ovf._get_default_option(
+            {
+                "DeploymentOptionSection": {
+                    "Configuration": {
+                        "@ovf:default": "TrUe",
+                        "@ovf:id": "single"
+                    }
+                }
+            }), "single")
+
+    def test_get_system(self):
+        self.assertEqual(
+            ovf._get_system(
+                {
+                    "VirtualHardwareSection": {
+                        "Item": {
+                            "rasd:Parent": 11,
+                            "rasd:ElementName": "alone"
+                        }
+                    }
+                },
+                storages={},
+                deploymentoption=None
+            ),
+            {
+                'devices': [{
+                    'devices': [{
+                        'address': '',
+                        'description': '',
+                        'devices': [],
+                        'id': 0,
+                        'limit': 0,
+                        'name': 'alone',
+                        'other_type': '',
+                        'parent': 11,
+                        'sub_type': '',
+                        'type': 0,
+                        'weight': ''
+                    }],
+                    'id': 0,
+                    'type': 'None'
+                }],
+                'id': 'None',
+                'name': 'None'
+            }
+        )
+
+    def test_get_storages(self):
+        self.assertEqual(
+            ovf._get_storages(
+                {
+                    "References": {
+                        "File": {
+                            "@ovf:id": "main",
+                            "@ovf:href": "main_path"
+                        }
+                    },
+                    "DiskSection": {
+                        "Disk": [
+                            {
+                                "@ovf:fileRef": "main",
+                                "@ovf:diskId": "main",
+                                "@ovf:capacity": "128",
+                                "@ovf:format": "raw"
+                            },
+                            {
+                                "@ovf:fileRef": "swap",
+                                "@ovf:diskId": "swap",
+                                "@ovf:capacity": "128",
+                                "@ovf:format": "raw"
+                            },
+                        ]
+                    }
+                }
+            ),
+            {
+                'ovf:/disk/swap': {
+                    'path': None,
+                    'format': 'raw',
+                    'id': 'swap',
+                    'size': 128
+                },
+                'ovf:/disk/main': {
+                    'path': 'main_path',
+                    'format': 'raw',
+                    'id': 'main',
+                    'size': 128
+                }
+            })
+
     def test_parse(self):
         for (file_name, ovf_data, params) in [
             ("CentOS-7-x86_64-GenericCloud-1907-list.ovf",
