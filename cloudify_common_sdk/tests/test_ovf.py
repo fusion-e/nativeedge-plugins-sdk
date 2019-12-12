@@ -417,7 +417,7 @@ VIRTUAL_BOX_1_0 = [{
             'type': 10
         }]
     }],
-    'name': 'None'
+    'name': None
 }]
 VIRTUAL_BOX_2_0 = [{
     'id': 'CloudInit',
@@ -516,7 +516,7 @@ VIRTUAL_BOX_2_0 = [{
             'type': 35
         }]
     }],
-    'name': 'None'
+    'name': None
 }]
 
 
@@ -543,6 +543,7 @@ class TestOVF(unittest.TestCase):
             }), "single")
 
     def test_get_system(self):
+        self.maxDiff = None
         self.assertEqual(
             ovf._get_system(
                 {
@@ -572,10 +573,10 @@ class TestOVF(unittest.TestCase):
                         'weight': ''
                     }],
                     'id': 0,
-                    'type': 'None'
+                    'type': None
                 }],
-                'id': 'None',
-                'name': 'None'
+                'id': None,
+                'name': None
             }
         )
 

@@ -61,17 +61,18 @@ DEVICE_GRAPHICS = 24
 
 def multiply_size(unit):
     unit = unit.replace(" ", "").lower()
-    if unit == "byte":
-        size_mult = 1
-    elif unit == "kilobyte":
-        size_mult = 1024
-    elif unit in ["megabyte", "megabytes"]:
-        size_mult = 1024 ** 2
-    elif unit == "gigabyte":
-        size_mult = 1024 ** 3
-    elif unit == "terabyte":
-        size_mult = 1024 ** 4
-    else:
+
+    size_unit_calc = {
+        'byte': 1,
+        'kilobyte': 1024,
+        'megabyte': 1024 ** 2,
+        'megabytes': 1024 ** 2,
+        'gigabyte': 1024 ** 3,
+        'terabyte': 1024 ** 4
+    }
+
+    size_mult = size_unit_calc.get(unit)
+    if not size_mult:
         current_step = 1
         while unit != ("byte*2^{}".format(current_step)):
             current_step += 1
@@ -112,20 +113,14 @@ def _get_storages(envelope):
     if not isinstance(disks, list):
         disks = [disks]
     for disk in disks:
-        file_ref = disk.get("@ovf:fileRef")
-        unit = str(
-            disk.get("@ovf:capacityAllocationUnits", 'byte')
-        )
+        unit = disk.get("@ovf:capacityAllocationUnits", 'byte')
         size_mult = multiply_size(unit)
         storage_disk = {
-            "id": str(disk["@ovf:diskId"]),
+            "id": disk["@ovf:diskId"],
             "size": int(disk["@ovf:capacity"]) * size_mult,
-            "format": str(disk["@ovf:format"]),
+            "format": disk["@ovf:format"],
         }
-        if file_ref and referenses.get(disk["@ovf:fileRef"]):
-            storage_disk["path"] = str(referenses.get(disk["@ovf:fileRef"]))
-        else:
-            storage_disk["path"] = None
+        storage_disk["path"] = referenses.get(disk["@ovf:fileRef"])
         storages["ovf:/disk/" + storage_disk["id"]] = storage_disk
     return storages
 
@@ -134,45 +129,42 @@ def _get_device(vdevice, storages):
     device = {
         # A human-readable description of the meaning of the
         # information.
-        "description": str(vdevice.get("rasd:Description", "")),
+        "description": vdevice.get("rasd:Description", ""),
         # A human-readable description of the content.
-        "name": str(vdevice.get("rasd:ElementName", "")),
+        "name": vdevice.get("rasd:ElementName", ""),
         # A unique instance ID of the element within the section.
         "id": int(vdevice.get("rasd:InstanceID", 0)),
         # Specifies the kind of device that is being described.
         "type": int(vdevice.get("rasd:ResourceType", 0)),
-        "other_type": str(vdevice.get("rasd:OtherResourceType", "")),
-        "sub_type": str(vdevice.get("rasd:ResourceSubType", "")),
+        "other_type": vdevice.get("rasd:OtherResourceType", ""),
+        "sub_type": vdevice.get("rasd:ResourceSubType", ""),
         # The InstanceID of the parent controller (if any).
         "parent": int(vdevice.get("rasd:Parent", 0)),
         # Device specific. For an Ethernet adapter, this specifies the
         # MAC address.
-        "address": str(vdevice.get("rasd:Address", "")),
+        "address": vdevice.get("rasd:Address", ""),
         # Specifies the maximum quantity of resources that are granted.
         "limit": int(vdevice.get("rasd:Limit", 0)),
         # Specifies a relative priority for this allocation in relation
         # to other allocations.
-        "weight": str(vdevice.get("rasd:Weight", "")),
+        "weight": vdevice.get("rasd:Weight", ""),
         # sub devices
         "devices": []
     }
     # CPU
-    if device["type"] in [DEVICE_CPU]:
+    if device["type"] == DEVICE_CPU:
         # Specifies the units of allocation used.
-        device["allocation_units"] = str(
-            vdevice.get("rasd:AllocationUnits", ""))
+        device["allocation_units"] = vdevice.get("rasd:AllocationUnits", "")
         # Specifies the quantity of resources presented.
         device["virtual_quantity"] = int(
             vdevice.get("rasd:VirtualQuantity", 0))
         # Specifies the minimum quantity of resources guaranteed to be
         # available.
         device["reservation"] = int(vdevice.get("rasd:Reservation", 0))
-    if device["type"] in [DEVICE_MEMORY]:
+    elif device["type"] == DEVICE_MEMORY:
         # Specifies the units of allocation used.
         device["allocation_units"] = "byte"
-        unit = str(
-            vdevice.get("rasd:AllocationUnits", 'byte')
-        )
+        unit = vdevice.get("rasd:AllocationUnits", 'byte')
         size_mult = multiply_size(unit)
         # Specifies the quantity of resources presented.
         device["virtual_quantity"] = int(
@@ -182,12 +174,22 @@ def _get_device(vdevice, storages):
         device["reservation"] = int(
             vdevice.get("rasd:Reservation", 0)) * size_mult
     # disk, cdrom
-    if device["type"] in [DEVICE_DISK, DEVICE_CDROM]:
+    elif device["type"] in [DEVICE_DISK, DEVICE_CDROM]:
         # rasd:HostResource Abstractly specifies how a device shall
         # connect to a resource on the deployment platform.
         device["host_resource"] = storages.get(
-            str(vdevice.get("rasd:HostResource"))
+            vdevice.get("rasd:HostResource")
         )
+    # network
+    elif device["type"] == DEVICE_ETHERNET:
+        # For an Ethernet adapter, this specifies the abstract network
+        # connection name for the virtual machine. All Ethernet
+        # adapters that specify the same abstract network connection
+        # name within an OVF package shall be deployed on the same
+        # network. The abstract network connection name shall be listed
+        # in the NetworkSection at the outermost envelope level.
+        device["connection"] = vdevice.get("rasd:Connection", "")
+
     # disk, cdrom and network
     if device["type"] in [DEVICE_FLOPPY,
                           DEVICE_CDROM,
@@ -202,29 +204,18 @@ def _get_device(vdevice, storages):
         device["automatic_allocation"] = (
             vdevice.get("rasd:AutomaticAllocation", "true").lower()
         ) == "true"
-    # network
-    if device["type"] in [DEVICE_ETHERNET]:
-        # For an Ethernet adapter, this specifies the abstract network
-        # connection name for the virtual machine. All Ethernet
-        # adapters that specify the same abstract network connection
-        # name within an OVF package shall be deployed on the same
-        # network. The abstract network connection name shall be listed
-        # in the NetworkSection at the outermost envelope level.
-        device["connection"] = str(
-            vdevice.get("rasd:Connection", ""))
     return device
 
 
 def _get_system(vsystem, storages, deploymentoption):
     system = {
-        "id": str(vsystem.get("@ovf:id")),
-        "name": str(vsystem.get("Name"))
+        "id": vsystem.get("@ovf:id"),
+        "name": vsystem.get("Name")
     }
     devices = {}
     vhardware = vsystem.get("VirtualHardwareSection", {})
     root_device = {
-        "type": str(
-            vhardware.get("System", {}).get("vssd:VirtualSystemType")),
+        "type": vhardware.get("System", {}).get("vssd:VirtualSystemType"),
         "id": int(
             vhardware.get("System", {}).get("vssd:InstanceID", 0)),
         "devices": []
