@@ -133,13 +133,13 @@ def _get_device(vdevice, storages):
         # A human-readable description of the content.
         "name": vdevice.get("rasd:ElementName", ""),
         # A unique instance ID of the element within the section.
-        "id": int(vdevice.get("rasd:InstanceID", 0)),
+        "id": vdevice.get("rasd:InstanceID", '0'),
         # Specifies the kind of device that is being described.
         "type": int(vdevice.get("rasd:ResourceType", 0)),
         "other_type": vdevice.get("rasd:OtherResourceType", ""),
         "sub_type": vdevice.get("rasd:ResourceSubType", ""),
         # The InstanceID of the parent controller (if any).
-        "parent": int(vdevice.get("rasd:Parent", 0)),
+        "parent": vdevice.get("rasd:Parent", '0'),
         # Device specific. For an Ethernet adapter, this specifies the
         # MAC address.
         "address": vdevice.get("rasd:Address", ""),
@@ -196,8 +196,7 @@ def _get_device(vdevice, storages):
                           DEVICE_DISK,
                           DEVICE_ETHERNET]:
         # For a device, this specifies its location on the controller.
-        device["address_on_parent"] = int(
-            vdevice.get("rasd:AddressOnParent", 0))
+        device["address_on_parent"] = vdevice.get("rasd:AddressOnParent", '0')
         # For devices that are connectable, such as floppies, CD-ROMs,
         # and Ethernet adaptors, this element specifies whether the
         # device should be connected at power on.
@@ -216,8 +215,7 @@ def _get_system(vsystem, storages, deploymentoption):
     vhardware = vsystem.get("VirtualHardwareSection", {})
     root_device = {
         "type": vhardware.get("System", {}).get("vssd:VirtualSystemType"),
-        "id": int(
-            vhardware.get("System", {}).get("vssd:InstanceID", 0)),
+        "id": vhardware.get("System", {}).get("vssd:InstanceID", '0'),
         "devices": []
     }
     devices[root_device["id"]] = root_device
@@ -244,15 +242,13 @@ def parse(ovf_xml, params=None):
     if not params:
         params = {}
 
-    deploymentoption = params.get("deploymentoption")
-
     ovf = xmltodict.parse(ovf_xml)
 
     envelope = ovf.get("Envelope", {})
 
     # search default config
-    if not deploymentoption:
-        deploymentoption = _get_default_option(envelope)
+    deploymentoption = params.get("deploymentoption",
+                                  _get_default_option(envelope))
 
     storages = _get_storages(envelope)
 
