@@ -192,7 +192,8 @@ Look to [ChangeLog](CHANGELOG.txt).
 
 ## Upload new version to PYPI
 ```shell
-pip3 install twine
+pip2 install setuptools twine
+pip3 install setuptools twine
 python2 setup.py sdist bdist_wheel
 python3 setup.py sdist bdist_wheel
 python3 -m twine upload dist/*
