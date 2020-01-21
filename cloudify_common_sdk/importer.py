@@ -1,5 +1,6 @@
 # #######
 # Copyright (c) 2017 GigaSpaces Technologies Ltd. All rights reserved
+# Copyright (c) 2019 Pantheon.tech. All rights reserved
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +16,10 @@
 import sys
 import imp
 import os
-import __builtin__
+try:
+    import builtins
+except ImportError:
+    import __builtin__ as builtins
 
 
 class _OurImporter(object):
@@ -86,7 +90,7 @@ def _check_import(dir_name):
 def register_callback():
     sys.path_hooks.append(_check_import)
 
-    save_import = __builtin__.__import__
+    save_import = builtins.__import__
 
     def new_import(*argv, **kwargs):
         try:
@@ -104,4 +108,4 @@ def register_callback():
 
         return module
 
-    __builtin__.__import__ = new_import
+    builtins.__import__ = new_import
