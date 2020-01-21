@@ -1,5 +1,5 @@
 # #######
-# Copyright (c) 2017 GigaSpaces Technologies Ltd. All rights reserved
+# Copyright (c) 2017-2020 Cloudify Platform Ltd. All rights reserved
 # Copyright (c) 2019 Pantheon.tech. All rights reserved
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
