@@ -39,7 +39,7 @@ setuptools.setup(
               'cloudify_rest_sdk',
               'cloudify_terminal_sdk'],
     install_requires=[
-        'paramiko',  # terminal
+        'paramiko>=2.7.1',  # terminal
         "Jinja2>=2.7.2",  # terminal
         'pyyaml',  # cloudinit and rest
         'requests',  # rest
