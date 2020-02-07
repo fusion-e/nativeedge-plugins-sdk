@@ -145,15 +145,31 @@ def _check_import(dir_name):
     return _OurFinder(dir_name=dir_name)
 
 
-def register_callback(dir_name=None, base_dir=None, package=None):
-    if package:
+def register_callback(dir_name=None, base_dir=None, package_name=None):
+    if package_name:
         # get possible dirs with our package
-        paths = get_sitedirs(package_name=package,
+        paths = get_sitedirs(package_name=package_name,
                              sys_path=sys.path,
                              base_dir=base_dir)
         for path in paths:
             # try to use sys.path as site directory
             site.addsitedir(path)
+
+        fp = None
+        try:
+            # search by imp
+            fp, pathname, description = imp.find_module(package_name)
+            # load by imp
+            imp.load_module(package_name, fp, pathname, description)
+            # magic code is not required for load namespaced packages
+            return
+        except ImportError:
+            # still can't load module
+            pass
+        finally:
+            # close if file opened
+            if fp:
+                fp.close()
 
     # register our finder
     sys.path_hooks.append(_check_import)
