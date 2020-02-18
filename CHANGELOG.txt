@@ -1,5 +1,8 @@
 releases:
 
+  v0.0.13:
+  - Add shared cdrom image creation code
+
   v0.0.12:
   - Add cloudify importer code
 
