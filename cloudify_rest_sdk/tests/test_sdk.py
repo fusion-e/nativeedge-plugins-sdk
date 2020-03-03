@@ -339,6 +339,9 @@ class TestSdk(unittest.TestCase):
                                    params={},
                                    files=None,
                                    auth=('someone', 'check'),
+                                   cert=None,
+                                   proxies=None,
+                                   timeout=None,
                                    verify=False)
 
         # raw_files with string
@@ -390,6 +393,9 @@ class TestSdk(unittest.TestCase):
                                    params={},
                                    files={'file': 'abc'},
                                    auth=None,
+                                   cert=None,
+                                   proxies=None,
+                                   timeout=None,
                                    verify=False)
 
         # raw_files with list
@@ -438,6 +444,9 @@ class TestSdk(unittest.TestCase):
                                    params={},
                                    files={'file': ('a', 'b', 'c')},
                                    auth=None,
+                                   cert=None,
+                                   proxies=None,
+                                   timeout=None,
                                    verify=False)
 
         # raw_files with tuple
@@ -486,6 +495,9 @@ class TestSdk(unittest.TestCase):
                                    params={},
                                    files={'file': ('a', 'b', 'c')},
                                    auth=None,
+                                   cert=None,
+                                   proxies=None,
+                                   timeout=None,
                                    verify=False)
 
         # xml request
@@ -526,6 +538,9 @@ class TestSdk(unittest.TestCase):
                                    params={},
                                    files=None,
                                    auth=None,
+                                   cert=None,
+                                   proxies=None,
+                                   timeout=None,
                                    verify=False)
 
         # raise error on request status
@@ -654,6 +669,9 @@ class TestSdk(unittest.TestCase):
                                    params={},
                                    files=None,
                                    auth=None,
+                                   cert=None,
+                                   proxies=None,
+                                   timeout=None,
                                    verify=False)
         # check rawpayload
         template = """
@@ -718,6 +736,9 @@ class TestSdk(unittest.TestCase):
                                    params={},
                                    files=None,
                                    auth=None,
+                                   cert=None,
+                                   proxies=None,
+                                   timeout=None,
                                    verify=False)
         payload_callback.assert_called_with('payload.xml')
 
@@ -731,6 +752,81 @@ class TestSdk(unittest.TestCase):
         self.assertEqual(utility.process({}, "", {}), {})
 
     def test_process_post_render(self):
+        # check server/client side cert
+        template = """
+            rest_calls:
+            - ssl: true
+              path: "/xml"
+              method: get
+              verify: "some_server_cert"
+              cert: "some_client_cert"
+              timeout: 300
+              host: localhost
+              port: -1
+              payload: '<object>11</object>'
+              payload_format: raw
+              headers:
+                a: b
+              response_format: xml
+              nonrecoverable_response: [['object', '20']]
+              response_expectation: [['object', '10']]
+              response_translation:
+                object:
+                - object_id"""
+        response = mock.Mock()
+        response.json = None
+        response.raise_for_status = mock.Mock()
+        response.text = '''<object>10</object>'''
+        response.status_code = 404
+        response.headers = {
+            'Content-Type': "application/json"
+        }
+        response.cookies = mock.Mock()
+        response.cookies.get_dict = mock.Mock(return_value={'a': 'b'})
+        request = mock.Mock(return_value=response)
+        with mock.patch(
+            "cloudify_rest_sdk.utility.requests.request", request
+        ):
+            with mock.patch(
+                "cloudify_rest_sdk.utility.tempfile.mkstemp",
+                mock.Mock(return_value=['fake_fd', '/tmp/fake_tmp'])
+            ):
+                fake_os = mock.Mock()
+                fake_os.path.isfile = mock.Mock(return_value=False)
+                fake_os.remove = mock.Mock(
+                    side_effect=Exception("can't remove"))
+                with mock.patch("cloudify_rest_sdk.utility.os", fake_os):
+                    self.assertEqual(
+                        utility.process({}, template, {}), {
+                            'calls': [{
+                                'headers': {'a': 'b'},
+                                'host': 'localhost',
+                                'method': 'get',
+                                'nonrecoverable_response': [['object']],
+                                'path': '/xml',
+                                'payload': '<object>11</object>',
+                                'payload_format': 'raw',
+                                'port': -1,
+                                'response_expectation': [['object']],
+                                'response_format': 'xml',
+                                'response_translation': {'object': []},
+                                'ssl': True,
+                                'timeout': 300,
+                                'cert': "some_client_cert",
+                                'verify': "some_server_cert",
+                            }],
+                            'result_properties': {'object_id': u'10'}})
+        request.assert_called_with('get', 'https://localhost:443/xml',
+                                   data='<object>11</object>',
+                                   headers={'a': 'b'},
+                                   json=None,
+                                   params={},
+                                   files=None,
+                                   auth=None,
+                                   cert='/tmp/fake_tmp',
+                                   proxies=None,
+                                   timeout=300,
+                                   verify='/tmp/fake_tmp')
         # without params
         template = """
             rest_calls:
@@ -789,6 +885,9 @@ class TestSdk(unittest.TestCase):
                                    params={},
                                    files=None,
                                    auth=None,
+                                   cert=None,
+                                   proxies=None,
+                                   timeout=None,
                                    verify=False)
         # check post apply parameters
         template = """
@@ -839,6 +938,9 @@ class TestSdk(unittest.TestCase):
                                    params={},
                                    files=None,
                                    auth=None,
+                                   cert=None,
+                                   proxies=None,
+                                   timeout=None,
                                    verify=False)
         # urlencode
         template = """
@@ -909,6 +1011,9 @@ class TestSdk(unittest.TestCase):
                                    params={'object': 11},
                                    files=None,
                                    auth=None,
+                                   cert=None,
+                                   proxies=None,
+                                   timeout=None,
                                    verify=False)
 
 
