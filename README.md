@@ -19,14 +19,28 @@ Utilities SDK for extending Cloudify features.
     `urlencoded`, `raw`. By default: `json`.
   * `payload`: Optional, YAML representation of data that is to be sent as
     payload in REST call.
-  * `payload_raw` / `raw_payload`: Optional, raw payload data name avaible by callback.
+  * `payload_raw` / `raw_payload`: Optional, raw payload data name avaible by
+    callback.
   * `files`: Optional, YAML representation of data that is to be sent as
     files in REST call.
-  * `files_raw` / `raw_files`: Optional, raw files data name avaible by callback.
+  * `files_raw` / `raw_files`: Optional, raw files data name avaible by
+    callback.
   * `params`: Optional, url params.
   * `method`: REST method (GET/PUT/POST/PATCH/DELETE).
   * `headers`: Optional, headers for set.
   * `verify`: Optional, check https certificates. By default: `true`.
+    Supported such values:
+    * `True`: default value, check certificaties,
+    * `False`: ignore server certificates,
+    * `<file path>`: path to certificate on local system,
+    * `<certificate content>`: certificate content.
+  * `timeout`: Optional, timeout value for requests.
+  * `cert`: Optional, provide https client certificates. By default: `None`.
+    Supported such values:
+    * `None`: default value, ignore client certificates,
+    * `<file path>`: path to certificate on local system,
+    * `<certificate content>`: certificate content.
+  * `proxies`: proxies dictionary. By default: empty.
   * `recoverable_codes`: Optional, non critical recoverable http codes, will
     triger operation retry on failure.
   * `successful_codes`: Optional, non critical http error codes, will
