@@ -13,12 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import yaml
-import logging
 import ast
+import logging
+import os
 import re
-import xmltodict
 import requests
+import tempfile
+import xmltodict
+import yaml
 from six import StringIO, string_types
 
 from cloudify_rest_sdk import LOGGER_NAME
@@ -69,8 +71,32 @@ def process(params, template, request_props, prerender=False,
         calls.append(call)
         logger.debug('Rendered call: {}'.format(shorted_text(call)))
         call_with_request_props.update(call)
-        response = _send_request(call_with_request_props,
-                                 resource_callback=resource_callback)
+
+        # client/server side certification check
+        file_to_remove = []
+        for field in ['verify', 'cert']:
+            if isinstance(call_with_request_props.get(field), string_types):
+                if not os.path.isfile(call_with_request_props.get(field)):
+                    fd, destination = tempfile.mkstemp()
+                    os.write(fd, call.get(field))
+                    os.close(fd)
+                    # replace to path to content
+                    call_with_request_props[field] = destination
+                    file_to_remove.append(destination)
+
+        # run requests
+        try:
+            response = _send_request(call_with_request_props,
+                                     resource_callback=resource_callback)
+        finally:
+            for path in file_to_remove:
+                try:
+                    os.remove(path)
+                except Exception as e:
+                    logger.debug(
+                        'Cant remove temporary file {path}: {error}'
+                        .format(path=path, error=repr(e))
+                    )
         _process_response(response, call, result_properties)
     result_properties = {'result_properties': result_properties,
                          'calls': calls}
@@ -134,17 +160,22 @@ def _send_request(call, resource_callback=None):
         else:
             json_payload = None
             data = payload_data
+
         # auth
         auth = None
         if 'auth' in call:
             auth = (call['auth'].get('user'),
                     call['auth'].get('password'))
+
         # run request
         try:
             response = requests.request(call['method'], full_url,
                                         auth=auth,
                                         headers=call.get('headers', None),
                                         verify=call.get('verify', True),
+                                        cert=call.get('cert', None),
+                                        proxies=call.get('proxies', None),
+                                        timeout=call.get('timeout', None),
                                         json=json_payload,
                                         params=params,
                                         files=files if files else None,

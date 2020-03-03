@@ -1,5 +1,8 @@
 releases:
 
+  v0.0.14:
+  - Support use certificate content in verify and in cert field in rest plugin.
+
   v0.0.13:
   - Add shared cdrom image creation code
 
