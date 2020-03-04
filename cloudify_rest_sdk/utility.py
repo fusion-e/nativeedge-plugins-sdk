@@ -78,7 +78,7 @@ def process(params, template, request_props, prerender=False,
             if isinstance(call_with_request_props.get(field), string_types):
                 if not os.path.isfile(call_with_request_props.get(field)):
                     fd, destination = tempfile.mkstemp()
-                    os.write(fd, call.get(field))
+                    os.write(fd, call_with_request_props.get(field))
                     os.close(fd)
                     # replace to path to content
                     call_with_request_props[field] = destination

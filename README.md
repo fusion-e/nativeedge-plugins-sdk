@@ -32,8 +32,8 @@ Utilities SDK for extending Cloudify features.
     Supported such values:
     * `True`: default value, check certificaties,
     * `False`: ignore server certificates,
-    * `<file path>`: path to certificate on local system,
-    * `<certificate content>`: certificate content.
+    * `<file path>`: path to CA_BUNDLE on local system,
+    * `<certificate content>`: CA_BUNDLE content.
   * `timeout`: Optional, timeout value for requests.
   * `cert`: Optional, provide https client certificates. By default: `None`.
     Supported such values:
