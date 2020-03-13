@@ -153,6 +153,31 @@ class TestSdk(unittest.TestCase):
         store_props = {}
         call = {
             'response_format': 'json',
+            'nonrecoverable_response': [['id', '10'],
+                                        ['id', '11'],
+                                        ['id', '12']],
+            'response_expectation': [['id', '20']],
+            'response_translation': {
+                "name": ["user-full-name"],
+                "email": ["user-email"],
+                "address": {
+                    "city": ["user-city"],
+                    "zipcode": ["user-city-zip"],
+                    "geo": {
+                        "lat": ["user-city-geo", "latitude"],
+                        "lng": ["user-city-geo", "longnitude"]
+                    }
+                }
+            }
+        }
+        with self.assertRaises(
+            exceptions.NonRecoverableResponseException
+        ):
+            utility._process_response(response, call, {})
+        # json
+        store_props = {}
+        call = {
+            'response_format': 'json',
             'nonrecoverable_response': [['id', '20']],
             'response_expectation': [['id', '10']],
             'response_translation': {
