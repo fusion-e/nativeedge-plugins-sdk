@@ -12,3 +12,5 @@ xmltodict
 nose-exclude
 # for fake netconf server only
 PyCrypto
+gitdb>=0.6.4
+GitPython
