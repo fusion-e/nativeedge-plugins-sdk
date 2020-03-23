@@ -17,7 +17,7 @@ import setuptools
 
 setuptools.setup(
     name='cloudify-utilities-plugins-sdk',
-    version='0.0.14',
+    version='0.0.15',
     author='Cloudify Platform Ltd.',
     author_email='hello@cloudify.co',
     description='Utilities SDK for extending Cloudify',
@@ -44,5 +44,8 @@ setuptools.setup(
         "pycdlib", # cdrom image
         'pyyaml',  # cloudinit and rest
         'requests',  # rest
-        'xmltodict']  # rest
+        'xmltodict',   # rest
+        "gitdb>=0.6.4",  # shared download resource
+        "GitPython"  # shared download resource
+    ]
 )
