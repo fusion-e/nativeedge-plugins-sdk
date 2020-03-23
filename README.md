@@ -208,6 +208,7 @@ Look to [ChangeLog](CHANGELOG.txt).
 ```shell
 pip2 install setuptools twine
 pip3 install setuptools twine
+pip3 install --upgrade keyrings.alt
 python2 setup.py sdist bdist_wheel
 python3 setup.py sdist bdist_wheel
 python3 -m twine upload dist/*
