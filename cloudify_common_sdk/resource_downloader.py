@@ -4,7 +4,7 @@ import requests
 import tempfile
 import tarfile
 
-from git import Repo
+from cloudify_common_sdk.exceptions import NonRecoverableError
 
 TAR_FILE_EXTENSTIONS = ('tar', 'gz', 'bz2', 'tgz', 'tbz')
 
@@ -68,9 +68,16 @@ def get_shared_resource(source_path):
                             response.iter_content(chunk_size=None):
                         source_temp.write(chunk)
         else:
-            tmp_path = tempfile.mkdtemp()
-            Repo.clone_from(source_path,
-                            tmp_path)
+            try:
+                from git import Repo
+                tmp_path = tempfile.mkdtemp()
+                Repo.clone_from(source_path,
+                                tmp_path)
+            except ImportError:
+                raise NonRecoverableError(
+                    "Clone git repo is only supported if git is installed "
+                    "on your manager and accessible in the management "
+                    "user's path.")
         # unzip the downloaded file
         if file_type == 'zip':
             tmp_path = unzip_archive(tmp_path)
