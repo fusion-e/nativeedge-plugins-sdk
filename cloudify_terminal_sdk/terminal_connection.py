@@ -40,9 +40,14 @@ class TextConnection(base_connection.SSHConnection):
         if not promt_check:
             return -1
 
+        # clean up incorrect symbols
+        # original buffer will survive, but for search better to replace all
+        # unicode to placeholders
+        cleanedup_buffer = "".join([i if ord(i) < 128 else '?' for i in buff])
+
         # search possible promt
         for code in promt_check:
-            position = buff.find(code)
+            position = cleanedup_buffer.find(code)
             if position != -1:
                 return position
 
