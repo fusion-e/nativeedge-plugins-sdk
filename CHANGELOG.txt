@@ -1,5 +1,8 @@
 releases:
 
+  v0.0.17:
+  - More robust 'find_any_in' in terminal connection
+
   v0.0.16:
   - Handle missing git installation for shared resource downloader.
 
