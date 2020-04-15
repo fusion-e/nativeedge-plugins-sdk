@@ -66,7 +66,8 @@ def get_shared_resource(source_path):
                 # try and figure-out the type from headers
                 h = requests.head(source_path)
                 content_type = h.headers.get('content-type')
-                file_type = mimetypes.guess_extension(content_type)
+                file_type = \
+                    mimetypes.guess_extension(content_type, False) or ""
             with requests.get(source_path,
                               allow_redirects=True,
                               stream=True) as response:
