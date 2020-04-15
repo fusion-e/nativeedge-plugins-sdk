@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
+import mock
 import unittest
 
 import cloudify_common_sdk.resource_downloader as resource_downloader
@@ -36,6 +37,13 @@ class TestResourceDownloader(unittest.TestCase):
     def test_file_with_no_type(self):
         result = resource_downloader.get_shared_resource(FILE_WITH_NO_TYPE_URL)
         self.assertTrue(os.path.exists(result))
+
+    def test_file_with_no_type_no_ext(self):
+        guess_extension_mock = mock.Mock(return_value=None)
+        with mock.patch("mimetypes.guess_extension", guess_extension_mock):
+            result = \
+                resource_downloader.get_shared_resource(FILE_WITH_NO_TYPE_URL)
+            self.assertTrue(os.path.exists(result))
 
 
 if __name__ == '__main__':
