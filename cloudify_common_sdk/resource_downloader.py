@@ -3,6 +3,7 @@ import zipfile
 import requests
 import tempfile
 import tarfile
+import mimetypes
 
 from cloudify_common_sdk.exceptions import NonRecoverableError
 
@@ -54,8 +55,18 @@ def get_shared_resource(source_path):
     schema = split[0]
     if schema in ['http', 'https']:
         file_name = source_path.rsplit('/', 1)[1]
-        file_type = file_name.rsplit('.', 1)[1]
+        # user might provide a link to file with no extension
+        file_type = ""
+        try:
+            file_type = file_name.rsplit('.', 1)[1]
+        except IndexError:
+            pass
         if file_type != 'git':
+            if not file_type:
+                # try and figure-out the type from headers
+                h = requests.head(source_path)
+                content_type = h.headers.get('content-type')
+                file_type = mimetypes.guess_extension(content_type)
             with requests.get(source_path,
                               allow_redirects=True,
                               stream=True) as response:

@@ -1,5 +1,8 @@
 releases:
 
+  v0.0.18:
+  - Handle missing file extensions for shared resource downloader.
+
   v0.0.17:
   - More robust 'find_any_in' in terminal connection
 
