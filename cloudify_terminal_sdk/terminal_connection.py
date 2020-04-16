@@ -13,6 +13,7 @@
 # limitations under the License.
 from cloudify_common_sdk import exceptions
 from cloudify_terminal_sdk import base_connection
+from cloudify_common_sdk.filters import remove_nonascii
 
 DEFAULT_PROMT = ["#", "$"]
 LINE_SIZE = 256
@@ -23,9 +24,14 @@ class TextConnection(base_connection.SSHConnection):
     def _send_response(self, line, responses):
         # return position next to question
         if responses:
+            # clean up incorrect symbols
+            # original buffer will survive, but for search better to replace
+            # all unicode to placeholders
+            cleanedup_line = remove_nonascii(line)
+            # posible responses
             for response in responses:
                 # question check
-                question_pos = line.find(response['question'])
+                question_pos = cleanedup_line.find(response['question'])
                 if question_pos != -1:
                     # response to question
                     self._conn_send(response.get('answer', ""))
@@ -40,10 +46,7 @@ class TextConnection(base_connection.SSHConnection):
         if not promt_check:
             return -1
 
-        # clean up incorrect symbols
-        # original buffer will survive, but for search better to replace all
-        # unicode to placeholders
-        cleanedup_buffer = "".join([i if ord(i) < 128 else '?' for i in buff])
+        cleanedup_buffer = remove_nonascii(buff)
 
         # search possible promt
         for code in promt_check:
