@@ -164,6 +164,11 @@ def __correct_substr(text, size):
             size -= 1
 
 
+def remove_nonascii(text, placeholder="?"):
+    # remove non ascii symbols from text and replace with placeholder
+    return "".join([i if ord(i) < 128 else placeholder for i in text])
+
+
 def shorted_text(obj, size=1024):
     """Limit text to size"""
     if isinstance(obj, string_types):
