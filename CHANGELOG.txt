@@ -1,5 +1,9 @@
 releases:
 
+  v0.0.19:
+  - Fix for downloader fle type for unknown
+  - Fix search for question in unfinished buffer
+
   v0.0.18:
   - Handle missing file extensions for shared resource downloader.
 
