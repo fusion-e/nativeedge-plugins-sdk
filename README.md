@@ -29,18 +29,32 @@ Utilities SDK for extending Cloudify features.
   * `method`: REST method (GET/PUT/POST/PATCH/DELETE).
   * `headers`: Optional, headers for set.
   * `verify`: Optional, check https certificates. By default: `true`.
+
     Supported such values:
     * `True`: default value, check certificaties,
     * `False`: ignore server certificates,
     * `<file path>`: path to CA_BUNDLE on local system,
     * `<certificate content>`: CA_BUNDLE content.
+
+    More info: https://requests.readthedocs.io/en/master/user/advanced/#ssl-cert-verification
   * `timeout`: Optional, timeout value for requests.
+
+    More info: https://requests.readthedocs.io/en/master/user/advanced/#timeouts
   * `cert`: Optional, provide https client certificates. By default: `None`.
+
     Supported such values:
     * `None`: default value, ignore client certificates,
     * `<file path>`: path to certificate on local system,
     * `<certificate content>`: certificate content.
-  * `proxies`: proxies dictionary. By default: empty.
+
+    More info: https://requests.readthedocs.io/en/master/user/advanced/#client-side-certificates
+  * `proxies`: proxies dictionary. By default: `None`.
+
+    Supported keys:
+    * `http`: Full proxy http proxy url
+    * `https`: Full proxy https proxy url
+
+    More info: https://requests.readthedocs.io/en/master/user/advanced/#proxies
   * `recoverable_codes`: Optional, non critical recoverable http codes, will
     triger operation retry on failure.
   * `successful_codes`: Optional, non critical http error codes, will
