@@ -116,6 +116,51 @@ class TestSdk(unittest.TestCase):
                 str(error.exception),
                 "Response (nonrecoverable) had to be list. Type <type 'str'> "
                 "not supported. ")
+        # check regexp
+
+    def test_check_response_regexp(self):
+        # Success
+        parsed_json = json.loads('''{
+            "status": "Success"
+        }''')
+        utility._check_response(
+            parsed_json, [['status', '\\AWarning\\Z|\\ASuccess\\Z']], True)
+        # Warning
+        parsed_json = json.loads('''{
+            "status": "Warning"
+        }''')
+        utility._check_response(
+            parsed_json, [['status', '\\AWarning\\Z|\\ASuccess\\Z']], True)
+        # Incorrect suffix
+        parsed_json = json.loads('''{
+            "status": "Successful"
+        }''')
+        error_text = (
+            "Trying one more time...\nResponse value:Successful does not "
+            "match regexp: \\AWarning\\Z|\\ASuccess\\Z from "
+            "response_expectation"
+        )
+        with self.assertRaises(
+            exceptions.RecoverableResponseException
+        ) as error:
+            utility._check_response(
+                parsed_json, [['status', '\\AWarning\\Z|\\ASuccess\\Z']], True)
+        self.assertEqual(str(error.exception), error_text)
+        # Incorrect prefix
+        parsed_json = json.loads('''{
+            "status": "Full Success"
+        }''')
+        error_text = (
+            "Trying one more time...\nResponse value:Full Success does not "
+            "match regexp: \\AWarning\\Z|\\ASuccess\\Z from "
+            "response_expectation"
+        )
+        with self.assertRaises(
+            exceptions.RecoverableResponseException
+        ) as error:
+            utility._check_response(
+                parsed_json, [['status', '\\AWarning\\Z|\\ASuccess\\Z']], True)
+        self.assertEqual(str(error.exception), error_text)
 
     def test_process_response(self):
         parsed_json = json.loads('''{

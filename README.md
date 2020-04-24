@@ -73,9 +73,13 @@ Utilities SDK for extending Cloudify features.
     detected by response headers.
   * `nonrecoverable_response`: Optional, unaccepted responses. Response which
     is raising non-recoverable error and triggers workflow to stop (give up).
+    Any of rule could be invalid(logical `OR`) for failure. As checking rule for value
+    should be used [Python Regular Expression Syntax](https://docs.python.org/3/library/re.html).
   * `response_expectation`: Optional, accepted responses. What we expect in a
     response content. If response is different than specified, system is
     raising recoverable error and trying until response is equal to specified.
+    All rules should be valid(logical `AND`) for success. As checking rule for value
+    should be used [Python Regular Expression Syntax](https://docs.python.org/3/library/re.html).
   * `retry_on_connection_error`: try to send request again even in case when
     REST endpoint is not available (ConnectionError). It may be useful in cases
     that we need to wait for some REST service to be up.
