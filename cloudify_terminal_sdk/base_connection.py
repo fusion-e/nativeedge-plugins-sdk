@@ -52,7 +52,7 @@ class BaseConnection(object):
                 file.write(text)
         except Exception as e:
             if self.logger:
-                self.logger.info(str(e))
+                self.logger.info("Can't write to log: {}".format(repr(e)))
 
     # connection function
     def _conn_send(self, message):
