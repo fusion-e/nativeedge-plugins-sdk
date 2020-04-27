@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import unittest
 import json
 import mock
@@ -57,7 +58,7 @@ class TestSdk(unittest.TestCase):
         ) as error:
             utility._check_response(parsed_json, [['id', '22']], True)
         self.assertEqual(
-            str(error.exception),
+            "{0}".format(error.exception),
             'Trying one more time...\nResponse value:10 does not match '
             'regexp: 22 from response_expectation')
         # incorect data / NonRecoverable, filter that data match
@@ -66,7 +67,7 @@ class TestSdk(unittest.TestCase):
         ) as error:
             utility._check_response(parsed_json, [['id', '10']], False)
         self.assertEqual(
-            str(error.exception),
+            "{0}".format(error.exception),
             'Giving up... \nResponse value: 10 matches regexp:10 from '
             'nonrecoverable_response. ')
         # correct data, filter that data not match
@@ -77,12 +78,12 @@ class TestSdk(unittest.TestCase):
             exceptions.ExpectationException
         ) as error:
             utility._check_response([{'id': 40}], [['id', '20']], False)
-        self.assertEqual(str(error.exception), error_text)
+        self.assertEqual("{0}".format(error.exception), error_text)
         with self.assertRaises(
             exceptions.ExpectationException
         ) as error:
             utility._check_response([{'id': 40}], [['id', '20']], True)
-        self.assertEqual(str(error.exception), error_text)
+        self.assertEqual("{0}".format(error.exception), error_text)
         # wrong checked
         with self.assertRaises(
             exceptions.WrongTemplateDataException
@@ -91,13 +92,13 @@ class TestSdk(unittest.TestCase):
         if six.PY3:
             # python 3
             self.assertEqual(
-                str(error.exception),
+                "{0}".format(error.exception),
                 "Response (recoverable) had to be list. Type <class 'str'> "
                 "not supported. ")
         else:
             # python 2
             self.assertEqual(
-                str(error.exception),
+                "{0}".format(error.exception),
                 "Response (recoverable) had to be list. Type <type 'str'> "
                 "not supported. ")
         with self.assertRaises(
@@ -107,13 +108,13 @@ class TestSdk(unittest.TestCase):
         if six.PY3:
             # python 3
             self.assertEqual(
-                str(error.exception),
+                "{0}".format(error.exception),
                 "Response (nonrecoverable) had to be list. Type <class 'str'> "
                 "not supported. ")
         else:
             # python 2
             self.assertEqual(
-                str(error.exception),
+                "{0}".format(error.exception),
                 "Response (nonrecoverable) had to be list. Type <type 'str'> "
                 "not supported. ")
         # check regexp
@@ -145,7 +146,7 @@ class TestSdk(unittest.TestCase):
         ) as error:
             utility._check_response(
                 parsed_json, [['status', '\\AWarning\\Z|\\ASuccess\\Z']], True)
-        self.assertEqual(str(error.exception), error_text)
+        self.assertEqual("{0}".format(error.exception), error_text)
         # Incorrect prefix
         parsed_json = json.loads('''{
             "status": "Full Success"
@@ -160,7 +161,7 @@ class TestSdk(unittest.TestCase):
         ) as error:
             utility._check_response(
                 parsed_json, [['status', '\\AWarning\\Z|\\ASuccess\\Z']], True)
-        self.assertEqual(str(error.exception), error_text)
+        self.assertEqual("{0}".format(error.exception), error_text)
 
     def test_process_response(self):
         parsed_json = json.loads('''{
@@ -302,7 +303,7 @@ class TestSdk(unittest.TestCase):
         ) as error:
             utility._process_response(response, call, store_props)
         self.assertEqual(
-            str(error.exception),
+            "{0}".format(error.exception),
             "Response_format 'other' is not supported. Only json/xml or raw "
             "response_format is supported")
         self.assertDictEqual(store_props, {})
@@ -624,7 +625,7 @@ class TestSdk(unittest.TestCase):
                 utility.requests.exceptions.HTTPError
             ) as error:
                 self.assertEqual(utility._send_request(call), response)
-            self.assertEqual(str(error.exception), 'Error!')
+            self.assertEqual("{0}".format(error.exception), 'Error!')
 
         # expected error
         call['recoverable_codes'] = [404]
@@ -636,7 +637,7 @@ class TestSdk(unittest.TestCase):
             ) as error:
                 utility._send_request(call)
             self.assertEqual(
-                str(error.exception),
+                "{0}".format(error.exception),
                 'Response code 404 defined as recoverable')
 
         # expected error accepted as successful
@@ -659,7 +660,7 @@ class TestSdk(unittest.TestCase):
                 utility.requests.exceptions.ConnectionError
             ) as error:
                 self.assertEqual(utility._send_request(call), response)
-            self.assertEqual(str(error.exception), "check connect")
+            self.assertEqual("{0}".format(error.exception), "check connect")
 
         # ignore conenction errors
         call['retry_on_connection_error'] = True
@@ -675,9 +676,11 @@ class TestSdk(unittest.TestCase):
             ) as error:
                 self.assertEqual(utility._send_request(call), response)
             self.assertEqual(
-                str(error.exception),
-                "ConnectionError check connect has occurred, but flag "
-                "retry_on_connection_error is set. Retrying...")
+                repr(error.exception),
+                "RecoverableResponseException(\"ConnectionError "
+                "ConnectionError('check connect',) has occurred, but flag "
+                "retry_on_connection_error is set. Retrying...\",)"
+            )
 
     def test_process_pre_render(self):
         # without params

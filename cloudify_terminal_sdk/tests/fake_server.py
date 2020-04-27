@@ -15,6 +15,7 @@
 #
 # Based on paramiko demo_server by Robey Pointer <robeypointer@gmail.com>
 
+from __future__ import print_function
 import socket
 import sys
 import paramiko
@@ -46,7 +47,7 @@ class Server(paramiko.ServerInterface):
         self.password = password
 
     def check_channel_request(self, kind, chanid):
-        print("Asked about: " + str(kind))
+        print("Asked about: {0}".format(kind))
         if kind == "session":
             return paramiko.OPEN_SUCCEEDED
         return paramiko.OPEN_FAILED_ADMINISTRATIVELY_PROHIBITED
@@ -60,7 +61,7 @@ class Server(paramiko.ServerInterface):
         return "password"
 
     def check_channel_subsystem_request(self, channel, name):
-        print("Asked about subsystem: " + str(name))
+        print("Asked about subsystem: {0}".format(name))
         if name == 'netconf':
             return True
         return False

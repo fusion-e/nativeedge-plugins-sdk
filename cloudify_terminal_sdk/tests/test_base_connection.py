@@ -172,7 +172,8 @@ class SSHConnectionTest(unittest.TestCase):
             ))):
                 conn._write_to_log("Some_text")
         conn.logger.info.assert_called_with(
-            "[Errno 13] Permission denied: '/proc/read_only'"
+            "Can\'t write to log: Exception(\"[Errno 13] Permission denied: "
+            "\'/proc/read_only\'\",)"
         )
 
     def test_reuse_connection(self):
