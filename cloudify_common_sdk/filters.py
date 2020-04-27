@@ -89,7 +89,7 @@ def _translate_and_save_v1(response_json, response_translation, runtime_dict):
             else:
                 _save(runtime_dict, response_translation, response_json)
     elif isinstance(response_translation, dict):
-        for key, value in response_translation.items():
+        for key, value in list(response_translation.items()):
             _translate_and_save_v1(response_json[key], value, runtime_dict)
 
 

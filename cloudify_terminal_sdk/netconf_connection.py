@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 from cloudify_common_sdk import exceptions
 from cloudify_terminal_sdk import base_connection
 
@@ -77,7 +78,7 @@ class NetConfConnection(base_connection.SSHConnection):
     def _send_1_1(self, xml):
         """send xml string as package by connection"""
         if xml:
-            message = "\n#" + str(len(xml)) + "\n"
+            message = "\n#{0}\n".format(len(xml))
             message += xml
             message += "\n##\n"
             self._conn_send(message)

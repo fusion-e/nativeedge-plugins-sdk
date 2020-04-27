@@ -1,5 +1,8 @@
 releases:
 
+  v0.0.20:
+  - Apply futurize fixes for python3
+
   v0.0.19:
   - Fix for downloader fle type for unknown
   - Fix search for question in unfinished buffer

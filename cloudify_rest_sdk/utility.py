@@ -62,7 +62,7 @@ def process(params, template, request_props, prerender=False,
         # enrich params with items stored in runtime props by prev calls
         params.update(result_properties)
         if not prerender:
-            call = str(call)
+            call = "{0}".format(call)
             # Remove quotation marks before and after jinja blocks
             call = re.sub(r'\'\{\%', '{%', call)
             call = re.sub(r'\%\}\'', '%}', call)
@@ -190,7 +190,7 @@ def _send_request(call, resource_callback=None):
                     'ConnectionError {0} has occurred, but flag {1} is set. '
                     'Retrying...'
                     .format(
-                        str(e),
+                        repr(e),
                         TEMPLATE_PROPERTY_RETRY_ON_CONNECTION_ERROR
                     )
                 )
@@ -322,15 +322,21 @@ def _check_response(json, response, is_recoverable):
                 raise ExpectationException(
                         'No key or index "{}" in json {}'.format(key, json))
 
-        if re.match(str(pattern), str(json)) and not is_recoverable:
+        if (
+            re.match(pattern, "{0}".format(json)) and
+            not is_recoverable
+        ):
             raise NonRecoverableResponseException(
                 "Giving up... \n"
                 "Response value: "
                 "{} matches regexp:{} from nonrecoverable_response. ".format(
-                    str(json), str(pattern)))
-        if not re.match(str(pattern), str(json)) and is_recoverable:
+                    json, pattern))
+        if (
+            not re.match(pattern, "{0}".format(json)) and
+            is_recoverable
+        ):
             raise RecoverableResponseException(
                 "Trying one more time...\n"
                 "Response value:{} does not match regexp: {} "
                 "from response_expectation".format(
-                    str(json), str(pattern)))
+                    json, pattern))
