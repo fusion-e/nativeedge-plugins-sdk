@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import unittest
 from mock import MagicMock, patch, Mock, call
 
@@ -307,8 +308,9 @@ class TerminalTest(unittest.TestCase):
         conn.logger.info.assert_not_called()
 
         self.assertEqual(
-            str(error.exception),
-            'Looks as we have error in response:  text\n some\nerror'
+            repr(error.exception),
+            'RecoverableError(\'Looks as we have error in response:  '
+            'text\\n some\\nerror\',)'
         )
 
         # check with alive connection
