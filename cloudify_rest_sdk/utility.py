@@ -28,7 +28,7 @@ from cloudify_common_sdk.filters import (
     translate_and_save,
     shorted_text,
     render_template,
-    obfuscate_auth_password,
+    obfuscate_passwords,
 )
 from cloudify_common_sdk.exceptions import (
     RecoverableStatusCodeCodeException,
@@ -60,7 +60,7 @@ def process(params, template, request_props, prerender=False,
     for call in template_yaml['rest_calls']:
         call_with_request_props = request_props.copy()
         logger.debug(
-            'Call: {}'.format(shorted_text(obfuscate_auth_password(call))))
+            'Call: {}'.format(shorted_text(obfuscate_passwords(call))))
         # enrich params with items stored in runtime props by prev calls
         params.update(result_properties)
         if not prerender:
@@ -72,7 +72,7 @@ def process(params, template, request_props, prerender=False,
             call = ast.literal_eval(rendered_call)
         calls.append(call)
         logger.debug('Rendered call: {}'.format(
-            shorted_text(obfuscate_auth_password(call))))
+            shorted_text(obfuscate_passwords(call))))
         call_with_request_props.update(call)
 
         # client/server side certification check
@@ -107,8 +107,8 @@ def process(params, template, request_props, prerender=False,
 
 
 def _send_request(call, resource_callback=None):
-    logger.debug('Request props: {}'.format(
-        shorted_text(obfuscate_auth_password(call))))
+    logger.debug(
+        'Request props: {}'.format(shorted_text(obfuscate_passwords(call))))
     port = call['port']
     ssl = call['ssl']
     if port == -1:
@@ -230,7 +230,7 @@ def _send_request(call, resource_callback=None):
 def _process_response(response, call, store_props):
     logger.debug('Process Response: {}'.format(shorted_text(response)))
     logger.debug(
-        'Call: {}'.format(shorted_text(obfuscate_auth_password(call))))
+        'Call: {}'.format(shorted_text(obfuscate_passwords(call))))
     logger.debug('Store props: {}'.format(shorted_text(store_props)))
     logger.debug('Store headers: {}'.format(shorted_text(response.headers)))
     translation_version = call.get('translation_format', 'auto')

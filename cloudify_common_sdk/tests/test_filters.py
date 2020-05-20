@@ -361,7 +361,7 @@ class TestFilters(unittest.TestCase):
             filters.render_template('{{a|toxml}}', {'a': {'b': 'c'}}),
             '<b>c</b>')
 
-    def test_obfuscate_auth_password(self):
+    def test_obfuscate_passwords(self):
         call = {
             'host': 'localhost',
             'auth': {
@@ -384,18 +384,40 @@ class TestFilters(unittest.TestCase):
                 "object": ["object_id"]
             }
         }
-        self.assertEqual(filters.obfuscate_auth_password(call),
+        self.assertEqual(filters.obfuscate_passwords(call),
                          obfuscated_call)
 
-    def test_obfuscate_auth_password_dont_copy(self):
+    def test_obfuscate_passwords_dont_copy(self):
         call = {
             'host': 'localhost',
             'port': -2,
             'response_translation': {
-                "object": ["object_id"]
+                "object": 'object_id'
             }
         }
-        self.assertIs(filters.obfuscate_auth_password(call), call)
+        self.assertIs(filters.obfuscate_passwords(call), call)
+
+    def test_obfuscate_passwords_deep(self):
+        call = {
+            'host': 'localhost',
+            'port': -2,
+            'PAssword': 'HIDE ME',
+            'deeper': {
+                u'password': 'HIDE ME'
+            },
+            'list': [
+                {'url': 'https://example.com/',
+                 'auth': {
+                     'username': 'USER',
+                     'PASSWORD': 'HIDE ME',
+                 }},
+                {'password': 'HIDE ME'}
+            ],
+            'what': {'should': {'you': {'do': {
+                'to': {'go': {'this': {'deep': {'password': 'HIDE ME'}}}}}}}},
+        }
+        self.assertNotIn('HIDE ME',
+                         u'{0}'.format(filters.obfuscate_passwords(call)))
 
 
 if __name__ == '__main__':
