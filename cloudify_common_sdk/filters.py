@@ -14,6 +14,7 @@
 from jinja2 import Environment
 import xmltodict
 from six import string_types, ensure_text
+import copy
 
 
 def get_field_value_recursive(logger, properties, path):
@@ -180,6 +181,14 @@ def shorted_text(obj, size=1024):
     elif len(text) > size:
         return __correct_substr(text, size-3) + "..."
     return text
+
+
+def obfuscate_auth_password(call):
+    if 'auth' in call and 'password' in call['auth']:
+        call_cpy = copy.deepcopy(call)
+        call_cpy['auth']['password'] = 'x' * 16
+        return call_cpy
+    return call
 
 
 def _toxml(value):

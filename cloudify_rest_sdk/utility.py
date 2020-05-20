@@ -27,7 +27,8 @@ from cloudify_rest_sdk import LOGGER_NAME
 from cloudify_common_sdk.filters import (
     translate_and_save,
     shorted_text,
-    render_template
+    render_template,
+    obfuscate_auth_password,
 )
 from cloudify_common_sdk.exceptions import (
     RecoverableStatusCodeCodeException,
@@ -58,7 +59,8 @@ def process(params, template, request_props, prerender=False,
 
     for call in template_yaml['rest_calls']:
         call_with_request_props = request_props.copy()
-        logger.debug('Call: {}'.format(shorted_text(call)))
+        logger.debug(
+            'Call: {}'.format(shorted_text(obfuscate_auth_password(call))))
         # enrich params with items stored in runtime props by prev calls
         params.update(result_properties)
         if not prerender:
@@ -69,7 +71,8 @@ def process(params, template, request_props, prerender=False,
             rendered_call = render_template(call, params)
             call = ast.literal_eval(rendered_call)
         calls.append(call)
-        logger.debug('Rendered call: {}'.format(shorted_text(call)))
+        logger.debug('Rendered call: {}'.format(
+            shorted_text(obfuscate_auth_password(call))))
         call_with_request_props.update(call)
 
         # client/server side certification check
@@ -104,7 +107,8 @@ def process(params, template, request_props, prerender=False,
 
 
 def _send_request(call, resource_callback=None):
-    logger.debug('Request props: {}'.format(shorted_text(call)))
+    logger.debug('Request props: {}'.format(
+        shorted_text(obfuscate_auth_password(call))))
     port = call['port']
     ssl = call['ssl']
     if port == -1:
@@ -225,7 +229,8 @@ def _send_request(call, resource_callback=None):
 
 def _process_response(response, call, store_props):
     logger.debug('Process Response: {}'.format(shorted_text(response)))
-    logger.debug('Call: {}'.format(shorted_text(call)))
+    logger.debug(
+        'Call: {}'.format(shorted_text(obfuscate_auth_password(call))))
     logger.debug('Store props: {}'.format(shorted_text(store_props)))
     logger.debug('Store headers: {}'.format(shorted_text(response.headers)))
     translation_version = call.get('translation_format', 'auto')
