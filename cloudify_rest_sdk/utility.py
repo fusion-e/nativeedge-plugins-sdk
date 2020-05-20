@@ -45,7 +45,8 @@ TEMPLATE_PROPERTY_RETRY_ON_CONNECTION_ERROR = 'retry_on_connection_error'
 #  request_props (port, ssl, verify, hosts )
 def process(params, template, request_props, prerender=False,
             resource_callback=False):
-    logger.info('Template:\n{}'.format(shorted_text(template)))
+    logger.info(
+        'Template:\n{}'.format(shorted_text(obfuscate_passwords(template))))
     if prerender:
         rendered_call = render_template(template, params)
         template_yaml = yaml.load(rendered_call)
@@ -271,7 +272,7 @@ def _process_response(response, call, store_props):
         else:  # XML
             json = xmltodict.parse(response.text)
             logger.debug('XML transformed to dict: {}'
-                         .format(shorted_text(json)))
+                         .format(shorted_text(obfuscate_passwords(json))))
 
         _check_response(json, call.get('nonrecoverable_response'), False)
         _check_response(json, call.get('response_expectation'), True)
@@ -293,10 +294,12 @@ def _process_response(response, call, store_props):
 def _check_response(json, response, is_recoverable):
     if not is_recoverable:
         logger.debug('Check response (nonrecoverable) in json: {} by {}'
-                     .format(shorted_text(json), repr(response)))
+                     .format(shorted_text(obfuscate_passwords(json)),
+                             repr(response)))
     else:
         logger.debug('Check response (recoverable) in json: {} by {}'
-                     .format(shorted_text(json), repr(response)))
+                     .format(shorted_text(obfuscate_passwords(json)),
+                             repr(response)))
 
     if not response:
         return
