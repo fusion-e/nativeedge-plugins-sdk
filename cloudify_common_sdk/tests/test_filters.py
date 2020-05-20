@@ -361,6 +361,42 @@ class TestFilters(unittest.TestCase):
             filters.render_template('{{a|toxml}}', {'a': {'b': 'c'}}),
             '<b>c</b>')
 
+    def test_obfuscate_auth_password(self):
+        call = {
+            'host': 'localhost',
+            'auth': {
+                'user': 'someone',
+                'password': 'check'
+            },
+            'port': -1,
+            'response_translation': {
+                "object": ["object_id"]
+            }
+        }
+        obfuscated_call = {
+            'host': 'localhost',
+            'auth': {
+                'user': 'someone',
+                'password': 'xxxxxxxxxxxxxxxx'
+            },
+            'port': -1,
+            'response_translation': {
+                "object": ["object_id"]
+            }
+        }
+        self.assertEqual(filters.obfuscate_auth_password(call),
+                         obfuscated_call)
+
+    def test_obfuscate_auth_password_dont_copy(self):
+        call = {
+            'host': 'localhost',
+            'port': -2,
+            'response_translation': {
+                "object": ["object_id"]
+            }
+        }
+        self.assertIs(filters.obfuscate_auth_password(call), call)
+
 
 if __name__ == '__main__':
     unittest.main()
