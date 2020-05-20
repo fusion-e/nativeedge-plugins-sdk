@@ -183,12 +183,31 @@ def shorted_text(obj, size=1024):
     return text
 
 
-def obfuscate_auth_password(call):
-    if 'auth' in call and 'password' in call['auth']:
-        call_cpy = copy.deepcopy(call)
-        call_cpy['auth']['password'] = 'x' * 16
-        return call_cpy
-    return call
+def obfuscate_passwords(obj):
+    """Obfuscate passwords in dictionary or list of dictionaries.
+
+    Returns a copy of original object with elements potentially containing
+    passwords obfuscated.  A copy.deepcopy() is used for copying dictionaries
+    but only when absolutely necessary.  If a given object does not contain
+    any passwords, original is returned and deepcopy never performed.
+    """
+    if isinstance(obj, list):
+        return [obfuscate_passwords(elem) for elem in obj]
+    if not isinstance(obj, dict):
+        return obj
+    result = obj
+    for k, v in list(result.items()):
+        if k.upper() == 'PASSWORD':
+            a_copy = copy.deepcopy(result)
+            a_copy[k] = 'x' * 16
+            result = a_copy
+        if isinstance(v, (dict, list, )):
+            obfuscated_v = obfuscate_passwords(v)
+            if obfuscated_v is not v:
+                a_copy = copy.deepcopy(result)
+                a_copy[k] = obfuscated_v
+                result = a_copy
+    return result
 
 
 def _toxml(value):
