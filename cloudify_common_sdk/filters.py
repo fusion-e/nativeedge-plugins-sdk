@@ -14,7 +14,10 @@
 from jinja2 import Environment
 import xmltodict
 from six import string_types, ensure_text
-import copy
+from copy import deepcopy
+import re
+
+from ._compat import text_type
 
 
 def get_field_value_recursive(logger, properties, path):
@@ -191,6 +194,9 @@ def obfuscate_passwords(obj):
     but only when absolutely necessary.  If a given object does not contain
     any passwords, original is returned and deepcopy never performed.
     """
+    if isinstance(obj, (text_type, bytes,)):
+        return re.sub(r'(password:\s*)(\S+)', '\\1{0}'.format('x' * 16), obj,
+                      flags=re.MULTILINE | re.IGNORECASE)
     if isinstance(obj, list):
         return [obfuscate_passwords(elem) for elem in obj]
     if not isinstance(obj, dict):
@@ -198,13 +204,13 @@ def obfuscate_passwords(obj):
     result = obj
     for k, v in list(result.items()):
         if k.upper() == 'PASSWORD':
-            a_copy = copy.deepcopy(result)
+            a_copy = deepcopy(result)
             a_copy[k] = 'x' * 16
             result = a_copy
         if isinstance(v, (dict, list, )):
             obfuscated_v = obfuscate_passwords(v)
             if obfuscated_v is not v:
-                a_copy = copy.deepcopy(result)
+                a_copy = deepcopy(result)
                 a_copy[k] = obfuscated_v
                 result = a_copy
     return result
