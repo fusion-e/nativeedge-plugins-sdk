@@ -195,7 +195,8 @@ def obfuscate_passwords(obj):
     any passwords, original is returned and deepcopy never performed.
     """
     if isinstance(obj, (text_type, bytes,)):
-        return re.sub(r'(password:\s*)(\S+)', '\\1{0}'.format('x' * 16), obj,
+        return re.sub(r'((password|secret|token):\s*)(\S+)',
+                      '\\1{0}'.format('x' * 16), obj,
                       flags=re.MULTILINE | re.IGNORECASE)
     if isinstance(obj, list):
         return [obfuscate_passwords(elem) for elem in obj]
@@ -203,11 +204,11 @@ def obfuscate_passwords(obj):
         return obj
     result = obj
     for k, v in list(result.items()):
-        if k.upper() == 'PASSWORD':
+        if any(x for x in ('PASSWORD', 'SECRET', 'TOKEN',) if x in k.upper()):
             a_copy = deepcopy(result)
             a_copy[k] = 'x' * 16
             result = a_copy
-        if isinstance(v, (dict, list, )):
+        if isinstance(v, (dict, list,)):
             obfuscated_v = obfuscate_passwords(v)
             if obfuscated_v is not v:
                 a_copy = deepcopy(result)
