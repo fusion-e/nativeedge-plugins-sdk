@@ -419,6 +419,22 @@ class TestFilters(unittest.TestCase):
         self.assertNotIn('HIDE ME',
                          u'{0}'.format(filters.obfuscate_passwords(call)))
 
+    def test_obfuscate_other_secrets(self):
+        call = {
+            'Token': 'HIDE ME',
+            'number': -2,
+            'SECRET': 'HIDE ME',
+            'Authentication Header': {
+                u'Bearer Token': 'HIDE ME',
+                u'Bearer-Token': 'HIDE ME TOO',
+            },
+            'message': 'Hello world!',
+        }
+        self.assertNotIn(u'HIDE ME',
+                         u'{0}'.format(filters.obfuscate_passwords(call)))
+        self.assertIn(u'Hello world!',
+                      u'{0}'.format(filters.obfuscate_passwords(call)))
+
 
 if __name__ == '__main__':
     unittest.main()
