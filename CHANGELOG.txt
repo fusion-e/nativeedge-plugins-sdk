@@ -1,5 +1,8 @@
 releases:
 
+  v0.0.27:
+  - Added python version dependent builtins_open string used in libvirt plugin
+
   v0.0.20:
   - Apply futurize fixes for python3
 
