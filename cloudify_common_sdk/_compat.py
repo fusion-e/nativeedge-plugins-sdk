@@ -22,11 +22,13 @@ PY2 = sys.version_info[0] == 2
 
 if PY2:
     text_type = unicode
+    builtins_open = '__builtin__.open'
 
 else:
     text_type = str
+    builtins_open = 'builtins.open'
 
 
 __all__ = [
-    'PY2', 'text_type',
+    'PY2', 'text_type', 'builtins_open'
 ]
