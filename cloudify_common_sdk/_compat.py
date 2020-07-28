@@ -23,12 +23,12 @@ PY2 = sys.version_info[0] == 2
 if PY2:
     text_type = unicode
     builtins_open = '__builtin__.open'
-
+    from urlparse import urlparse
 else:
     text_type = str
     builtins_open = 'builtins.open'
-
+    from urllib.parse import urlparse
 
 __all__ = [
-    'PY2', 'text_type', 'builtins_open'
+    'PY2', 'text_type', 'urlparse'
 ]
