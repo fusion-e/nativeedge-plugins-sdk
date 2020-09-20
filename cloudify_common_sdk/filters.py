@@ -20,7 +20,7 @@ import re
 from ._compat import text_type
 
 OBFUSCATION_KEYWORDS = ('PASSWORD', 'SECRET', 'TOKEN',)
-OBFUSCATION_RE = re.compile(r'((password|secret|token):\s*)(\S+)',
+OBFUSCATION_RE = re.compile(r'((password|secret|token)(:|=)\s*)(\S+)',
                             flags=re.IGNORECASE | re.MULTILINE)
 OBFUSCATED_SECRET = 'x' * 16
 
