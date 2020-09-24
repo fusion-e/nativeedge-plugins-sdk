@@ -1,4 +1,6 @@
 releases:
+    v0.0.29:
+  - Add to obfuscate passwords re.
 
   v0.0.28:
   - Added urlparse to _compat
