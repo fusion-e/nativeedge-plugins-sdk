@@ -49,7 +49,7 @@ def untar_archive(archive_path):
     return into_dir
 
 
-def get_shared_resource(source_path):
+def get_shared_resource(source_path, dir=None):
     tmp_path = source_path
     split = source_path.split('://')
     schema = split[0]
@@ -73,7 +73,7 @@ def get_shared_resource(source_path):
                               stream=True) as response:
                 response.raise_for_status()
                 with tempfile.NamedTemporaryFile(
-                        suffix=file_type, delete=False) \
+                        suffix=file_type, dir=dir, delete=False) \
                         as source_temp:
                     tmp_path = source_temp.name
                     for chunk in \
@@ -82,7 +82,7 @@ def get_shared_resource(source_path):
         else:
             try:
                 from git import Repo
-                tmp_path = tempfile.mkdtemp()
+                tmp_path = tempfile.mkdtemp(dir=dir)
                 Repo.clone_from(source_path,
                                 tmp_path)
             except ImportError:
