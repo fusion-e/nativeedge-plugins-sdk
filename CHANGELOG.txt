@@ -1,5 +1,8 @@
 releases:
-    v0.0.29:
+  v0.0.30:
+  - Allow plugins to pass temp base dir to shared resource download.
+
+  v0.0.29:
   - Add to obfuscate passwords re.
 
   v0.0.28:
