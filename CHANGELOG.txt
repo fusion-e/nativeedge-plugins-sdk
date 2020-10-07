@@ -1,4 +1,7 @@
 releases:
+  v0.0.31:
+  - Add function that returns current deployment directory.
+
   v0.0.30:
   - Allow plugins to pass temp base dir to shared resource download.
 
