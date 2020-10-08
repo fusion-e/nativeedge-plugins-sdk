@@ -33,6 +33,7 @@ def unzip_archive(archive_path):
     finally:
         if zip_in:
             zip_in.close()
+            os.remove(archive_path)
     return into_dir
 
 
