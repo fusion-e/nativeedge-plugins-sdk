@@ -1,4 +1,7 @@
 releases:
+  v0.0.32:
+  - Permit deleting tempfile during shared resource download.
+
   v0.0.31:
   - Add function that returns current deployment directory.
 
