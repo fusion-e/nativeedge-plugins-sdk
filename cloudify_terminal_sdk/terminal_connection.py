@@ -148,7 +148,7 @@ class SmartConnection(TextConnection):
 
         while not self.conn.closed:
             last_message = self._conn_recv(LINE_SIZE)
-            self.buff += last_message
+            self.buff += last_message.decode('utf-8')
             self.buff = self._delete_backspace(self.buff)
 
             # separate finished lines from raw block
@@ -175,7 +175,7 @@ class SmartConnection(TextConnection):
         # try to load end of buffer
         while last_message:
             last_message = self._conn_recv(LINE_SIZE)
-            self.buff += last_message
+            self.buff += last_message.decode('utf-8')
 
         # close connection
         self.conn.close()
@@ -212,7 +212,7 @@ class RawConnection(TextConnection):
             self.logger.debug("I am waiting welcome message.")
 
         while self._find_any_in(self.buff, prompt_check) == -1:
-            self.buff += self._conn_recv(LINE_SIZE)
+            self.buff += self._conn_recv(LINE_SIZE).decode('utf-8')
             self.buff = self._delete_backspace(self.buff)
             # if we have something like question
             if responses:
@@ -300,7 +300,7 @@ class RawConnection(TextConnection):
 
         while not have_prompt:
             while self._find_any_in(self.buff, prompt_check + ["\n"]) == -1:
-                self.buff += self._conn_recv(1024)
+                self.buff += self._conn_recv(1024).decode('utf-8')
                 self.buff = self._delete_backspace(self.buff)
                 # check for close, and only after that for responses
                 if self.conn.closed:

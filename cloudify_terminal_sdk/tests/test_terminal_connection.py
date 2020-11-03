@@ -160,7 +160,7 @@ class TerminalTest(unittest.TestCase):
 
     def test_connect_raw(self):
         conn_mock = MagicMock()
-        conn_mock.recv = MagicMock(return_value="some_prompt#")
+        conn_mock.recv = MagicMock(return_value=b"some_prompt#")
         ssh_mock = MagicMock()
         ssh_mock.connect = MagicMock()
         ssh_mock.invoke_shell = MagicMock(return_value=conn_mock)
@@ -175,7 +175,7 @@ class TerminalTest(unittest.TestCase):
             )
         conn_mock.send = MagicMock(return_value=7)
         conn_mock.recv = MagicMock(
-            return_value="Confirm Password:\nsome_prompt#")
+            return_value=b"Confirm Password:\nsome_prompt#")
         # with responses
         with patch("paramiko.SSHClient", MagicMock(return_value=ssh_mock)):
             self.assertEqual(
@@ -381,7 +381,7 @@ class TerminalTest(unittest.TestCase):
         mock_conn = MagicMock()
         mock_conn.closed = True
         mock_conn.send = MagicMock(return_value=5)
-        mock_conn.recv = MagicMock(side_effect=["result", ""])
+        mock_conn.recv = MagicMock(side_effect=[b"result", b""])
 
         mock_transport = MagicMock()
         mock_transport.open_session = MagicMock(return_value=mock_conn)
@@ -411,7 +411,7 @@ class TerminalTest(unittest.TestCase):
 
             conn.conn.call_count += 1
 
-            return "+"
+            return b"+"
 
         conn.conn.send = MagicMock(return_value=5)
         conn.conn.recv = _recv
@@ -432,7 +432,7 @@ class TerminalTest(unittest.TestCase):
                 return len(text)
 
             def recv(self, size):
-                return "+\n"
+                return b"+\n"
 
             def close(self):
                 pass
@@ -453,7 +453,7 @@ class TerminalTest(unittest.TestCase):
         conn.conn = MagicMock()
         conn.conn.closed = False
         conn.conn.send = MagicMock(return_value=5)
-        conn.conn.recv = MagicMock(return_value="\nmessage\n#")
+        conn.conn.recv = MagicMock(return_value=b"\nmessage\n#")
 
         self.assertEqual(conn.run("test"), "message")
 
@@ -465,7 +465,7 @@ class TerminalTest(unittest.TestCase):
         conn.conn = MagicMock()
         conn.conn.closed = False
         conn.conn.send = MagicMock(side_effect=[5, 2])
-        conn.conn.recv = MagicMock(side_effect=["\nmessage, yes?", "ok\n#"])
+        conn.conn.recv = MagicMock(side_effect=[b"\nmessage, yes?", b"ok\n#"])
 
         self.assertEqual(
             conn.run("test", responses=[{
@@ -498,7 +498,7 @@ class TerminalTest(unittest.TestCase):
 
             def recv(self, size):
                 self.call_count += 1
-                return _responses.pop()
+                return _responses.pop().encode('utf-8')
 
             def close(self):
                 pass
