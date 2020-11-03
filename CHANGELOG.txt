@@ -1,4 +1,7 @@
 releases:
+  v0.0.33:
+  - Handle encoding for terminal connection.
+
   v0.0.32:
   - Permit deleting tempfile during shared resource download.
 
