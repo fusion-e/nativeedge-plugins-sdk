@@ -1,4 +1,6 @@
 releases:
+  v0.0.34:
+  - Make sure that we are using the same requests as cloudify-common
   v0.0.33:
   - Handle encoding for terminal connection.
 
