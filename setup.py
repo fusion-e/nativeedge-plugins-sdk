@@ -44,7 +44,6 @@ setuptools.setup(
         "Jinja2>=2.7.2",  # terminal
         "pycdlib", # cdrom image
         'pyyaml',  # cloudinit and rest
-        'requests',  # rest
         'xmltodict',   # rest
         "gitdb>=0.6.4",  # shared download resource
         "GitPython"  # shared download resource
