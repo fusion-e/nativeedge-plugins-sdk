@@ -17,7 +17,7 @@ import setuptools
 
 setuptools.setup(
     name='cloudify-utilities-plugins-sdk',
-    version='0.0.33',
+    version='0.0.34',
     author='Cloudify Platform Ltd.',
     author_email='hello@cloudify.co',
     description='Utilities SDK for extending Cloudify',
@@ -44,7 +44,7 @@ setuptools.setup(
         "Jinja2>=2.7.2",  # terminal
         "pycdlib", # cdrom image
         'pyyaml',  # cloudinit and rest
-        'requests',  # rest
+        'requests>=2.7.0,<3.0.0',
         'xmltodict',   # rest
         "gitdb>=0.6.4",  # shared download resource
         "GitPython"  # shared download resource
