@@ -88,7 +88,12 @@ def get_shared_resource(source_path, dir=None, username=None, password=None):
             try:
                 from git import Repo
                 tmp_path = tempfile.mkdtemp(dir=dir)
-                Repo.clone_from(source_path,
+                auth_url_part = ''
+                if username:
+                    auth_url_part = '{}:{}@'.format(username, password)
+                updated_url = '{}://{}{}'.format(
+                    schema, auth_url_part, split[1])
+                Repo.clone_from(updated_url,
                                 tmp_path)
             except ImportError:
                 raise NonRecoverableError(
