@@ -50,7 +50,7 @@ def untar_archive(archive_path):
     return into_dir
 
 
-def get_shared_resource(source_path, dir=None):
+def get_shared_resource(source_path, dir=None, username=None, password=None):
     tmp_path = source_path
     split = source_path.split('://')
     schema = split[0]
@@ -69,9 +69,13 @@ def get_shared_resource(source_path, dir=None):
                 content_type = h.headers.get('content-type')
                 file_type = \
                     mimetypes.guess_extension(content_type, False) or ""
+            auth = None
+            if username:
+                auth = (username, password)
             with requests.get(source_path,
                               allow_redirects=True,
-                              stream=True) as response:
+                              stream=True,
+                              auth=auth) as response:
                 response.raise_for_status()
                 with tempfile.NamedTemporaryFile(
                         suffix=file_type, dir=dir, delete=False) \
