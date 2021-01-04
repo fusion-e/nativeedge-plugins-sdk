@@ -50,7 +50,7 @@ def untar_archive(archive_path):
     return into_dir
 
 
-def get_shared_resource(source_path, dir=None):
+def get_shared_resource(source_path, dir=None, username=None, password=None):
     tmp_path = source_path
     split = source_path.split('://')
     schema = split[0]
@@ -69,9 +69,13 @@ def get_shared_resource(source_path, dir=None):
                 content_type = h.headers.get('content-type')
                 file_type = \
                     mimetypes.guess_extension(content_type, False) or ""
+            auth = None
+            if username:
+                auth = (username, password)
             with requests.get(source_path,
                               allow_redirects=True,
-                              stream=True) as response:
+                              stream=True,
+                              auth=auth) as response:
                 response.raise_for_status()
                 with tempfile.NamedTemporaryFile(
                         suffix=file_type, dir=dir, delete=False) \
@@ -84,7 +88,12 @@ def get_shared_resource(source_path, dir=None):
             try:
                 from git import Repo
                 tmp_path = tempfile.mkdtemp(dir=dir)
-                Repo.clone_from(source_path,
+                auth_url_part = ''
+                if username:
+                    auth_url_part = '{}:{}@'.format(username, password)
+                updated_url = '{}://{}{}'.format(
+                    schema, auth_url_part, split[1])
+                Repo.clone_from(updated_url,
                                 tmp_path)
             except ImportError:
                 raise NonRecoverableError(
