@@ -27,8 +27,12 @@ def unzip_archive(archive_path):
     into_dir = tempfile.mkdtemp()
     zip_in = None
     try:
-        zip_in = zipfile.ZipFile(archive_path, 'r')
-        zip_in.extractall(into_dir)
+        with zipfile.ZipFile(archive_path, 'r') as zip_ref:
+            zip_ref.extractall(into_dir)
+            for info in zip_ref.infolist():
+                reset_target = os.path.join(into_dir, info.filename)
+                if info.external_attr >> 16 > 0:
+                    os.chmod(reset_target, info.external_attr >> 16)
         into_dir = _handle_parent_directory(into_dir)
     finally:
         if zip_in:
