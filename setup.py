@@ -40,7 +40,7 @@ setuptools.setup(
               'cloudify_terminal_sdk'],
     install_requires=[
         'cloudify-common>=4.5.5',
-        'paramiko>=2.7.1',  # terminal
+        # 'paramiko>=2.7.1',  # terminal
         "Jinja2>=2.7.2",  # terminal
         "pycdlib", # cdrom image
         'pyyaml',  # cloudinit and rest
