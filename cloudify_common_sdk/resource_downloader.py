@@ -106,7 +106,11 @@ def get_shared_resource(source_path, dir=None, username=None, password=None):
                     "user's path.")
         # unzip the downloaded file
         if file_type == 'zip':
-            tmp_path = unzip_archive(tmp_path)
+            unzipped_path = unzip_archive(tmp_path)
+            os.remove(tmp_path)
+            return unzipped_path
         elif file_type in TAR_FILE_EXTENSTIONS:
-            tmp_path = untar_archive(tmp_path)
+            unzipped_path = untar_archive(tmp_path)
+            os.remove(tmp_path)
+            return unzipped_path
     return tmp_path
