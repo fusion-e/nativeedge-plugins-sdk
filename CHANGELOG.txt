@@ -1,4 +1,6 @@
 releases:
+  v0.0.37:
+  - RD-2915: Delete temp file after zip.
   v0.0.36:
   - RD-2456: Perserve permissions on unzip.
   v0.0.34:
