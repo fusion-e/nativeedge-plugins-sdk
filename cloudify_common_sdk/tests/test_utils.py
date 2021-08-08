@@ -49,7 +49,8 @@ class TestUtils(unittest.TestCase):
         current_ctx.set(ctx)
         return ctx
 
-    def test_deployment_dir(self):
+    @mock.patch('cloudify_common_sdk.utils.get_deployment', return_value=None)
+    def test_deployment_dir(self, *_, **__):
         self.mock_ctx(tenant_name='test_tenant')
         with mock.patch('cloudify_common_sdk.utils.os.path.isdir',
                         return_value=True):
