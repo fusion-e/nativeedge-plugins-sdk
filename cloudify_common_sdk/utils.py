@@ -495,7 +495,7 @@ def convert_dict_to_list(labels):
 @with_rest_client
 def get_deployment(deployment_id, rest_client):
     """ Get a deployment by ID or name.
-    :param deployment_id: The name of the site.
+    :param deployment_id: The name of ID of the deployment.
     :type deployment_id: str
     :param rest_client: A Cloudify REST client.
     :type rest_client: cloudify_rest_client.client.CloudifyClient
@@ -510,6 +510,30 @@ def get_deployment(deployment_id, rest_client):
                     _include=['id', 'display_name']):
                 if deployment.display_name == deployment_id:
                     return deployment
+        return
+
+
+@with_rest_client
+def get_deployments_from_blueprint(blueprint_id, rest_client):
+    """ Get a list of deployments created from a blueprint.
+    :param blueprint_id: The name of the site.
+    :type blueprint_id: str
+    :param rest_client: A Cloudify REST client.
+    :type rest_client: cloudify_rest_client.client.CloudifyClient
+    :return: A list of deployments
+    :rtype: list
+    """
+    try:
+        return rest_client.deployments.list(
+                _include=['id', 'display_name'],
+                filter_rules=[
+                    {'type': 'attribute',
+                     'operator': 'any_of',
+                     'key': 'blueprint_id',
+                     'values': [blueprint_id]
+                     }
+                ])
+    except CloudifyClientError:
         return
 
 
