@@ -20,6 +20,7 @@ import re
 from time import sleep
 from copy import deepcopy
 
+from cloudify import ctx
 from cloudify.workflows import ctx as wtx
 from cloudify.utils import get_tenant_name
 from cloudify.manager import get_rest_client
@@ -31,12 +32,13 @@ from cloudify_rest_client.exceptions import (
     DeploymentEnvironmentCreationInProgressError)
 
 
-def get_deployment_dir(deployment_name):
+def get_deployment_dir(deployment_name=None, deployment_id=None):
     """ Get the deployment directory.
     :param deployment_name: The deployment ID or name.
     :type deployment_name: str
     :return: Return wrapper_inner.
     """
+    deployment_name = deployment_name or deployment_id  # backward compat.
     deployments_old_dir = os.path.join('/opt', 'mgmtworker', 'work',
                                        'deployments',
                                        get_tenant_name(),
@@ -82,6 +84,69 @@ def with_rest_client(func):
 
 
 @with_rest_client
+def get_node_instance(node_instance_id, rest_client):
+    """ Get a node instance object.
+    :param node_instance_id: The ID of the node instance.
+    :type node_instance_id: str
+    :param rest_client: A Cloudify REST client.
+    :type rest_client: cloudify_rest_client.client.CloudifyClient
+    :return: request's JSON response
+    :rtype: dict
+    """
+    return rest_client.node_instance.get(node_instance_id=node_instance_id)
+
+
+@with_rest_client
+def get_deployments_from_group(group, rest_client):
+    """ Get a deployment group object.
+    :param group: The ID of the group.
+    :type group: str
+    :param rest_client: A Cloudify REST client.
+    :type rest_client: cloudify_rest_client.client.CloudifyClient
+    :return: request's JSON response
+    :rtype: dict
+    """
+    attempts = 0
+    while True:
+        try:
+            return rest_client.deployment_groups.get(group)
+        except CloudifyClientError as e:
+            attempts += 1
+            if attempts > 15:
+                raise NonRecoverableError(
+                    'Maximum attempts waiting '
+                    'for deployment group {group}" {e}.'.format(
+                        group=group, e=e))
+            sleep(5)
+            continue
+
+
+@with_rest_client
+def create_deployment(inputs,
+                      labels,
+                      blueprint_id,
+                      deployment_id,
+                      rest_client):
+    """Create a deployment.
+
+    :param inputs: a list of dicts of deployment inputs.
+    :type inputs: list
+    :param labels: a list of dicts of deployment labels.
+    :type labels: list
+    :param blueprint_id: An existing blueprint ID.
+    :type blueprint_id: str
+    :param deployment_id: The deployment ID.
+    :type deployment_id: str
+    :param rest_client: A Cloudify REST client.
+    :type rest_client: cloudify_rest_client.client.CloudifyClient
+    :return: request's JSON response
+    :rtype: dict
+    """
+    return rest_client.deployments.create(
+        blueprint_id, deployment_id, inputs, labels=labels)
+
+
+@with_rest_client
 def create_deployments(group_id,
                        blueprint_id,
                        deployment_ids,
@@ -119,11 +184,8 @@ def create_deployments(group_id,
                 } for dep_id, inp in zip(deployment_ids, inputs)]
         )
     except TypeError:
-        for dep_id, inp in zip(deployment_ids, inputs):
-            rest_client.deployments.create(
-                blueprint_id,
-                dep_id,
-                inputs=inp)
+        for dep_id, inp, label in zip(deployment_ids, inputs, labels):
+            create_deployment(inp, label, blueprint_id, dep_id)
         rest_client.deployment_groups.add_deployments(
             group_id,
             deployment_ids=deployment_ids)
@@ -131,7 +193,7 @@ def create_deployments(group_id,
 
 @with_rest_client
 def install_deployments(group_id, rest_client):
-    """ Execute start on a group of deployments.
+    """ Execute install workflow on a deployment group.
     :param group_id: An existing deployment group ID.
     :type group_id: str
     :param rest_client: A Cloudify REST client.
@@ -151,6 +213,32 @@ def install_deployments(group_id, rest_client):
                     'Maximum attempts waiting '
                     'for deployment group {group}" {e}.'.format(
                         group=group_id, e=e))
+            sleep(5)
+            continue
+
+
+@with_rest_client
+def install_deployment(deployment_id, rest_client):
+    """ Execute install workflow on a deployment.
+    :param deployment_id: An existing deployment ID.
+    :type deployment_id: str
+    :param rest_client: A Cloudify REST client.
+    :type rest_client: cloudify_rest_client.client.CloudifyClient
+    :return: request's JSON response
+    :rtype: dict
+    """
+    attempts = 0
+    while True:
+        try:
+            return rest_client.executions.start(deployment_id, 'install')
+        except (DeploymentEnvironmentCreationPendingError,
+                DeploymentEnvironmentCreationInProgressError) as e:
+            attempts += 1
+            if attempts > 15:
+                raise NonRecoverableError(
+                    'Maximum attempts waiting '
+                    'for deployment {deployment_id}" {e}.'.format(
+                        deployment_id=deployment_id, e=e))
             sleep(5)
             continue
 
@@ -252,6 +340,34 @@ def get_attribute(node_id, runtime_property, deployment_id, rest_client):
         return node_instance.runtime_properties.get(runtime_property)
 
 
+@with_rest_client
+def get_node_instances_by_type(node_type, deployment_id, rest_client):
+    """Filter node instances by type.
+
+    :param node_type: the node type that we wish to filter.
+    :type node_type: str
+    :param deployment_id: The deployment ID.
+    :type deployment_id: str
+    :param rest_client: A Cloudify REST client.
+    :type rest_client: cloudify_rest_client.client.CloudifyClient
+    :return: A list of cloudify_rest_client.node_instances.NodeInstance
+    :rtype: list
+    """
+    node_instances = []
+    for ni in rest_client.node_instances.list(deployment_id=deployment_id,
+                                              state='started',
+                                              _includes=['id',
+                                                         'state',
+                                                         'version',
+                                                         'runtime_properties',
+                                                         'node_id']):
+        node = rest_client.nodes.get(
+            node_id=ni.node_id, deployment_id=deployment_id)
+        if node_type in node.type_hierarchy:
+            node_instances.append(ni)
+    return node_instances
+
+
 def add_new_labels(new_labels, deployment_id):
     """ Update a deployments labels.
     :param new_labels: Labels in key-value pairs.
@@ -312,6 +428,40 @@ def update_deployment_labels(deployment_id, labels, rest_client):
         labels=labels)
 
 
+@with_rest_client
+def get_parent_deployment(deployment_id, rest_client):
+    """ Get a deployment's parent.
+    :param deployment_id: A Cloudify deployment ID or name.
+    :type deployment_id: str
+    :param rest_client: A Cloudify REST client.
+    :type rest_client: cloudify_rest_client.client.CloudifyClient
+    :return: request's JSON response
+    :rtype: dict
+    """
+    deployment_id = get_deployment_label_by_name(
+        'csys-obj-parent', deployment_id)
+    if not deployment_id:
+        ctx.logger.warn(
+            'Unable to get parent deployment. '
+            'No "csys-obj-parent" label set for deployment. '
+            'Assuming manual subcloud enrollment. Set label manually.')
+        return
+    return get_deployment(deployment_id)
+
+
+def get_deployment_label_by_name(label_name, deployment_id):
+    """ Get a deployment label by name
+    :param label_name: The label name.
+    :type label_name: str
+    :param deployment_id: deployment ID
+    :type deployment_id: str:
+    :return: the Label value.
+    :rtype: str
+    """
+    labels = get_deployment_labels(deployment_id)
+    return labels.get(label_name)
+
+
 def convert_list_to_dict(labels):
     """ Convert a list of dicts to a list.
     Labels are sent as lists of dicts to the Cloudify API.
@@ -356,7 +506,7 @@ def get_deployment(deployment_id, rest_client):
         return rest_client.deployments.get(deployment_id=deployment_id)
     except CloudifyClientError as e:
         if '404' in str(e):
-            for deployment in client.deployments.list(
+            for deployment in rest_client.deployments.list(
                     _include=['id', 'display_name']):
                 if deployment.display_name == deployment_id:
                     return deployment
