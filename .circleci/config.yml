@@ -33,7 +33,7 @@ commands:
           command: pip install --user tox
       - run:
           name: Run Flake8
-          command: /home/circleci/.local/bin/tox -e flake8
+          command: /home/circleci/.local/bin/tox -e pep8
       - run:
          name: Run nosetest
          command: /home/circleci/.local/bin/tox -e nosetest

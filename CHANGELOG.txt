@@ -1,4 +1,6 @@
 releases:
+  v0.0.38:
+  - RD-2928: Bring batch deploy and install into the utilities SDK.
   v0.0.37:
   - RD-2915: Delete temp file after zip.
   v0.0.36:
