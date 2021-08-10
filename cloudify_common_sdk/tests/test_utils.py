@@ -13,19 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-
-
-
 import os
 import mock
 import unittest
-from unittest.mock import patch, call, Mock
+from unittest.mock import patch, call
 
 from cloudify.state import current_ctx
 from cloudify.mocks import MockCloudifyContext
 from cloudify.exceptions import NonRecoverableError
-from cloudify.constants import RELATIONSHIP_INSTANCE
+from cloudify.constants import NODE_INSTANCE
 
 from .. import utils
 
