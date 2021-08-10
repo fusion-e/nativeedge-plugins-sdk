@@ -121,14 +121,14 @@ class BatchUtilsTests(unittest.TestCase):
 
         return ctx
 
-    @mock.patch('cloudify_starlingx.utils.get_rest_client')
+    @mock.patch('cloudify_common_sdk.utils.get_rest_client')
     def test_with_rest_client(self, _):
         @utils.with_rest_client
         def mock_function(**kwargs):
             return kwargs
         self.assertIn('rest_client', mock_function())
 
-    @mock.patch('cloudify_starlingx.utils.get_rest_client')
+    @mock.patch('cloudify_common_sdk.utils.get_rest_client')
     def test_get_node_instances_by_type(self, mock_client):
         result = utils.get_node_instances_by_type(
             node_type='foo', deployment_id='bar')
@@ -142,7 +142,7 @@ class BatchUtilsTests(unittest.TestCase):
         result = utils.desecretize_client_config(expected)
         assert expected == result
 
-    @mock.patch('cloudify_starlingx.utils.get_rest_client')
+    @mock.patch('cloudify_common_sdk.utils.get_rest_client')
     def test_resolve_intrinsic_functions(self, mock_client):
         expected = 'foo'
         result = utils.resolve_intrinsic_functions(expected)
@@ -151,13 +151,13 @@ class BatchUtilsTests(unittest.TestCase):
         utils.resolve_intrinsic_functions(prop)
         assert mock.call().secrets.get('bar') in mock_client.mock_calls
 
-    @mock.patch('cloudify_starlingx.utils.get_rest_client')
+    @mock.patch('cloudify_common_sdk.utils.get_rest_client')
     def test_get_secret(self, mock_client):
         prop = 'bar'
         utils.get_secret(secret_name=prop)
         assert mock.call().secrets.get('bar') in mock_client.mock_calls
 
-    @mock.patch('cloudify_starlingx.utils.get_rest_client')
+    @mock.patch('cloudify_common_sdk.utils.get_rest_client')
     def test_create_deployment(self, mock_client):
         prop = {
             'inputs': {'baz': 'taco'},
@@ -173,7 +173,7 @@ class BatchUtilsTests(unittest.TestCase):
             labels=[{'foo': 'bar'}]
         ) in mock_client.mock_calls
 
-    @mock.patch('cloudify_starlingx.utils.get_rest_client')
+    @mock.patch('cloudify_common_sdk.utils.get_rest_client')
     def test_get_deployment_labels(self, _):
         assert isinstance(utils.get_deployment_labels('foo'), dict)
         assert utils.get_deployment_label_by_name('foo', 'foo') is None
@@ -184,13 +184,13 @@ class BatchUtilsTests(unittest.TestCase):
         assert utils.convert_list_to_dict(my_list) == my_dict
         assert utils.convert_dict_to_list(my_dict) == [my_dict]
 
-    @mock.patch('cloudify_starlingx.utils.get_rest_client')
+    @mock.patch('cloudify_common_sdk.utils.get_rest_client')
     def test_get_site(self, mock_client):
         prop = 'bar'
         utils.get_site(site_name=prop)
         assert mock.call().sites.get(prop) in mock_client.mock_calls
 
-    @mock.patch('cloudify_starlingx.utils.get_rest_client')
+    @mock.patch('cloudify_common_sdk.utils.get_rest_client')
     def test_create_site(self, mock_client):
         prop = {
             'site_name': 'foo',
@@ -202,7 +202,7 @@ class BatchUtilsTests(unittest.TestCase):
             'bar,baz'
         ) in mock_client.mock_calls
 
-    @mock.patch('cloudify_starlingx.utils.get_rest_client')
+    @mock.patch('cloudify_common_sdk.utils.get_rest_client')
     def test_update_site(self, mock_client):
         prop = {
             'site_name': 'foo',
@@ -214,7 +214,7 @@ class BatchUtilsTests(unittest.TestCase):
             'bar,baz'
         ) in mock_client.mock_calls
 
-    @mock.patch('cloudify_starlingx.utils.get_rest_client')
+    @mock.patch('cloudify_common_sdk.utils.get_rest_client')
     def test_update_deployment_site(self, mock_client):
         prop = {
             'deployment_id': 'foo',
@@ -228,7 +228,7 @@ class BatchUtilsTests(unittest.TestCase):
             detach_site=True
         ) in mock_client.mock_calls
 
-    @mock.patch('cloudify_starlingx.utils.get_rest_client')
+    @mock.patch('cloudify_common_sdk.utils.get_rest_client')
     def test_assign_site(self, mock_client):
         ctx = self.get_mock_ctx()
         prop = {
