@@ -133,7 +133,7 @@ class BatchUtilsTests(unittest.TestCase):
         result = utils.get_node_instances_by_type(
             node_type='foo', deployment_id='bar')
         self.assertIsInstance(result, list)
-        assert call().node_instances.list(
+        assert mock.call().node_instances.list(
             _includes=['version', 'runtime_properties', 'node_id'],
             deployment_id='bar', state='started') in mock_client.mock_calls
 
@@ -149,13 +149,13 @@ class BatchUtilsTests(unittest.TestCase):
         assert expected == result
         prop = {'get_secret': 'bar'}
         utils.resolve_intrinsic_functions(prop)
-        assert call().secrets.get('bar') in mock_client.mock_calls
+        assert mock.call().secrets.get('bar') in mock_client.mock_calls
 
     @mock.patch('cloudify_starlingx.utils.get_rest_client')
     def test_get_secret(self, mock_client):
         prop = 'bar'
         utils.get_secret(secret_name=prop)
-        assert call().secrets.get('bar') in mock_client.mock_calls
+        assert mock.call().secrets.get('bar') in mock_client.mock_calls
 
     @mock.patch('cloudify_starlingx.utils.get_rest_client')
     def test_create_deployment(self, mock_client):
@@ -166,7 +166,7 @@ class BatchUtilsTests(unittest.TestCase):
             'labels': [{'foo': 'bar'}]
         }
         utils.create_deployment(**prop)
-        assert call().deployments.create(
+        assert mock.call().deployments.create(
             'foo',
             'bar',
             {'baz': 'taco'},
@@ -188,7 +188,7 @@ class BatchUtilsTests(unittest.TestCase):
     def test_get_site(self, mock_client):
         prop = 'bar'
         utils.get_site(site_name=prop)
-        assert call().sites.get(prop) in mock_client.mock_calls
+        assert mock.call().sites.get(prop) in mock_client.mock_calls
 
     @mock.patch('cloudify_starlingx.utils.get_rest_client')
     def test_create_site(self, mock_client):
@@ -197,7 +197,7 @@ class BatchUtilsTests(unittest.TestCase):
             'location': 'bar,baz'
         }
         utils.create_site(**prop)
-        assert call().sites.create(
+        assert mock.call().sites.create(
             'foo',
             'bar,baz'
         ) in mock_client.mock_calls
@@ -209,7 +209,7 @@ class BatchUtilsTests(unittest.TestCase):
             'location': 'bar,baz'
         }
         utils.update_site(**prop)
-        assert call().sites.update(
+        assert mock.call().sites.update(
             'foo',
             'bar,baz'
         ) in mock_client.mock_calls
@@ -221,9 +221,9 @@ class BatchUtilsTests(unittest.TestCase):
             'site_name': 'bar,baz'
         }
         utils.update_deployment_site(**prop)
-        assert call().deployments.get(
+        assert mock.call().deployments.get(
             deployment_id='foo') in mock_client.mock_calls
-        assert call().deployments.set_site(
+        assert mock.call().deployments.set_site(
             'foo',
             detach_site=True
         ) in mock_client.mock_calls
@@ -237,9 +237,9 @@ class BatchUtilsTests(unittest.TestCase):
             'location': 'bar,baz'
         }
         utils.assign_site(**prop)
-        assert call().deployments.get(
+        assert mock.call().deployments.get(
             deployment_id='foo') in mock_client.mock_calls
-        assert call().deployments.set_site(
+        assert mock.call().deployments.set_site(
             'foo',
             detach_site=True
         ) in mock_client.mock_calls
