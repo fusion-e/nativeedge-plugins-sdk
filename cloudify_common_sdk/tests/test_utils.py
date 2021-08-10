@@ -77,11 +77,11 @@ class BatchUtilsTests(unittest.TestCase):
         super(BatchUtilsTests, self).setUp()
 
     def get_mock_ctx(self, node_name='foo', reltype=NODE_INSTANCE):
-        ctx = unittest.mock.MagicMock()
+        ctx = mock.MagicMock()
 
         ctx.type = reltype
 
-        node = unittest.mock.MagicMock()
+        node = mock.MagicMock()
         node.properties = {
             'client_config': {
                 'api_version': 'v1',
@@ -93,7 +93,7 @@ class BatchUtilsTests(unittest.TestCase):
             'resource_config': {}
         }
         ctx.node = node
-        instance = unittest.mock.MagicMock()
+        instance = mock.MagicMock()
         instance.runtime_properties = {
             'resource_config': {
                 'distributed_cloud_role': 'systemcontroller'
@@ -104,8 +104,8 @@ class BatchUtilsTests(unittest.TestCase):
         ctx._context = {'node_id': node_name}
         ctx.node.id = node_name
 
-        source = unittest.mock.MagicMock()
-        target = unittest.mock.MagicMock()
+        source = mock.MagicMock()
+        target = mock.MagicMock()
         source._context = {'node_id': 'foo'}
         target._context = {'node_id': 'bar'}
         source.instance = instance
@@ -115,7 +115,7 @@ class BatchUtilsTests(unittest.TestCase):
         ctx.source = source
         ctx.target = target
         ctx.node.instances = [ctx.instance]
-        ctx.get_node = unittest.mock.MagicMock(return_value=ctx.node)
+        ctx.get_node = mock.MagicMock(return_value=ctx.node)
         ctx.deployment.id = 'baz'
         ctx.blueprint.id = 'baz'
 
