@@ -232,9 +232,9 @@ class BatchUtilsTests(unittest.TestCase):
     def test_assign_site(self, mock_client):
         ctx = self.get_mock_ctx()
         prop = {
-            'ctx_instance': ctx.instance,
             'deployment_id': 'foo',
-            'location': 'bar,baz'
+            'location': 'bar,baz',
+            'location_name': 'foo'
         }
         utils.assign_site(**prop)
         assert mock.call().deployments.get(
