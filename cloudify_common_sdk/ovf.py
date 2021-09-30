@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import xmltodict
-
 # Code based on:
 # https://github.com/virt-manager/virt-manager/blob/master/virtconv/ovf.py
 # Mapping of ResourceType value to device type

@@ -1,4 +1,6 @@
 releases:
+  v0.0.39:
+  - RD-3275: General Process Executor.
   v0.0.38:
   - RD-2928: Bring batch deploy and install into the utilities SDK.
   v0.0.37:
