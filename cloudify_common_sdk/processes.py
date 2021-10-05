@@ -1,9 +1,25 @@
+# #######
+# Copyright (c) 2017-21 Cloudify Platform Ltd. All rights reserved
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#        http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 import sys
 import time
+import psutil
 import threading
 import subprocess
 
+from cloudify import ctx as ctx_from_import
 from cloudify import exceptions as cfy_exc
 from script_runner.tasks import (
     start_ctx_proxy,
@@ -60,9 +76,9 @@ class LoggingOutputConsumer(OutputConsumer):
 
     def handle_line(self, line):
         clean_line = obfuscate_passwords(line.decode('utf-8').rstrip('\n'))
-        self.output.append(clean_line)
         new_line = "{0}{1}".format(text_type(self.prefix), clean_line)
         self.logger.info(new_line)
+        self.output.append(clean_line)
 
 
 class CapturingOutputConsumer(OutputConsumer):
@@ -99,6 +115,7 @@ def general_executor(script_path, ctx, process):
     cwd = process.get('cwd')
 
     command_prefix = process.get('command_prefix')
+    max_sleep_time = process.get('max_sleep_time', 60)
     if command_prefix:
         command = '{0} {1}'.format(command_prefix, script_path)
     else:
@@ -147,17 +164,50 @@ def general_executor(script_path, ctx, process):
         ctx.logger.debug('Started consumer thread for stderr')
 
     log_counter = 0
+    # Start the clock for the last time we measured the max_sleep_timeout.
+    last_clock = time.time()
+    # The number of times the state has changed since last we checked.
+    state_changes = 0
+    # Initialize the most recent state.
+    last_state = current_state = psutil.Process(pid).status()
+
     while True:
         process_ctx_request(proxy)
         return_code = process.poll()
         if return_code is not None:
             break
-        time.sleep(POLL_LOOP_INTERVAL)
-
         log_counter += 1
+        # Poke the process with a stick every 20 seconds to see if it's alive.
         if log_counter == POLL_LOOP_LOG_ITERATIONS:
             log_counter = 0
+            last_state, last_clock = handle_max_sleep(
+                process.pid,
+                last_state,
+                state_changes,
+                last_clock,
+                max_sleep_time,
+                process)
+            if not last_state and not last_clock:
+                break
             ctx.logger.info('Waiting for process {0} to end...'.format(pid))
+            # Reset the number of times the process has changed since last
+            # called handle_max_sleep.
+            state_changes = 0
+        else:
+            psutil_process = psutil.Process(pid)
+
+        try:
+            current_state = psutil_process.status()
+        except psutil.NoSuchProcess:
+            continue
+
+        # If the state has changed since the last time we checked, it means
+        # it's not dead.
+        if current_state != last_state:
+            state_changes += 1
+            last_clock = time.time()
+        last_state = current_state
+        time.sleep(POLL_LOOP_INTERVAL)
 
     ctx.logger.info('Execution done (PID={0}, return_code={1}): {2}'
                     .format(pid, return_code, command))
@@ -191,7 +241,7 @@ def general_executor(script_path, ctx, process):
     return stdout
 
 
-def process_execution(script_func, script_path, ctx, process=None):
+def process_execution(script_func, script_path, ctx=None, process=None):
     """Entirely lifted from the script runner, the only difference is
     we return the return value of the script_func, instead of the return
     code stored in the ctx.
@@ -202,6 +252,8 @@ def process_execution(script_func, script_path, ctx, process=None):
     :param process:
     :return:
     """
+
+    ctx = ctx or ctx_from_import
     ctx.is_script_exception_defined = ScriptException is not None
 
     def abort_operation(message=None):
@@ -249,3 +301,72 @@ def process_execution(script_func, script_path, ctx, process=None):
             raise cfy_exc.NonRecoverableError(str(script_result))
     else:
         return actual_result
+
+
+def handle_max_sleep(pid,
+                     last_state=None,
+                     state_changes=0,
+                     last_clock=None,
+                     max_sleep_time=0,
+                     process=None):
+    """Check and see if a process is sleeping and if the max sleep time has
+    elapsed. If so, try to end it. If the process is a zombie process, then
+    terminate it. All the while calculate how many changes are happening
+    in the processes state, e.g. from running to sleeping, between handling.
+
+    :param pid:
+    :param last_state:
+    :param state_changes:
+    :param max_sleep_time:
+    :param process: A Subprocess Popen object.
+    :return: The current state and the last time the state was checked.
+    """
+
+    ctx_from_import.logger.debug(
+        'Checking if PID {0} is still alive '.format(pid))
+
+    last_clock = last_clock or time.time()  # the most recent measurement.
+    psutil_process = psutil.Process(pid)
+    try:
+        current_state = psutil_process.status()
+    except psutil.NoSuchProcess:
+        # Sometimes we get here, from the call below for zombie processes
+        return last_state, last_clock
+
+    ctx_from_import.logger.debug(
+        'PID {0} status is {1}'.format(pid, current_state))
+    ctx_from_import.logger.debug(
+        'PID {0} status has changed {1} times since the last measurement'
+        .format(pid, state_changes))
+
+    # How much time has passed since the last measurement.
+    time_elapsed = time.time() - last_clock
+    # If we have reached the max sleep time allowed for this process.
+    time_maxed_out = time_elapsed >= max_sleep_time
+    # If the state has changed since the last time we ran this function.
+    no_state_changes = state_changes == 0
+    # A heuristic for a state that is not waking up.
+    status_is_stagnant = time_maxed_out and no_state_changes
+
+    if current_state in ['zombie']:
+        # Clean up zombie processes.
+        ctx_from_import.logger.error(
+            'Terminating zombie process {0}.'.format(pid))
+        psutil_process.terminate()
+    elif current_state in ['sleeping'] and status_is_stagnant:
+        # Nudge the process if it's stuck.
+        for child in psutil_process.children(recursive=True):
+            handle_max_sleep(child.pid)
+        if isinstance(process, subprocess.Popen):
+            ctx_from_import.logger.error(
+                'Communicating sleeping process {0} whose max sleep time {1} '
+                'has elapsed.'.format(pid, max_sleep_time))
+            try:
+                process.communicate(timeout=max_sleep_time)
+            except subprocess.TimeoutExpired:
+                ctx_from_import.logger.error(
+                    'PID {0} may not have successfully completed.'.format(pid))
+                return (None, None)
+    elif last_state != current_state:  # Update the latest measurement time.
+        last_clock = time.time()
+    return current_state, last_clock
