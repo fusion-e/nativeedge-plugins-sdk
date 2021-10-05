@@ -1,4 +1,6 @@
 releases:
+  v0.0.40:
+  - RD-3261: Handle Defunct Processes.
   v0.0.39:
   - RD-3275: General Process Executor.
   v0.0.38:
