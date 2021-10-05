@@ -39,7 +39,6 @@ setuptools.setup(
               'cloudify_rest_sdk',
               'cloudify_terminal_sdk'],
     install_requires=[
-        'psutil',
         'cloudify-common>=4.5.5',
         'paramiko>=2.7.1',  # terminal
         "Jinja2>=2.7.2",  # terminal
@@ -48,6 +47,7 @@ setuptools.setup(
         'requests>=2.7.0,<3.0.0',
         'xmltodict',   # rest
         "gitdb>=0.6.4",  # shared download resource
-        "GitPython"  # shared download resource
+        "GitPython",  # shared download resource
+        'psutil',
     ]
 )
