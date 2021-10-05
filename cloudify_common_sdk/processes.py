@@ -1,3 +1,18 @@
+# #######
+# Copyright (c) 2017-21 Cloudify Platform Ltd. All rights reserved
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#        http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import sys
 import time
 import psutil
@@ -299,14 +314,14 @@ def handle_max_sleep(pid,
 
     :param pid:
     :param last_state:
-    :param last_clock:
+    :param state_changes:
     :param max_sleep_time:
-    :param process:
+    :param process: A Subprocess Popen object.
     :return: The current state and the last time the state was checked.
     """
 
     ctx_from_import.logger.debug(
-        'Checking if PID {} is still alive '.format(pid))
+        'Checking if PID {0} is still alive '.format(pid))
 
     last_clock = last_clock or time.time()  # the most recent measurement.
     psutil_process = psutil.Process(pid)
@@ -317,9 +332,9 @@ def handle_max_sleep(pid,
         return last_state, last_clock
 
     ctx_from_import.logger.debug(
-        'PID {} status is {}'.format(pid, current_state))
+        'PID {0} status is {1}'.format(pid, current_state))
     ctx_from_import.logger.debug(
-        'PID {} status has changed {} times since the last measurement'
+        'PID {0} status has changed {1} times since the last measurement'
         .format(pid, state_changes))
 
     # How much time has passed since the last measurement.
@@ -334,7 +349,7 @@ def handle_max_sleep(pid,
     if current_state in ['zombie']:
         # Clean up zombie processes.
         ctx_from_import.logger.error(
-            'Terminating zombie process {}.'.format(pid))
+            'Terminating zombie process {0}.'.format(pid))
         psutil_process.terminate()
     elif current_state in ['sleeping'] and status_is_stagnant:
         # Nudge the process if it's stuck.
@@ -342,13 +357,13 @@ def handle_max_sleep(pid,
             handle_max_sleep(child.pid)
         if isinstance(process, subprocess.Popen):
             ctx_from_import.logger.error(
-                'Communicating sleeping process {} whose max sleep time {} '
+                'Communicating sleeping process {0} whose max sleep time {1} '
                 'has elapsed.'.format(pid, max_sleep_time))
             try:
                 process.communicate(timeout=max_sleep_time)
-            except TimeoutExpired:
-                ctx.logger.error(
-                    'PID {} may not have successfully completed.'.format(pid))
+            except subprocess.TimeoutExpired:
+                ctx_from_import.logger.error(
+                    'PID {0} may not have successfully completed.'.format(pid))
                 return (None, None)
     elif last_state != current_state:  # Update the latest measurement time.
         last_clock = time.time()
