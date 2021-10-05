@@ -76,9 +76,9 @@ class LoggingOutputConsumer(OutputConsumer):
 
     def handle_line(self, line):
         clean_line = obfuscate_passwords(line.decode('utf-8').rstrip('\n'))
-        self.output.append(clean_line)
         new_line = "{0}{1}".format(text_type(self.prefix), clean_line)
         self.logger.info(new_line)
+        self.output.append(clean_line)
 
 
 class CapturingOutputConsumer(OutputConsumer):
@@ -241,7 +241,7 @@ def general_executor(script_path, ctx, process):
     return stdout
 
 
-def process_execution(script_func, script_path, ctx, process=None):
+def process_execution(script_func, script_path, ctx=None, process=None):
     """Entirely lifted from the script runner, the only difference is
     we return the return value of the script_func, instead of the return
     code stored in the ctx.
@@ -252,6 +252,8 @@ def process_execution(script_func, script_path, ctx, process=None):
     :param process:
     :return:
     """
+
+    ctx = ctx or ctx_from_import
     ctx.is_script_exception_defined = ScriptException is not None
 
     def abort_operation(message=None):
