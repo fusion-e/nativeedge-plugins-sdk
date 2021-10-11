@@ -363,7 +363,8 @@ def handle_max_sleep(pid,
                 'has elapsed.'.format(pid, max_sleep_time))
             try:
                 process.communicate(timeout=max_sleep_time)
-            except subprocess.TimeoutExpired:
+            except (subprocess.TimeoutExpired, OSError) as e:
+                ctx_from_import.logger.error(e)
                 ctx_from_import.logger.error(
                     'PID {0} may not have successfully completed.'.format(pid))
                 return (None, None)
