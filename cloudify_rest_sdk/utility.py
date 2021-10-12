@@ -13,15 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import ast
-import logging
 import os
 import re
+import ast
+import yaml
+import logging
 import requests
 import tempfile
 import xmltodict
-import yaml
 from six import StringIO, string_types
+
+from requests_ntlm import HttpNtlmAuth
 
 from cloudify_rest_sdk import LOGGER_NAME
 from cloudify_common_sdk.filters import (
@@ -167,10 +169,17 @@ def _send_request(call, resource_callback=None):
             data = payload_data
 
         # auth
-        auth = None
-        if 'auth' in call:
-            auth = (call['auth'].get('user'),
-                    call['auth'].get('password'))
+        if 'auth' not in call:
+            auth = None
+        elif 'domain' in call['auth']:
+            auth = HttpNtlmAuth(
+                '{domain}\\{username}'.format(
+                    domain=call['auth']['domain'],
+                    username=call['auth'].get('user')),
+                call['auth'].get('password')
+            )
+        else:
+            auth = (call['auth'].get('user'), call['auth'].get('password'))
 
         # run request
         try:
