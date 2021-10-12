@@ -17,7 +17,7 @@ import setuptools
 
 setuptools.setup(
     name='cloudify-utilities-plugins-sdk',
-    version='0.0.41',
+    version='0.0.42',
     author='Cloudify Platform Ltd.',
     author_email='hello@cloudify.co',
     description='Utilities SDK for extending Cloudify',
@@ -49,5 +49,6 @@ setuptools.setup(
         "gitdb>=0.6.4",  # shared download resource
         "GitPython",  # shared download resource
         'psutil',
+        'requests_ntlm',
     ]
 )
