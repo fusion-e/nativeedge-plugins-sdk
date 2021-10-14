@@ -20,8 +20,8 @@ import re
 from time import sleep
 from copy import deepcopy
 
-from cloudify import ctx
-from cloudify.workflows import ctx as wtx
+from cloudify import ctx as ctx_from_import
+from cloudify.workflows import ctx as wtx_from_import
 from cloudify.utils import get_tenant_name
 from cloudify.manager import get_rest_client
 from .exceptions import NonRecoverableError as SDKNonRecoverableError
@@ -30,6 +30,30 @@ from cloudify_rest_client.exceptions import (
     CloudifyClientError,
     DeploymentEnvironmentCreationPendingError,
     DeploymentEnvironmentCreationInProgressError)
+
+try:
+    from cloudify.constants import RELATIONSHIP_INSTANCE, NODE_INSTANCE
+except ImportError:
+    NODE_INSTANCE = 'node-instance'
+    RELATIONSHIP_INSTANCE = 'relationship-instance'
+
+
+def get_ctx_instance(_ctx=None):
+    _ctx = _ctx or ctx_from_import
+    if _ctx.type == RELATIONSHIP_INSTANCE:
+        return _ctx.source.instance
+    else:  # _ctx.type == NODE_INSTANCE
+        return _ctx.instance
+
+
+def get_ctx_node(_ctx=None, target=False):
+    _ctx = _ctx or ctx_from_import
+    if _ctx.type == RELATIONSHIP_INSTANCE:
+        if target:
+            return _ctx.target.node
+        return _ctx.source.node
+    else:  # _ctx.type == NODE_INSTANCE
+        return _ctx.node
 
 
 def get_deployment_dir(deployment_name=None, deployment_id=None):
@@ -315,7 +339,7 @@ def get_input(input_name, rest_client):
     :return: The input value.
     :rtype: Any JSON serializable type.
     """
-    deployment = rest_client.deployments.get(wtx.deployment.id)
+    deployment = rest_client.deployments.get(wtx_from_import.deployment.id)
     return deployment.inputs.get(input_name)
 
 
@@ -441,7 +465,7 @@ def get_parent_deployment(deployment_id, rest_client):
     deployment_id = get_deployment_label_by_name(
         'csys-obj-parent', deployment_id)
     if not deployment_id:
-        ctx.logger.warn(
+        ctx_from_import.logger.warn(
             'Unable to get parent deployment. '
             'No "csys-obj-parent" label set for deployment. '
             'Assuming manual subcloud enrollment. Set label manually.')
