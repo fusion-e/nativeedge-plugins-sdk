@@ -43,7 +43,7 @@ setuptools.setup(
         'paramiko>=2.7.1',  # terminal
         "Jinja2>=2.7.2",  # terminal
         "pycdlib",  # cdrom image
-        'pyyaml',  # cloudinit and rest
+        'pyyaml>=3.10,<6.0',  # cloudinit and rest
         'requests>=2.7.0,<3.0.0',
         'xmltodict',   # rest
         "gitdb>=0.6.4",  # shared download resource

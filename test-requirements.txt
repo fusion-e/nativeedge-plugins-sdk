@@ -14,3 +14,4 @@ nose-exclude
 PyCrypto
 gitdb>=0.6.4
 GitPython
+requests_ntlm

@@ -23,7 +23,10 @@ import tempfile
 import xmltodict
 from six import StringIO, string_types
 
-from requests_ntlm import HttpNtlmAuth
+try:
+    from requests_ntlm import HttpNtlmAuth
+except ImportError:
+    HttpNtlmAuth = None
 
 from cloudify_rest_sdk import LOGGER_NAME
 from cloudify_common_sdk.filters import (
@@ -171,7 +174,7 @@ def _send_request(call, resource_callback=None):
         # auth
         if 'auth' not in call:
             auth = None
-        elif 'domain' in call['auth']:
+        elif 'domain' in call['auth'] and HttpNtlmAuth:
             auth = HttpNtlmAuth(
                 '{domain}\\{username}'.format(
                     domain=call['auth']['domain'],
