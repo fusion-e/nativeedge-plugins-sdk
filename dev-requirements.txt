@@ -1,3 +1,2 @@
-
 gitdb>=0.6.4
 GitPython

@@ -16,20 +16,49 @@
 
 import os
 import re
-
 from time import sleep
 from copy import deepcopy
+from distutils.util import strtobool
 
-from cloudify import ctx
-from cloudify.workflows import ctx as wtx
+from ._compat import PY2
+
+from cloudify import exceptions as cfy_exc
 from cloudify.utils import get_tenant_name
+from cloudify import ctx as ctx_from_import
 from cloudify.manager import get_rest_client
+from cloudify.workflows import ctx as wtx_from_import
 from .exceptions import NonRecoverableError as SDKNonRecoverableError
-from cloudify.exceptions import NonRecoverableError
 from cloudify_rest_client.exceptions import (
     CloudifyClientError,
     DeploymentEnvironmentCreationPendingError,
     DeploymentEnvironmentCreationInProgressError)
+
+try:
+    from cloudify.constants import RELATIONSHIP_INSTANCE, NODE_INSTANCE
+except ImportError:
+    NODE_INSTANCE = 'node-instance'
+    RELATIONSHIP_INSTANCE = 'relationship-instance'
+
+
+CLOUDIFY_TAGGED_EXT = '__cloudify_tagged_external_resource'
+
+
+def get_ctx_instance(_ctx=None):
+    _ctx = _ctx or ctx_from_import
+    if _ctx.type == RELATIONSHIP_INSTANCE:
+        return _ctx.source.instance
+    else:  # _ctx.type == NODE_INSTANCE
+        return _ctx.instance
+
+
+def get_ctx_node(_ctx=None, target=False):
+    _ctx = _ctx or ctx_from_import
+    if _ctx.type == RELATIONSHIP_INSTANCE:
+        if target:
+            return _ctx.target.node
+        return _ctx.source.node
+    else:  # _ctx.type == NODE_INSTANCE
+        return _ctx.node
 
 
 def get_deployment_dir(deployment_name=None, deployment_id=None):
@@ -113,7 +142,7 @@ def get_deployments_from_group(group, rest_client):
         except CloudifyClientError as e:
             attempts += 1
             if attempts > 15:
-                raise NonRecoverableError(
+                raise cfy_exc.NonRecoverableError(
                     'Maximum attempts waiting '
                     'for deployment group {group}" {e}.'.format(
                         group=group, e=e))
@@ -209,7 +238,7 @@ def install_deployments(group_id, rest_client):
                 DeploymentEnvironmentCreationInProgressError) as e:
             attempts += 1
             if attempts > 15:
-                raise NonRecoverableError(
+                raise cfy_exc.NonRecoverableError(
                     'Maximum attempts waiting '
                     'for deployment group {group}" {e}.'.format(
                         group=group_id, e=e))
@@ -235,7 +264,7 @@ def install_deployment(deployment_id, rest_client):
                 DeploymentEnvironmentCreationInProgressError) as e:
             attempts += 1
             if attempts > 15:
-                raise NonRecoverableError(
+                raise cfy_exc.NonRecoverableError(
                     'Maximum attempts waiting '
                     'for deployment {deployment_id}" {e}.'.format(
                         deployment_id=deployment_id, e=e))
@@ -315,7 +344,7 @@ def get_input(input_name, rest_client):
     :return: The input value.
     :rtype: Any JSON serializable type.
     """
-    deployment = rest_client.deployments.get(wtx.deployment.id)
+    deployment = rest_client.deployments.get(wtx_from_import.deployment.id)
     return deployment.inputs.get(input_name)
 
 
@@ -441,7 +470,7 @@ def get_parent_deployment(deployment_id, rest_client):
     deployment_id = get_deployment_label_by_name(
         'csys-obj-parent', deployment_id)
     if not deployment_id:
-        ctx.logger.warn(
+        ctx_from_import.logger.warn(
             'Unable to get parent deployment. '
             'No "csys-obj-parent" label set for deployment. '
             'Assuming manual subcloud enrollment. Set label manually.')
@@ -630,3 +659,253 @@ def update_deployment_site(deployment_id, site_name, rest_client):
             deployment_id, detach_site=True)
     return rest_client.deployments.set_site(
         deployment_id, site_name)
+
+
+def is_or_isnt(properties, prop_name):
+    """ Determine if a value is a bool.
+    The CLI does not convert "true" or "True",
+    or "false" or "False" to bools for us, so we have to.
+    :param properties: The ctx node properties.
+    :param prop_name: The property name to determine if its bool or not.
+    :return: bool
+    """
+    return boolify(properties.get(prop_name, False))
+
+
+def boolify(var):
+    """ Convert string "True" or "true" or "False" or "false" to bool.
+    Also it will convert 0 to False and 1 to True.
+
+    :param var: some value
+    :return: bool
+    """
+
+    if isinstance(var, str):
+        var = strtobool(var)
+    if not isinstance(var, bool):
+        var = bool(var)
+    return var
+
+
+def is_use_anyway(props, prop_name, resource_id):
+    """Return if the user wants us to use existing resource or if thats what
+    they think that they want, but they can't have.
+
+    :param properties: The ctx node properties.
+    :param prop_name: The property name to determine if its bool or not.
+    :param resource_id: Name or ID.
+    :return: bool
+    """
+    use_anyway = is_or_isnt(props, prop_name)
+    if use_anyway and not resource_id:
+        ctx_from_import.logger.error(
+            'The property {} indicates that the resource may already exist, '
+            'however an identifier was not provided. '
+            'The plugin will behave as if use_if_exists is False.'.format(
+                prop_name))
+        use_anyway = False
+    return use_anyway
+
+
+def is_use_existing(exists, expected, use_anyway):
+    """Determine if the resource is an existing resource that can be used.
+
+    :param exists: Whether we found the resource in target API.
+    :param expected: Whether we expected to find the resource in target API.
+    :param use_anyway: If we should use it, even if we didn't expect it.
+    :return: bool
+    """
+    return (exists and expected) or (exists and not expected and use_anyway)
+
+
+def is_should_create(exists, expected, create_anyway):
+    """If we should create a resource even if it was supposed to exist.
+
+    :param exists: Whether we found the resource in target API.
+    :param expected: Whether we expected to find the resource in target API.
+    :param create_anyway: If we should create the resource, even though it
+    was supposed to exist and did not.
+    :return:
+    """
+    return (not exists and not expected) or \
+           (not exists and expected and create_anyway)
+
+
+def is_may_modify(exists, existing, modifiable):
+    if existing and modifiable:
+        return True
+    return not exists
+
+
+def is_skip_on_delete(use_existing,
+                      _ctx_instance,
+                      create_operation,
+                      delete_operation):
+    """If we're in a delete scenario, we need to know if this was an "existing"
+    resource, in other words, should we skip deleting?
+
+    :param bool use_existing: Is it an "existing" resource?
+    :param _ctx_instance: CloudifyNodeInstanceContext
+    :param bool create_operation: The plugin specifies this.
+    :param delete_operation: The plugin specifies this.
+    :return:
+    """
+
+    if delete_operation and \
+            CLOUDIFY_TAGGED_EXT in _ctx_instance.runtime_properties:
+        _ctx_instance.runtime_properties.pop(CLOUDIFY_TAGGED_EXT, None)
+        return True
+    if create_operation and use_existing:
+        _ctx_instance.runtime_properties[CLOUDIFY_TAGGED_EXT] = True
+    return False
+
+
+def skip_creative_or_destructive_operation(
+        resource_type,
+        resource_id=None,
+        _ctx=None,
+        _ctx_node=None,
+        exists=False,
+        special_condition=False,
+        external_resource_key=None,
+        create_if_missing_key=None,
+        use_if_exists_key=None,
+        modifiable_key=None,
+        create_operation=False,
+        delete_operation=False):
+    """
+
+    :param resource_type: A string describing the type of resource, like "vm".
+    :param resource_id: A string representing a name of the resource.
+    :param _ctx: Current CloudifyContext.
+    :param _ctx_node: Current CloudifyNodeContext
+    :param exists: Boolean saying whether the resource is known to exist.
+    :param special_condition: A special condition that allows us to override
+        the logic of the function.
+    :param external_resource_key: The string like use_external_resource
+    :param create_if_missing_key: The string like create_if_missing
+    :param use_if_exists_key: The string like use_if_exists
+    :param modifiable_key: the string like modify_external_resource
+    :param create_operation: Whether the operation is a create operation.
+        Use this if in general the call is a PUT call.
+    :param delete_operation: Whether the operation is a delete operation.
+        Use this if in general the call is a DELETE call.
+    :return: Bool indicating whether to run the operation or not.
+    """
+
+    _ctx = _ctx or ctx_from_import
+    _ctx_node = _ctx_node or get_ctx_node(_ctx)
+    _ctx_instance = get_ctx_instance(_ctx)
+
+    # Using these keys enables us to support plugins that use
+    # non standard properties for these functions.
+    external_resource_key = external_resource_key or 'use_external_resource'
+    create_if_missing_key = create_if_missing_key or 'create_if_missing'
+    use_if_exists_key = use_if_exists_key or 'use_if_exists'
+    modifiable_key = modifiable_key or 'modify_external_resource'
+
+    if not isinstance(create_operation, bool):
+        create_operation = 'create' in _ctx.operation.name.split('.')[-1]
+    if not isinstance(delete_operation, bool):
+        delete_operation = 'delete' in _ctx.operation.name.split('.')[-1]
+
+    # Do we expect the resource to exist?
+    expected = is_or_isnt(_ctx_node.properties, external_resource_key)
+    # Should we try to create a resource regardless of the state?
+    create_anyway = create_operation and is_or_isnt(
+        _ctx_node.properties, create_if_missing_key)
+
+    # Should we create the resource?
+    should_create = is_should_create(exists, expected, create_anyway)
+    use_anyway = is_use_anyway(
+        _ctx_node.properties, use_if_exists_key, resource_id)
+    # Should we use existing resources?
+    use_existing = is_use_existing(exists, expected, use_anyway)
+    # Can we modify existing resources?
+    may_modify = is_may_modify(
+        exists,
+        use_existing,
+        is_or_isnt(_ctx_node.properties, modifiable_key))
+    skip_on_delete = is_skip_on_delete(
+        use_existing, _ctx_instance, create_operation, delete_operation)
+
+    # Bypass all skip existing resources logic.
+    # This is like AWS' force_operation parameter.
+    if special_condition:
+        ctx_from_import.logger.debug(
+            'The {resource_type} resource {resource_id}, has a special '
+            'condition and Cloudify is authorized to modify it.'.format(
+                resource_type=resource_type, resource_id=resource_id))
+        return False
+    elif expected and not exists and skip_on_delete:
+        raise ResourceDoesNotExist(resource_type, resource_id)
+    # If a resource is existing and we can't modify.
+    elif (use_existing and not may_modify) or skip_on_delete:
+        ctx_from_import.logger.debug(
+            'The {resource_type} resource {resource_id} exists as expected, '
+            'but Cloudify may not modify or delete it.'.format(
+                resource_type=resource_type, resource_id=resource_id))
+        return True
+    # If it's a create operatioon and we should create.
+    elif create_operation and should_create:
+        ctx_from_import.logger.debug(
+            'The {resource_type} resource {resource_id} does not exist, '
+            'and Cloudify should create it.'.format(
+                resource_type=resource_type, resource_id=resource_id))
+        return False
+    # If we are allowed to modify existing resources.
+    elif use_existing and may_modify:
+        ctx_from_import.logger.debug(
+            'The {resource_type} resource {resource_id} exists, and'
+            'Cloudify is authorized to modify it.'.format(
+                resource_type=resource_type, resource_id=resource_id))
+        return False
+    # If the resource doesn't exist, and it's expected to exist and we can't
+    # just create it anyway.
+    elif not exists and expected and not create_anyway:
+        raise ResourceDoesNotExist(
+            resource_type, resource_id, create_if_missing_key)
+    # If we shouldn't create or update a resource.
+    elif not should_create and not may_modify:
+        raise ExistingResourceInUse(resource_type, resource_id)
+    elif not exists and not use_existing and \
+            not create_anyway and not create_operation:
+        ctx_from_import.logger.debug(
+            'The {resource_type} resource {resource_id} does not exist, '
+            'but Cloudify is not authorized to create it or it is not a '
+            'create operation.'.format(
+                resource_type=resource_type, resource_id=resource_id))
+        return True
+    # Some other bug in our logic and we want to look into the condition.
+    raise cfy_exc.NonRecoverableError(
+        'Arrived at an inexplicable condition. Report for bug resolution.\n'
+        'Node properties: {} \n'
+        'Exists: {} '.format(_ctx_node.properties, exists)
+    )
+
+
+class ExistingResourceInUse(cfy_exc.NonRecoverableError):
+    def __init__(self, resource_type, resource_id, *args, **kwargs):
+        msg = 'Cannot create/update {resource_type} resource {resource_id}. ' \
+              'Not a create operation and not a special condition.'.format(
+                  resource_type=resource_type, resource_id=resource_id)
+        if not PY2:
+            super().__init__(msg, *args, **kwargs)
+
+
+class ResourceDoesNotExist(cfy_exc.NonRecoverableError):
+    def __init__(self,
+                 resource_type,
+                 resource_id,
+                 create_if_missing_key=None,
+                 *args,
+                 **kwargs):
+        msg = 'The {resource_type} resource {resource_id} is expected to ' \
+              'exist, but it does not exist.'.format(
+                  resource_type=resource_type,
+                  resource_id=resource_id)
+        if create_if_missing_key:
+            msg += ' You can create a missing resource by setting {key} ' \
+                   'to true'.format(key=create_if_missing_key)
+        if not PY2:
+            super().__init__(msg, *args, **kwargs)
