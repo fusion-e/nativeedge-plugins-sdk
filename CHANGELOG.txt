@@ -1,4 +1,8 @@
 releases:
+  v0.0.43:
+    - Add get node and get instance utils.
+    - Skip destructive and creative.
+    - Rollback NTML. It is has security vulnerabilities and no one needs it anymore.
   v0.0.42: Support MS-NTML authentication in rest plugin.
   v0.0.41: Handle OSError in processes.
   v0.0.40:

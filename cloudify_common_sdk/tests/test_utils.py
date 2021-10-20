@@ -70,6 +70,203 @@ class TestUtils(unittest.TestCase):
                                          'No deployment directory found!'):
                 utils.get_deployment_dir(deployment_id='test_deployment')
 
+    def test_get_ctx_node_ctx_instance(self):
+        ctx = mock.MagicMock()
+        ctx.type = 'relationship-instance'
+        result = utils.get_ctx_node(ctx)
+        self.assertEqual(result, ctx.source.node)
+        result = utils.get_ctx_node(ctx, True)
+        self.assertEqual(result, ctx.target.node)
+        ctx.type = 'node-instance'
+        result = utils.get_ctx_node(ctx)
+        self.assertEqual(result, ctx.node)
+        ctx.type = 'relationship-instance'
+        result = utils.get_ctx_instance(ctx)
+        self.assertEqual(result, ctx.source.instance)
+        ctx.type = 'node-instance'
+        result = utils.get_ctx_instance(ctx)
+        self.assertEqual(result, ctx.instance)
+
+
+class TestSkipCreativeOrDestructive(TestUtils):
+
+    def get_mock_ctx(self,
+                     use_external_resource=True,
+                     create_if_missing=False,
+                     use_if_exists=False,
+                     modify_external_resource=False):
+        ctx = mock.MagicMock()
+        ctx_node = mock.MagicMock()
+        ctx_node.properties = {
+            'resource_id': 'bar',
+            'use_external_resource': use_external_resource,
+            'create_if_missing': create_if_missing,
+            'use_if_exists': use_if_exists,
+            'modify_external_resource': modify_external_resource,
+            'resource_config': {},
+        }
+        ctx_instance = mock.MagicMock()
+        ctx_instance.runtime_properties = {}
+        ctx.node = ctx_node
+        ctx.instance = ctx_instance
+        return ctx
+
+    def get_fn_kwargs(self,
+                      use_external_resource=True,
+                      create_if_missing=False,
+                      use_if_exists=False,
+                      modify_external_resource=False,
+                      exists=True,
+                      special_condition=False,
+                      create_operation=True,
+                      delete_operation=False):
+
+        ctx = self.get_mock_ctx(use_external_resource,
+                                create_if_missing,
+                                use_if_exists,
+                                modify_external_resource)
+
+        current_ctx.set(ctx)
+
+        fn_kwargs = {
+            'resource_type': 'foo',
+            'resource_id': 'bar',
+            '_ctx': ctx,
+            '_ctx_node': ctx.node,
+            'exists': exists,
+            'special_condition': special_condition,
+            'create_operation': create_operation,
+            'delete_operation': delete_operation
+        }
+        return fn_kwargs
+
+    def test_existing_exists(self):
+        """
+        If use_external_resource is True, and the resource really exists.
+        Then we should skip create.
+        :return:
+        """
+        # Resource exists and is expected to exist.
+        fn_kwargs = self.get_fn_kwargs()
+        self.assertTrue(
+            utils.skip_creative_or_destructive_operation(**fn_kwargs))
+
+    def test_existing_exists_delete(self):
+        """
+        If use_external_resource and the resource exists,
+        the we should skip delete.
+        :return:
+        """
+        fn_kwargs = self.get_fn_kwargs(
+            create_operation=False, delete_operation=True)
+        fn_kwargs['_ctx'].instance.runtime_properties[
+            '__cloudify_tagged_external_resource'] = True
+        self.assertTrue(
+            utils.skip_creative_or_destructive_operation(**fn_kwargs))
+
+    def test_existing_not_exists_delete(self):
+        """
+        If use_external_resource is True and the resource doesn't exist,
+        we should fail.
+        :return:
+        """
+        fn_kwargs = self.get_fn_kwargs(
+            exists=False,
+            create_operation=False,
+            delete_operation=True)
+        fn_kwargs['_ctx'].instance.runtime_properties[
+            '__cloudify_tagged_external_resource'] = True
+        with self.assertRaises(utils.ResourceDoesNotExist):
+            utils.skip_creative_or_destructive_operation(**fn_kwargs)
+
+    def test_existing_not_exists_raise(self):
+        """
+        If use_external_resource is True, and the resource does not exist,
+        then we should raise.
+        :return:
+        """
+        # Resource doesn't exist, but it is expected to.
+        fn_kwargs = self.get_fn_kwargs(exists=False)
+        with self.assertRaises(utils.ResourceDoesNotExist):
+            utils.skip_creative_or_destructive_operation(**fn_kwargs)
+        fn_kwargs = self.get_fn_kwargs(exists=False, create_operation=False)
+        with self.assertRaises(utils.ResourceDoesNotExist):
+            utils.skip_creative_or_destructive_operation(**fn_kwargs)
+
+    def test_existing_not_exists_create(self):
+        """
+        If the resource should exist, but it doesn't and create if missing
+        is True, then we should not skip.
+        :return:
+        """
+        # Resource should exist. It does not, but create_if_missing is True.
+        fn_kwargs = self.get_fn_kwargs(create_if_missing=True, exists=False)
+        self.assertFalse(
+            utils.skip_creative_or_destructive_operation(**fn_kwargs))
+
+    def test_not_existing_does_not_exist(self):
+        """
+        If a resource should not exist and indeed does not then we should
+        not skip.
+        :return:
+        """
+        fn_kwargs = self.get_fn_kwargs(
+            use_external_resource=False, exists=False)
+        self.assertFalse(
+            utils.skip_creative_or_destructive_operation(**fn_kwargs))
+
+    def test_not_existing_exists_use_if_exists_delete(self):
+        """
+        If the resource should not exist, but it does and use_if_exists is
+        True, then delete should not delete. We should skip.
+        :return:
+        """
+        # We skip these once they have been deleted.
+        fn_kwargs = self.get_fn_kwargs(
+            use_external_resource=False,
+            use_if_exists=True,
+            create_operation=False,
+            delete_operation=True)
+        fn_kwargs['_ctx'].instance.runtime_properties[
+            '__cloudify_tagged_external_resource'] = True
+        self.assertTrue(
+            utils.skip_creative_or_destructive_operation(**fn_kwargs))
+
+    def test_existing_already_exists(self):
+        """
+        If the resource should not exist, but it does, then we should fail.
+        :return:
+        """
+        # The resource exists, it shouldn't.
+        fn_kwargs = self.get_fn_kwargs(use_external_resource=False)
+        with self.assertRaises(utils.ExistingResourceInUse):
+            utils.skip_creative_or_destructive_operation(**fn_kwargs)
+
+    def test_not_existing_exists_use(self):
+        """
+        If the resource should not exist, but it does and use_if_exists is
+        True, then we should skip.
+        :return:
+        """
+        # The resource exists. It should not, but use_if_existing is true.
+        fn_kwargs = self.get_fn_kwargs(
+            use_external_resource=False, use_if_exists=True)
+        self.assertTrue(
+            utils.skip_creative_or_destructive_operation(**fn_kwargs))
+
+    def test_existing_exists_modify_ok(self):
+        """
+        If the resource exists, and it should exist, and modifying is allowed,
+        then we should not skip.
+        :return:
+        """
+        fn_kwargs = self.get_fn_kwargs(
+            modify_external_resource=True,
+            create_operation=False,
+            delete_operation=False)
+        self.assertFalse(
+            utils.skip_creative_or_destructive_operation(**fn_kwargs))
+
 
 class BatchUtilsTests(unittest.TestCase):
 
