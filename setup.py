@@ -49,6 +49,5 @@ setuptools.setup(
         "gitdb>=0.6.4",  # shared download resource
         "GitPython",  # shared download resource
         'psutil',
-        'requests_ntlm',
     ]
 )
