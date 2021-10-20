@@ -905,7 +905,7 @@ class ResourceDoesNotExist(cfy_exc.NonRecoverableError):
                   resource_type=resource_type,
                   resource_id=resource_id)
         if create_if_missing_key:
-            msg + ' You can create a missing resource by setting {key} ' \
-                  'to true'.format(key=create_if_missing_key)
+            msg += ' You can create a missing resource by setting {key} ' \
+                   'to true'.format(key=create_if_missing_key)
         if not PY2:
             super().__init__(msg, *args, **kwargs)
