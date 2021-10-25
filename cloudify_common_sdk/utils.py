@@ -853,6 +853,12 @@ def skip_creative_or_destructive_operation(
             'and Cloudify should create it.'.format(
                 resource_type=resource_type, resource_id=resource_id))
         return False
+    elif delete_operation and not skip_on_delete:
+        ctx_from_import.logger.debug(
+            'The {resource_type} resource {resource_id} does exists, '
+            'and Cloudify should delete it.'.format(
+                resource_type=resource_type, resource_id=resource_id))
+        return False
     # If we are allowed to modify existing resources.
     elif use_existing and may_modify:
         ctx_from_import.logger.debug(
