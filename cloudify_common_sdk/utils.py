@@ -821,6 +821,8 @@ def skip_creative_or_destructive_operation(
         _ctx_node.properties, use_if_exists_key, resource_id)
     # Should we use existing resources?
     use_existing = is_use_existing(exists, expected, use_anyway)
+    if create_operation and use_existing:
+        _ctx_instance.runtime_properties[CLOUDIFY_TAGGED_EXT] = True
     # Can we modify existing resources?
     may_modify = is_may_modify(
         exists,
@@ -828,6 +830,37 @@ def skip_creative_or_destructive_operation(
         is_or_isnt(_ctx_node.properties, modifiable_key))
     skip_on_delete = is_skip_on_delete(
         use_existing, _ctx_instance, create_operation, delete_operation)
+
+    _ctx.logger.debug(
+        'Skip operation logical points: \n'
+        'resource_type {}\n'
+        'resource_id {}\n'
+        'exists {}\n'
+        'special_condition {}\n'
+        'create_operation {}\n'
+        'delete_operation {}\n'
+        'expected {}\n'
+        'create_anyway {}\n'
+        'should_create {}\n'
+        'use_anyway {}\n'
+        'use_existing {}\n'
+        'may_modify {}\n'
+        'skip_on_delete {}\n'.format(
+            resource_type,
+            resource_id,
+            not not exists,
+            special_condition,
+            create_operation,
+            delete_operation,
+            expected,
+            create_anyway,
+            should_create,
+            use_anyway,
+            use_existing,
+            may_modify,
+            skip_on_delete
+        )
+    )
 
     # Bypass all skip existing resources logic.
     # This is like AWS' force_operation parameter.
@@ -839,13 +872,6 @@ def skip_creative_or_destructive_operation(
         return False
     elif expected and not exists and skip_on_delete:
         raise ResourceDoesNotExist(resource_type, resource_id)
-    # If a resource is existing and we can't modify.
-    elif (use_existing and not may_modify) or skip_on_delete:
-        ctx_from_import.logger.debug(
-            'The {resource_type} resource {resource_id} exists as expected, '
-            'but Cloudify may not modify or delete it.'.format(
-                resource_type=resource_type, resource_id=resource_id))
-        return True
     # If it's a create operatioon and we should create.
     elif create_operation and should_create:
         ctx_from_import.logger.debug(
@@ -859,6 +885,13 @@ def skip_creative_or_destructive_operation(
             'and Cloudify should delete it.'.format(
                 resource_type=resource_type, resource_id=resource_id))
         return False
+    # If a resource is existing and we can't modify.
+    elif (use_existing and not may_modify) or skip_on_delete:
+        ctx_from_import.logger.debug(
+            'The {resource_type} resource {resource_id} exists as expected, '
+            'but Cloudify may not modify or delete it.'.format(
+                resource_type=resource_type, resource_id=resource_id))
+        return True
     # If we are allowed to modify existing resources.
     elif use_existing and may_modify:
         ctx_from_import.logger.debug(
