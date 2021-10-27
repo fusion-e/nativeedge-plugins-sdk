@@ -855,7 +855,7 @@ def skip_creative_or_destructive_operation(
         return False
     elif delete_operation and not skip_on_delete:
         ctx_from_import.logger.debug(
-            'The {resource_type} resource {resource_id} does exists, '
+            'The {resource_type} resource {resource_id} does exist, '
             'and Cloudify should delete it.'.format(
                 resource_type=resource_type, resource_id=resource_id))
         return False
