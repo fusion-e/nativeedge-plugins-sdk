@@ -16,7 +16,7 @@ import setuptools
 
 
 setuptools.setup(
-    name='cloudify-utilities-plugins-sdk',
+    name='cloudify-utilities-plugins-sdk-without-paramiko',
     version='0.0.45b',
     author='Cloudify Platform Ltd.',
     author_email='hello@cloudify.co',
