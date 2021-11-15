@@ -16,7 +16,6 @@
 import sys
 import time
 import psutil
-import threading
 import subprocess
 
 from cloudify import ctx as ctx_from_import
@@ -31,7 +30,6 @@ from script_runner.tasks import (
     ILLEGAL_CTX_OPERATION_ERROR,
     UNSUPPORTED_SCRIPT_FEATURE_ERROR
 )
-from ._compat import StringIO, text_type
 from .filters import obfuscate_passwords
 
 try:
@@ -40,62 +38,146 @@ except ImportError:
     ScriptException = Exception
 
 
-# Stolen from the script plugin, until this class
-# moves to a utils module in cloudify-common.
-class OutputConsumer(object):
-    def __init__(self, out):
-        self.out = out
-        self._output = []
-        self.consumer = threading.Thread(target=self.consume_output)
-        self.consumer.daemon = True
+class GeneralExecutor(object):
 
-    def consume_output(self):
-        for line in self.out:
-            self.handle_line(line)
-        self.out.close()
+    def __init__(self,
+                 command,
+                 env,
+                 cwd,
+                 on_posix,
+                 logger=None,
+                 ctx=None,
+                 log_stdout=True,
+                 log_stderr=True):
+        self.command = command
+        self.logger = logger or ctx_from_import.logger
+        self.ctx = ctx or ctx_from_import
+        self._stdout = []
+        self._stderr = []
+        self.process = subprocess.Popen(
+            args=command,
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            env=env,
+            cwd=cwd,
+            bufsize=48,
+            close_fds=on_posix)
+        self.pid = self.process.pid
+        self.logger.info('Process created, PID: {0}'.format(self.pid))
+        self.last_clock = time.time()
+        self._return_code = None
+        self.last_state = self.current_status = self.get_status()
+        self.liveness_counter = 0
+        self.state_changes = 0
+        self.log_stdout = log_stdout
+        self.log_stderr = log_stderr
 
-    def handle_line(self, line):
-        line = line.decode('utf-8', 'replace')
-        self._output.append(line)
+    def _emit_log_message(self, message, prefix=None, logger=None):
+        prefix = prefix or '<out>'
+        logger = logger or self.logger.info
+        clean_message = obfuscate_passwords(message.decode('utf-8', 'replace'))
+        try:
+            clean_message = clean_message.rstrip('\r\n')
+        except (AttributeError, TypeError):
+            pass
+        if 'out' in prefix and self.log_stdout:
+            logger("{}: {}".format(prefix, clean_message))
+        if 'err' in prefix and self.log_stderr:
+            logger("{}: {}".format(prefix, clean_message))
+        return clean_message
 
-    def join(self):
-        self.consumer.join()
+    def emit_stdout(self):
+        for line in self.process.stdout.readlines():
+            self._stdout.append(self._emit_log_message(line))
+
+    def emit_stderr(self):
+        for line in self.process.stderr.readlines():
+            self._stderr.append(
+                self._emit_log_message(
+                    line, prefix='<err>', logger=self.logger.error))
+
+    def emit_io(self):
+        self.emit_stdout()
+        self.emit_stderr()
 
     @property
-    def output(self):
-        return self._output
-
-
-class LoggingOutputConsumer(OutputConsumer):
-
-    def __init__(self, out, logger, prefix):
-        OutputConsumer.__init__(self, out)
-        self.logger = logger
-        self.prefix = prefix
-        self.consumer.start()
-
-    def handle_line(self, line):
-        clean_line = obfuscate_passwords(line.decode('utf-8').rstrip('\n'))
-        new_line = "{0}{1}".format(text_type(self.prefix), clean_line)
-        self.logger.info(new_line)
-        self.output.append(clean_line)
-
-
-class CapturingOutputConsumer(OutputConsumer):
-    def __init__(self, out):
-        OutputConsumer.__init__(self, out)
-        self.buffer = StringIO()
-        self.consumer.start()
-
-    def handle_line(self, line):
-        self.buffer.write(line.decode('utf-8'))
-
-    def get_buffer(self):
-        return self.buffer
+    def stdout(self):
+        return ''.join(self._stdout)
 
     @property
-    def output(self):
-        return self.buffer.getvalue()
+    def stderr(self):
+        return ''.join(self._stderr)
+
+    def poll(self):
+        self._return_code = self.process.poll()
+        self.emit_io()
+
+    @property
+    def return_code(self):
+        return self._return_code
+
+    @property
+    def status(self):
+        try:
+            self.current_status = self.get_status()
+        except psutil.NoSuchProcess:
+            pass
+        return self.current_status
+
+    def get_status(self):
+        return psutil.Process(self.pid)
+
+    def check_exception(self):
+        if isinstance(self.ctx._return_value, RuntimeError):
+            raise cfy_exc.NonRecoverableError(str(self.ctx._return_value))
+        elif self.return_code != 0:
+            if not (self.ctx.is_script_exception_defined and isinstance(
+                    self.ctx._return_value, ScriptException)):
+                raise ProcessException(
+                    self.command, self.return_code, self.stdout, self.stderr)
+
+    def run(self, proxy, max_sleep_time):
+
+        self.last_state = self.current_status
+
+        while True:
+            process_ctx_request(proxy)
+            # return_code = execution.poll()
+            self.poll()
+            if self.return_code is not None:
+                break
+            self.liveness_counter += 1
+            # Poke the process with a stick every 20 seconds
+            # to see if it's alive.
+            if self.liveness_counter == POLL_LOOP_LOG_ITERATIONS:
+                self.liveness_counter = 0
+                self.last_state, self.last_clock = handle_max_sleep(
+                    self.pid,
+                    self.last_state,
+                    self.state_changes,
+                    self.last_clock,
+                    max_sleep_time,
+                    self.process)
+                if not self.last_state and not self.last_clock:
+                    break
+                self.logger.info(
+                    'Waiting for process {0} to end...'.format(self.pid))
+                # Reset the number of times the process has changed since last
+                # called handle_max_sleep.
+                self.state_changes = 0
+
+            # If the state has changed since the last time we checked, it means
+            # it's not dead.
+            if self.status != self.last_state:
+                self.state_changes += 1
+                self.last_clock = time.time()
+            self.last_state = self.current_status
+            time.sleep(POLL_LOOP_INTERVAL)
+
+        self.logger.info(
+            'Execution done (PID={0}, return_code={1}): {2}'.format(
+                self.pid, self.return_code, self.command))
 
 
 def general_executor(script_path, ctx, process):
@@ -134,83 +216,9 @@ def general_executor(script_path, ctx, process):
     ctx.logger.debug('log_stdout=%r, log_stderr=%r, stderr_to_stdout=%r',
                      log_stdout, log_stderr, stderr_to_stdout)
 
-    process = subprocess.Popen(
-        args=command,
-        shell=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        env=env,
-        cwd=cwd,
-        bufsize=1,
-        close_fds=on_posix)
-
-    pid = process.pid
-    ctx.logger.info('Process created, PID: {0}'.format(pid))
-
-    if log_stdout:
-        stdout_consumer = LoggingOutputConsumer(
-            process.stdout, ctx.logger, '<out> ')
-    else:
-        stdout_consumer = CapturingOutputConsumer(
-            process.stdout)
-        ctx.logger.debug('Started consumer thread for stdout')
-
-    if log_stderr:
-        stderr_consumer = LoggingOutputConsumer(
-            process.stderr, ctx.logger, '<err> ')
-    else:
-        stderr_consumer = CapturingOutputConsumer(
-            process.stderr)
-        ctx.logger.debug('Started consumer thread for stderr')
-
-    log_counter = 0
-    # Start the clock for the last time we measured the max_sleep_timeout.
-    last_clock = time.time()
-    # The number of times the state has changed since last we checked.
-    state_changes = 0
-    # Initialize the most recent state.
-    last_state = current_state = psutil.Process(pid).status()
-
-    while True:
-        process_ctx_request(proxy)
-        return_code = process.poll()
-        if return_code is not None:
-            break
-        log_counter += 1
-        # Poke the process with a stick every 20 seconds to see if it's alive.
-        if log_counter == POLL_LOOP_LOG_ITERATIONS:
-            log_counter = 0
-            last_state, last_clock = handle_max_sleep(
-                process.pid,
-                last_state,
-                state_changes,
-                last_clock,
-                max_sleep_time,
-                process)
-            if not last_state and not last_clock:
-                break
-            ctx.logger.info('Waiting for process {0} to end...'.format(pid))
-            # Reset the number of times the process has changed since last
-            # called handle_max_sleep.
-            state_changes = 0
-        else:
-            psutil_process = psutil.Process(pid)
-
-        try:
-            current_state = psutil_process.status()
-        except psutil.NoSuchProcess:
-            continue
-
-        # If the state has changed since the last time we checked, it means
-        # it's not dead.
-        if current_state != last_state:
-            state_changes += 1
-            last_clock = time.time()
-        last_state = current_state
-        time.sleep(POLL_LOOP_INTERVAL)
-
-    ctx.logger.info('Execution done (PID={0}, return_code={1}): {2}'
-                    .format(pid, return_code, command))
+    execution = GeneralExecutor(
+        command, env, cwd, on_posix, ctx.logger, ctx, log_stdout, log_stderr)
+    execution.run(proxy, max_sleep_time)
 
     try:
         proxy.close()
@@ -219,26 +227,8 @@ def general_executor(script_path, ctx, process):
     else:
         ctx.logger.debug("Context proxy closed")
 
-    for consumer, name in [(stdout_consumer, 'stdout'),
-                           (stderr_consumer, 'stderr')]:
-        if consumer:
-            ctx.logger.debug('Joining consumer thread for %s', name)
-            consumer.join()
-            ctx.logger.debug('Consumer thread for %s ended', name)
-        else:
-            ctx.logger.debug('Consumer thread for %s not created; not joining',
-                             name)
-
-    # happens when more than 1 ctx result command is used
-    stdout = ''.join(stdout_consumer.output)
-    stderr = ''.join(stderr_consumer.output)
-    if isinstance(ctx._return_value, RuntimeError):
-        raise cfy_exc.NonRecoverableError(str(ctx._return_value))
-    elif return_code != 0:
-        if not (ctx.is_script_exception_defined and isinstance(
-                ctx._return_value, ScriptException)):
-            raise ProcessException(command, return_code, stdout, stderr)
-    return stdout
+    execution.check_exception()
+    return execution.stdout
 
 
 def process_execution(script_func, script_path, ctx=None, process=None):
