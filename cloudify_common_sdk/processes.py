@@ -122,7 +122,7 @@ class GeneralExecutor(object):
         try:
             self.current_status = self.get_status()
         except psutil.NoSuchProcess:
-            pass
+            self.current_status = None
         return self.current_status
 
     def get_status(self):
