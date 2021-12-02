@@ -731,7 +731,9 @@ def is_should_create(exists, expected, create_anyway):
            (not exists and expected and create_anyway)
 
 
-def is_may_modify(exists, existing, modifiable):
+def is_may_modify(exists, existing, modifiable, create_op):
+    if existing and exists and create_op:
+        return False
     if existing and modifiable:
         return True
     return not exists
@@ -827,7 +829,8 @@ def skip_creative_or_destructive_operation(
     may_modify = is_may_modify(
         exists,
         use_existing,
-        is_or_isnt(_ctx_node.properties, modifiable_key))
+        is_or_isnt(_ctx_node.properties, modifiable_key),
+        create_operation)
     skip_on_delete = is_skip_on_delete(
         use_existing, _ctx_instance, create_operation, delete_operation)
 
