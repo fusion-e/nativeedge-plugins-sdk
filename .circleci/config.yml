@@ -140,7 +140,7 @@ workflows:
       - release:
           filters:
             branches:
-              only: /RD-3578-release-not-functional/
+              only: /master/
           requires:
             - unittests_py27
             - unittests_py36
