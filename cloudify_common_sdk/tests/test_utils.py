@@ -447,3 +447,27 @@ class BatchUtilsTests(unittest.TestCase):
             'foo',
             detach_site=True
         ) in mock_client.mock_calls
+
+    @mock.patch('cloudify_common_sdk.utils.get_rest_client')
+    def test_get_cloudify_version(self, mock_client):
+
+        result1 = "6.1.0"
+        result2 = "v6.1.0"
+        result3 = "6.2.0"
+        result4 = "5.2.8"
+        result5 = "Cloudify version 5.2.8"
+
+        mock_client().manager.get_version.return_value = {'version': result1}
+        self.assertEqual(6.1, utils.get_cloudify_version())
+
+        mock_client().manager.get_version.return_value = {'version': result2}
+        self.assertEqual(6.1, utils.get_cloudify_version())
+
+        mock_client().manager.get_version.return_value = {'version': result3}
+        self.assertEqual(6.2, utils.get_cloudify_version())
+
+        mock_client().manager.get_version.return_value = {'version': result4}
+        self.assertEqual(5.2, utils.get_cloudify_version())
+
+        mock_client().manager.get_version.return_value = {'version': result5}
+        self.assertEqual(5.2, utils.get_cloudify_version())
