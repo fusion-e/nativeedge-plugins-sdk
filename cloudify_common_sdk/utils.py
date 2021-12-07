@@ -22,6 +22,7 @@ from distutils.util import strtobool
 
 from ._compat import PY2
 
+from processes import general_executor
 from cloudify import exceptions as cfy_exc
 from cloudify.utils import get_tenant_name
 from cloudify import ctx as ctx_from_import
@@ -951,3 +952,25 @@ class ResourceDoesNotExist(cfy_exc.NonRecoverableError):
                    'to true'.format(key=create_if_missing_key)
         if not PY2:
             super().__init__(msg, *args, **kwargs)
+
+
+def get_cloudify_version():
+    cloudify_version = [0]
+    general_executor_params = {}
+    try:
+        cloudify_version = general_executor('cfy --version'.split(),
+                                            general_executor_params)
+
+        ctx_from_import.logger.debug('cloudify_version: {}'
+                                     .format(cloudify_version))
+        cloudify_version = re.findall('.*? (\\d+?\\.\\d+?)\\..*',
+                                      cloudify_version)
+        ctx_from_import.logger.debug('cloudify_version: {}'
+                                     .format(cloudify_version))
+
+    except TypeError:
+        ctx_from_import.logger.error('TypeError - type(cloudify_version): {}'
+                                     .format(type(cloudify_version)))
+    finally:
+        cloudify_version = float(cloudify_version[0])
+    return cloudify_version
