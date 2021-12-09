@@ -955,23 +955,8 @@ class ResourceDoesNotExist(cfy_exc.NonRecoverableError):
 
 @with_rest_client
 def get_cloudify_version(rest_client):
-    cloudify_version = ""
-    try:
-        version = rest_client.manager.get_version()
-        version = version['version']
-        ctx_from_import.logger.debug('Complete version: {}'.format(version))
-
-        cloudify_version = re.findall('(\\d+.\\d+)', version)[0]
-
-        ctx_from_import.logger.debug('cloudify_version: {}'
-                                     .format(cloudify_version))
-
-    except TypeError:
-        ctx_from_import.logger.error('TypeError - (cloudify_version): {}'
-                                     .format(cloudify_version))
-        ctx_from_import.logger.error('TypeError - type(cloudify_version): {}'
-                                     .format(type(cloudify_version)))
-    finally:
-        cloudify_version = float(cloudify_version)
-
-    return cloudify_version
+    version = rest_client.manager.get_version()['version']
+    cloudify_version = re.findall('(\\d+.\\d+)', version)[0]
+    ctx_from_import.logger.debug('cloudify_version: {}'
+                                 .format(cloudify_version))
+    return float(cloudify_version)
