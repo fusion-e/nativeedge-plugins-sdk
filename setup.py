@@ -30,21 +30,20 @@ setuptools.setup(
     license='Apache License 2.0',
     url="https://github.com/cloudify-incubator/cloudify-utilities-plugins-sdk",
     classifiers=[
-        "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
     ],
     packages=['cloudify_common_sdk',
-              'cloudify_rest_sdk',
-              'cloudify_terminal_sdk'],
+              'cloudify_rest_sdk'],
+              # 'cloudify_terminal_sdk'],
     install_requires=[
         'cloudify-common>=4.5.5',
-        'paramiko>=2.7.1',  # terminal
-        "Jinja2>=2.7.2",  # terminal
+        # 'paramiko>=2.7.1',  # terminal
+        # "Jinja2>=2.7.2",  # terminal
         "pycdlib",  # cdrom image
-        'pyyaml>=3.10,<6.0',  # cloudinit and rest
-        'requests>=2.7.0,<3.0.0',
+        # 'pyyaml>=3.10,<6.0',  # cloudinit and rest
+        # 'requests>=2.7.0,<3.0.0',
         'xmltodict',   # rest
         "gitdb>=0.6.4",  # shared download resource
         "GitPython",  # shared download resource
