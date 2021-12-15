@@ -105,6 +105,12 @@ commands:
 
 jobs:
 
+  unittests_py27:
+    executor: py27
+    steps:
+      - checkout
+      - run_unittest
+
   unittests_py36:
     executor: py36
     steps:
@@ -129,6 +135,7 @@ workflows:
   tests:
     jobs: &all_jobs
       - py3_compat
+#      - unittests_py27
       - unittests_py36
       - release:
           filters:
