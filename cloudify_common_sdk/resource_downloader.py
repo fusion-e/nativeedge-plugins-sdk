@@ -86,8 +86,7 @@ def get_shared_resource(source_path, dir=None, username=None, password=None):
                         suffix=file_type, dir=dir, delete=False) \
                         as source_temp:
                     tmp_path = source_temp.name
-                    ctx.logger.info('**get_shared_resource url tmp_path:{}'
-                                    .format(tmp_path))
+                    ctx.logger.info('**get_shared_resource url tmp_path:{}'.format(tmp_path))
                     for chunk in \
                             response.iter_content(chunk_size=None):
                         source_temp.write(chunk)
