@@ -5,6 +5,7 @@ import tempfile
 import tarfile
 import mimetypes
 
+from cloudify import ctx
 from cloudify_common_sdk.exceptions import NonRecoverableError
 
 TAR_FILE_EXTENSTIONS = ('tar', 'gz', 'bz2', 'tgz', 'tbz')
@@ -85,6 +86,9 @@ def get_shared_resource(source_path, dir=None, username=None, password=None):
                         suffix=file_type, dir=dir, delete=False) \
                         as source_temp:
                     tmp_path = source_temp.name
+                    ctx.lpgger.info(
+                        '**get_shared_resource url tmp_path:{}'
+                            .format(tmp_path))
                     for chunk in \
                             response.iter_content(chunk_size=None):
                         source_temp.write(chunk)
@@ -97,8 +101,10 @@ def get_shared_resource(source_path, dir=None, username=None, password=None):
                     auth_url_part = '{}:{}@'.format(username, password)
                 updated_url = '{}://{}{}'.format(
                     schema, auth_url_part, split[1])
-                Repo.clone_from(updated_url,
-                                tmp_path)
+                Repo.clone_from(updated_url, tmp_path)
+                ctx.lpgger.info(
+                    '**get_shared_resource git tmp_path:{}'.format(tmp_path))
+
             except ImportError:
                 raise NonRecoverableError(
                     "Clone git repo is only supported if git is installed "
