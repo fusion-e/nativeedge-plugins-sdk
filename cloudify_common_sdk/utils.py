@@ -18,6 +18,7 @@ import os
 import re
 from time import sleep
 from copy import deepcopy
+from packaging import version
 from distutils.util import strtobool
 
 from ._compat import PY2
@@ -956,7 +957,11 @@ class ResourceDoesNotExist(cfy_exc.NonRecoverableError):
 @with_rest_client
 def get_cloudify_version(rest_client):
     version = rest_client.manager.get_version()['version']
-    cloudify_version = re.findall('(\\d+.\\d+)', version)[0]
+    cloudify_version = re.findall('(\\d+.\\d+.\\d+)', version)[0]
     ctx_from_import.logger.debug('cloudify_version: {}'
                                  .format(cloudify_version))
-    return float(cloudify_version)
+    return cloudify_version
+
+
+def v1_gteq_v2(v1, v2):
+    return version.parse(v1) >= version.parse(v2)

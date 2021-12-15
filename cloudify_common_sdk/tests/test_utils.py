@@ -458,16 +458,26 @@ class BatchUtilsTests(unittest.TestCase):
         result5 = "Cloudify version 5.2.8"
 
         mock_client().manager.get_version.return_value = {'version': result1}
-        self.assertEqual(6.1, utils.get_cloudify_version())
+        self.assertEqual("6.1.0", utils.get_cloudify_version())
 
         mock_client().manager.get_version.return_value = {'version': result2}
-        self.assertEqual(6.1, utils.get_cloudify_version())
+        self.assertEqual("6.1.0", utils.get_cloudify_version())
 
         mock_client().manager.get_version.return_value = {'version': result3}
-        self.assertEqual(6.2, utils.get_cloudify_version())
+        self.assertEqual("6.2.0", utils.get_cloudify_version())
 
         mock_client().manager.get_version.return_value = {'version': result4}
-        self.assertEqual(5.2, utils.get_cloudify_version())
+        self.assertEqual("5.2.8", utils.get_cloudify_version())
 
         mock_client().manager.get_version.return_value = {'version': result5}
-        self.assertEqual(5.2, utils.get_cloudify_version())
+        self.assertEqual("5.2.8", utils.get_cloudify_version())
+
+    def test_is_bigger_and_equal_version(self):
+
+        self.assertTrue(utils.v1_gteq_v2("6.1.0", "6.1.0"))
+        self.assertTrue(utils.v1_gteq_v2("6.2.0", "6.1.0"))
+        self.assertTrue(utils.v1_gteq_v2("8.0.0", "6.1.0"))
+        self.assertTrue(utils.v1_gteq_v2("12.11.10", "6.1.0"))
+
+        self.assertFalse(utils.v1_gteq_v2("5.2.8", "6.1.0"))
+        self.assertFalse(utils.v1_gteq_v2("1.0.0", "6.1.0"))
