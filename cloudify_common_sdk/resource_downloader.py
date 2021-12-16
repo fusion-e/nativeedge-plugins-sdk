@@ -19,7 +19,7 @@ def _handle_parent_directory(into_dir):
     return into_dir
 
 
-def unzip_archive(archive_path):
+def unzip_archive(archive_path, skip_parent_directory=True):
     """
     Unzip a zip archive.
     this method memic strip components
@@ -33,7 +33,8 @@ def unzip_archive(archive_path):
                 reset_target = os.path.join(into_dir, info.filename)
                 if info.external_attr >> 16 > 0:
                     os.chmod(reset_target, info.external_attr >> 16)
-        into_dir = _handle_parent_directory(into_dir)
+        if skip_parent_directory:
+            into_dir = _handle_parent_directory(into_dir)
     finally:
         if zip_in:
             zip_in.close()
@@ -41,13 +42,14 @@ def unzip_archive(archive_path):
     return into_dir
 
 
-def untar_archive(archive_path):
+def untar_archive(archive_path, skip_parent_directory=True):
     into_dir = tempfile.mkdtemp()
     tar_in = None
     try:
         tar_in = tarfile.open(archive_path, 'r')
         tar_in.extractall(into_dir)
-        into_dir = _handle_parent_directory(into_dir)
+        if skip_parent_directory:
+            into_dir = _handle_parent_directory(into_dir)
     finally:
         if tar_in:
             tar_in.close()
