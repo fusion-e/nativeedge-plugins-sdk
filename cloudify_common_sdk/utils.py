@@ -22,6 +22,8 @@ from packaging import version
 from distutils.util import strtobool
 
 from ._compat import PY2
+from .constants import MASKED_ENV_VARS
+from .processes import process_execution, general_executor
 
 from cloudify import exceptions as cfy_exc
 from cloudify.utils import get_tenant_name
@@ -34,6 +36,7 @@ from cloudify_rest_client.exceptions import (
     DeploymentEnvironmentCreationPendingError,
     DeploymentEnvironmentCreationInProgressError)
 
+
 try:
     from cloudify.constants import RELATIONSHIP_INSTANCE, NODE_INSTANCE
 except ImportError:
@@ -44,9 +47,13 @@ except ImportError:
 CLOUDIFY_TAGGED_EXT = '__cloudify_tagged_external_resource'
 
 
-def get_ctx_instance(_ctx=None):
+def get_ctx_instance(_ctx=None, target=False, source=False):
     _ctx = _ctx or ctx_from_import
     if _ctx.type == RELATIONSHIP_INSTANCE:
+        if target:
+            return _ctx.target.instance
+        elif source:
+            return _ctx.source.instance
         return _ctx.source.instance
     else:  # _ctx.type == NODE_INSTANCE
         return _ctx.instance
@@ -965,3 +972,102 @@ def get_cloudify_version(rest_client):
 
 def v1_gteq_v2(v1, v2):
     return version.parse(v1) >= version.parse(v2)
+
+
+def mkdir_p(path):
+    import pathlib
+    pathlib.Path(path).mkdir(parents=True, exist_ok=True)
+
+
+def get_node_instance_dir(target=False, source=False, source_path=None):
+    """This is the place where the magic happens.
+    We put all our binaries, templates, or symlinks to those files here,
+    and then we also run all executions from here.
+    """
+    instance = get_ctx_instance(target=target, source=source)
+    folder = os.path.join(
+        get_deployment_dir(ctx_from_import.deployment.id),
+        instance.id
+    )
+    if source_path:
+        folder = os.path.join(folder, source_path)
+    if not os.path.exists(folder):
+        mkdir_p(folder)
+    ctx_from_import.logger.debug('Value deployment_dir is {loc}.'.format(
+        loc=folder))
+    return folder
+
+
+def run_subprocess(command,
+                   logger=None,
+                   cwd=None,
+                   additional_env=None,
+                   additional_args=None,
+                   return_output=True):
+    """Execute a shell script or command."""
+
+    logger = logger or ctx_from_import.logger
+    cwd = cwd or get_node_instance_dir()
+
+    if additional_args is None:
+        additional_args = {}
+
+    if additional_env:
+        passed_env = additional_args.setdefault('env', {})
+        passed_env.update(os.environ)
+        passed_env.update(additional_env)
+
+    printed_args = deepcopy(additional_args)
+
+    # MASK SECRET
+    printed_env = printed_args.get('env', {})
+    for env_var in MASKED_ENV_VARS:
+        if env_var in printed_env:
+            printed_env[env_var] = '****'
+
+    printed_args['env'] = printed_env
+    logger.info('Running: command={cmd}, '
+                'cwd={cwd}, '
+                'additional_args={args}'.format(
+                    cmd=command,
+                    cwd=cwd,
+                    args=printed_args))
+
+    general_executor_params = additional_args
+    general_executor_params['cwd'] = cwd
+    if 'log_stdout' not in general_executor_params:
+        general_executor_params['log_stdout'] = return_output
+    if 'log_stderr' not in general_executor_params:
+        general_executor_params['log_stderr'] = True
+    if 'stderr_to_stdout' not in general_executor_params:
+        general_executor_params['stderr_to_stdout'] = False
+    script_path = command.pop(0)
+    general_executor_params['args'] = command
+    general_executor_params['max_sleep_time'] = get_ctx_node().properties.get(
+        'max_sleep_time', 300)
+
+    logger.info('**general_executor_params: {}'.format(general_executor_params))
+    return process_execution(
+        general_executor,
+        script_path,
+        ctx_from_import,
+        general_executor_params)
+
+
+def copy_directory(src, dst):
+    run_subprocess(['cp', '-r', os.path.join(src, '*'), dst])
+
+
+def download_file(source, destination):
+    run_subprocess(['curl', '-o', source, destination])
+
+
+def remove_directory(dir):
+    run_subprocess(['rm', '-rf', dir])
+
+
+def set_permissions(target_file):
+    run_subprocess(
+        ['chmod', 'u+x', target_file],
+        ctx_from_import.logger
+    )
