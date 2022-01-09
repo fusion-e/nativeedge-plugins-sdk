@@ -16,6 +16,7 @@
 
 import os
 import re
+import zipfile
 from time import sleep
 from copy import deepcopy
 from packaging import version
@@ -29,13 +30,13 @@ from cloudify import exceptions as cfy_exc
 from cloudify.utils import get_tenant_name
 from cloudify import ctx as ctx_from_import
 from cloudify.manager import get_rest_client
+from cloudify.exceptions import NonRecoverableError
 from cloudify.workflows import ctx as wtx_from_import
 from .exceptions import NonRecoverableError as SDKNonRecoverableError
 from cloudify_rest_client.exceptions import (
     CloudifyClientError,
     DeploymentEnvironmentCreationPendingError,
     DeploymentEnvironmentCreationInProgressError)
-
 
 try:
     from cloudify.constants import RELATIONSHIP_INSTANCE, NODE_INSTANCE
@@ -985,6 +986,9 @@ def get_node_instance_dir(target=False, source=False, source_path=None):
     and then we also run all executions from here.
     """
     instance = get_ctx_instance(target=target, source=source)
+    ctx_from_import.logger.info('***ctx_from_import.deployment.id {}.'
+                                 .format(ctx_from_import.deployment.id))
+    ctx_from_import.logger.info('***instance.id {}.'.format(instance.id))
     folder = os.path.join(
         get_deployment_dir(ctx_from_import.deployment.id),
         instance.id
@@ -1046,7 +1050,6 @@ def run_subprocess(command,
     general_executor_params['max_sleep_time'] = get_ctx_node().properties.get(
         'max_sleep_time', 300)
 
-    logger.info('**general_executor_params: {}'.format(general_executor_params))
     return process_execution(
         general_executor,
         script_path,
@@ -1062,8 +1065,8 @@ def download_file(source, destination):
     run_subprocess(['curl', '-o', source, destination])
 
 
-def remove_directory(dir):
-    run_subprocess(['rm', '-rf', dir])
+def remove_directory(directory):
+    run_subprocess(['rm', '-rf', directory])
 
 
 def set_permissions(target_file):
@@ -1071,3 +1074,75 @@ def set_permissions(target_file):
         ['chmod', 'u+x', target_file],
         ctx_from_import.logger
     )
+
+
+def find_rels_by_node_type(node_instance, node_type):
+    """
+        Finds all specified relationships of the Cloudify
+        instance where the related node type is of a specified type.
+    :param `cloudify.context.NodeInstanceContext` node_instance:
+        Cloudify node instance.
+    :param str node_type: Cloudify node type to search
+        node_instance.relationships for.
+    :returns: List of Cloudify relationships
+    """
+    return [x for x in node_instance.relationships
+            if node_type in x.target.node.type_hierarchy]
+
+
+def find_rel_by_type(node_instance, rel_type):
+    rels = find_rels_by_type(node_instance, rel_type)
+    return rels[0] if len(rels) > 0 else None
+
+
+def find_rels_by_type(node_instance, rel_type):
+    return [x for x in node_instance.relationships
+            if rel_type in x.type_hierarchy]
+
+
+def unzip_and_set_permissions(zip_file, target_dir):
+    """Unzip a file and fix permissions on the files."""
+    with zipfile.ZipFile(zip_file, 'r') as zip_ref:
+        for name in zip_ref.namelist():
+            try:
+                zip_ref.extract(name, target_dir)
+            except PermissionError as e:
+                raise NonRecoverableError(
+                    'Attempted to download a file {name} to {folder}. '
+                    'Failed with permission denied {err}.'.format(
+                        name=name,
+                        folder=target_dir,
+                        err=e))
+            target_file = os.path.join(target_dir, name)
+            ctx_from_import.logger.info(
+                'Setting executable permission on {loc}.'.format(
+                    loc=target_file))
+            set_permissions(target_file)
+
+
+def install_binary(
+        installation_dir,
+        executable_path,
+        installation_source=None,
+        suffix=None):
+    """For example suffix='tf.zip'"""
+    if installation_source:
+        if suffix:
+            target = os.path.join(installation_dir, suffix)
+        else:
+            target = installation_dir
+        ctx_from_import.logger.info(
+            'Downloading Terraform from {source} into {zip}.'.format(
+                source=installation_source,
+                zip=target))
+        download_file(target, installation_source)
+        executable_dir = os.path.dirname(executable_path)
+        if suffix and 'zip' in suffix:
+            unzip_and_set_permissions(target, executable_dir)
+            os.remove(target)
+        else:
+            set_permissions(executable_path)
+            os.remove(os.path.join(
+                installation_dir, os.path.basename(installation_source)))
+
+    return executable_path
