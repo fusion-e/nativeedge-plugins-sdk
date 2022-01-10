@@ -2,6 +2,7 @@ version: 2.1
 
 orbs:
   node: cloudify/public-unittest-orb@1.0.0 #orb version
+  releaseorb: cloudify/release-orb@1.0.5 #orb version
 
 checkout:
   post:
@@ -59,20 +60,13 @@ commands:
 
 jobs:
 
-  release:
-    executor: py36
-    steps:
-      - checkout
-      - release_plugin
-
-
 workflows:
   version: 2
   tests:
     jobs: &all_jobs
       - node/check_py3_compat_job
       - node/unittests_job
-      - release:
+      - releaseorb/release:
           filters:
             branches:
               only: /master/
