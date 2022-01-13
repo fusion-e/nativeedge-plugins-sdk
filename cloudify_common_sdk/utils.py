@@ -986,9 +986,6 @@ def get_node_instance_dir(target=False, source=False, source_path=None):
     and then we also run all executions from here.
     """
     instance = get_ctx_instance(target=target, source=source)
-    ctx_from_import.logger.info('***ctx_from_import.deployment.id {}.'
-                                 .format(ctx_from_import.deployment.id))
-    ctx_from_import.logger.info('***instance.id {}.'.format(instance.id))
     folder = os.path.join(
         get_deployment_dir(ctx_from_import.deployment.id),
         instance.id
