@@ -1004,7 +1004,8 @@ def run_subprocess(command,
                    cwd=None,
                    additional_env=None,
                    additional_args=None,
-                   return_output=True):
+                   return_output=True,
+                   masked_env_vars=MASKED_ENV_VARS):
     """Execute a shell script or command."""
 
     logger = logger or ctx_from_import.logger
@@ -1022,7 +1023,7 @@ def run_subprocess(command,
 
     # MASK SECRET
     printed_env = printed_args.get('env', {})
-    for env_var in MASKED_ENV_VARS:
+    for env_var in masked_env_vars:
         if env_var in printed_env:
             printed_env[env_var] = '****'
 
