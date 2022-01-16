@@ -16,17 +16,21 @@
 
 import os
 import re
+import zipfile
 from time import sleep
 from copy import deepcopy
 from packaging import version
 from distutils.util import strtobool
 
 from ._compat import PY2
+from .constants import MASKED_ENV_VARS
+from .processes import process_execution, general_executor
 
 from cloudify import exceptions as cfy_exc
 from cloudify.utils import get_tenant_name
 from cloudify import ctx as ctx_from_import
 from cloudify.manager import get_rest_client
+from cloudify.exceptions import NonRecoverableError
 from cloudify.workflows import ctx as wtx_from_import
 from .exceptions import NonRecoverableError as SDKNonRecoverableError
 from cloudify_rest_client.exceptions import (
@@ -44,9 +48,13 @@ except ImportError:
 CLOUDIFY_TAGGED_EXT = '__cloudify_tagged_external_resource'
 
 
-def get_ctx_instance(_ctx=None):
+def get_ctx_instance(_ctx=None, target=False, source=False):
     _ctx = _ctx or ctx_from_import
     if _ctx.type == RELATIONSHIP_INSTANCE:
+        if target:
+            return _ctx.target.instance
+        elif source:
+            return _ctx.source.instance
         return _ctx.source.instance
     else:  # _ctx.type == NODE_INSTANCE
         return _ctx.instance
@@ -965,3 +973,174 @@ def get_cloudify_version(rest_client):
 
 def v1_gteq_v2(v1, v2):
     return version.parse(v1) >= version.parse(v2)
+
+
+def mkdir_p(path):
+    import pathlib
+    pathlib.Path(path).mkdir(parents=True, exist_ok=True)
+
+
+def get_node_instance_dir(target=False, source=False, source_path=None):
+    """This is the place where the magic happens.
+    We put all our binaries, templates, or symlinks to those files here,
+    and then we also run all executions from here.
+    """
+    instance = get_ctx_instance(target=target, source=source)
+    folder = os.path.join(
+        get_deployment_dir(ctx_from_import.deployment.id),
+        instance.id
+    )
+    if source_path:
+        folder = os.path.join(folder, source_path)
+    if not os.path.exists(folder):
+        mkdir_p(folder)
+    ctx_from_import.logger.debug('Value deployment_dir is {loc}.'.format(
+        loc=folder))
+    return folder
+
+
+def run_subprocess(command,
+                   logger=None,
+                   cwd=None,
+                   additional_env=None,
+                   additional_args=None,
+                   return_output=True,
+                   masked_env_vars=MASKED_ENV_VARS):
+    """Execute a shell script or command."""
+
+    logger = logger or ctx_from_import.logger
+    cwd = cwd or get_node_instance_dir()
+
+    if additional_args is None:
+        additional_args = {}
+
+    if additional_env:
+        passed_env = additional_args.setdefault('env', {})
+        passed_env.update(os.environ)
+        passed_env.update(additional_env)
+
+    printed_args = deepcopy(additional_args)
+
+    # MASK SECRET
+    printed_env = printed_args.get('env', {})
+    for env_var in masked_env_vars:
+        if env_var in printed_env:
+            printed_env[env_var] = '****'
+
+    printed_args['env'] = printed_env
+    logger.info('Running: command={cmd}, '
+                'cwd={cwd}, '
+                'additional_args={args}'.format(
+                    cmd=command,
+                    cwd=cwd,
+                    args=printed_args))
+
+    general_executor_params = additional_args
+    general_executor_params['cwd'] = cwd
+    if 'log_stdout' not in general_executor_params:
+        general_executor_params['log_stdout'] = return_output
+    if 'log_stderr' not in general_executor_params:
+        general_executor_params['log_stderr'] = True
+    if 'stderr_to_stdout' not in general_executor_params:
+        general_executor_params['stderr_to_stdout'] = False
+    script_path = command.pop(0)
+    general_executor_params['args'] = command
+    general_executor_params['max_sleep_time'] = get_ctx_node().properties.get(
+        'max_sleep_time', 300)
+
+    return process_execution(
+        general_executor,
+        script_path,
+        ctx_from_import,
+        general_executor_params)
+
+
+def copy_directory(src, dst):
+    run_subprocess(['cp', '-r', os.path.join(src, '*'), dst])
+
+
+def download_file(source, destination):
+    run_subprocess(['curl', '-o', source, destination])
+
+
+def remove_directory(directory):
+    run_subprocess(['rm', '-rf', directory])
+
+
+def set_permissions(target_file):
+    run_subprocess(
+        ['chmod', 'u+x', target_file],
+        ctx_from_import.logger
+    )
+
+
+def find_rels_by_node_type(node_instance, node_type):
+    """
+        Finds all specified relationships of the Cloudify
+        instance where the related node type is of a specified type.
+    :param `cloudify.context.NodeInstanceContext` node_instance:
+        Cloudify node instance.
+    :param str node_type: Cloudify node type to search
+        node_instance.relationships for.
+    :returns: List of Cloudify relationships
+    """
+    return [x for x in node_instance.relationships
+            if node_type in x.target.node.type_hierarchy]
+
+
+def find_rel_by_type(node_instance, rel_type):
+    rels = find_rels_by_type(node_instance, rel_type)
+    return rels[0] if len(rels) > 0 else None
+
+
+def find_rels_by_type(node_instance, rel_type):
+    return [x for x in node_instance.relationships
+            if rel_type in x.type_hierarchy]
+
+
+def unzip_and_set_permissions(zip_file, target_dir):
+    """Unzip a file and fix permissions on the files."""
+    with zipfile.ZipFile(zip_file, 'r') as zip_ref:
+        for name in zip_ref.namelist():
+            try:
+                zip_ref.extract(name, target_dir)
+            except PermissionError as e:
+                raise NonRecoverableError(
+                    'Attempted to download a file {name} to {folder}. '
+                    'Failed with permission denied {err}.'.format(
+                        name=name,
+                        folder=target_dir,
+                        err=e))
+            target_file = os.path.join(target_dir, name)
+            ctx_from_import.logger.info(
+                'Setting executable permission on {loc}.'.format(
+                    loc=target_file))
+            set_permissions(target_file)
+
+
+def install_binary(
+        installation_dir,
+        executable_path,
+        installation_source=None,
+        suffix=None):
+    """For example suffix='tf.zip'"""
+    if installation_source:
+        if suffix:
+            target = os.path.join(installation_dir, suffix)
+        else:
+            target = installation_dir
+        ctx_from_import.logger.info(
+            'Downloading Executable from {source} into {zip}.'.format(
+                source=installation_source,
+                zip=target))
+        download_file(target, installation_source)
+        executable_dir = os.path.dirname(executable_path)
+        if suffix and 'zip' in suffix:
+            unzip_and_set_permissions(target, executable_dir)
+            os.remove(target)
+        else:
+            set_permissions(executable_path)
+            os.remove(os.path.join(
+                installation_dir, os.path.basename(installation_source)))
+
+    return executable_path
