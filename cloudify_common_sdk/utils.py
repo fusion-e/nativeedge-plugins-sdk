@@ -1129,7 +1129,7 @@ def install_binary(
         else:
             target = installation_dir
         ctx_from_import.logger.info(
-            'Downloading Terraform from {source} into {zip}.'.format(
+            'Downloading Executable from {source} into {zip}.'.format(
                 source=installation_source,
                 zip=target))
         download_file(target, installation_source)
