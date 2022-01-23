@@ -1127,20 +1127,28 @@ def install_binary(
     if installation_source:
         if suffix:
             target = os.path.join(installation_dir, suffix)
+            ctx_from_import.logger.info('**1 target: {}'.format(target))
         else:
             target = installation_dir
+            ctx_from_import.logger.info('**2 target: {}'.format(target))
+
         ctx_from_import.logger.info(
             'Downloading Executable from {source} into {zip}.'.format(
                 source=installation_source,
                 zip=target))
-        download_file(target, installation_source)
+        download_file(installation_source, target)
         executable_dir = os.path.dirname(executable_path)
         if suffix and 'zip' in suffix:
+            ctx_from_import.logger.info('**suffix: {}'.format(suffix))
             unzip_and_set_permissions(target, executable_dir)
-            os.remove(target)
+            # os.remove(target)
         else:
             set_permissions(executable_path)
-            os.remove(os.path.join(
-                installation_dir, os.path.basename(installation_source)))
+            ctx_from_import.logger.info('** 1: {}'.format(installation_dir))
+            ctx_from_import.logger.info('** 2: {}'.format(installation_source))
+            # os.remove(os.path.join(
+            #     installation_dir, os.path.basename(installation_source)))
+
+        ctx_from_import.logger.info('** 3: {}'.format(os.walk()))
 
     return executable_path
