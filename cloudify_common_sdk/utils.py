@@ -1136,16 +1136,10 @@ def install_binary(
                 zip=target))
         download_file(target, installation_source)
         executable_dir = os.path.dirname(executable_path)
-        ctx_from_import.logger.info('**executable_dir: {}'.format(executable_dir))
         if suffix and 'zip' in suffix:
             unzip_and_set_permissions(target, executable_dir)
             os.remove(target)
         else:
             set_permissions(executable_path)
-            ctx_from_import.logger.info('**installation_dir: {}'.format(installation_dir))
-            ctx_from_import.logger.info('**installation_source: {}'.format(installation_source))
-            ctx_from_import.logger.info('**basename(installation_source): {}'.format(os.path.basename(installation_source)))
-            # os.remove(os.path.join(
-            #      installation_dir, os.path.basename(installation_source)))
 
     return executable_path
