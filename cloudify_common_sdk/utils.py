@@ -1060,7 +1060,7 @@ def copy_directory(src, dst):
 
 
 def download_file(source, destination):
-    run_subprocess(['curl', '-o', source, destination])
+    run_subprocess(['curl', '-L', '-o', source, destination])
 
 
 def remove_directory(directory):
@@ -1129,6 +1129,7 @@ def install_binary(
             target = os.path.join(installation_dir, suffix)
         else:
             target = installation_dir
+
         ctx_from_import.logger.info(
             'Downloading Executable from {source} into {zip}.'.format(
                 source=installation_source,
@@ -1140,7 +1141,5 @@ def install_binary(
             os.remove(target)
         else:
             set_permissions(executable_path)
-            os.remove(os.path.join(
-                installation_dir, os.path.basename(installation_source)))
 
     return executable_path

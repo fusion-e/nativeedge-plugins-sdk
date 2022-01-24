@@ -1,4 +1,5 @@
 releases:
+  v0.0.53: fix function install_binary and download_file
   v0.0.52: add helper functions from Terraform and Terragrunt
   v0.0.51: Allow skipping the skip parent directory directive in unzip.
   v0.0.50: Add function v1_gteq_v2() Compares two versions
