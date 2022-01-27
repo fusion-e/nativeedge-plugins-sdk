@@ -44,7 +44,6 @@ except ImportError:
     NODE_INSTANCE = 'node-instance'
     RELATIONSHIP_INSTANCE = 'relationship-instance'
 
-
 CLOUDIFY_TAGGED_EXT = '__cloudify_tagged_external_resource'
 
 
@@ -118,6 +117,7 @@ def with_rest_client(func):
     def wrapper_inner(*args, **kwargs):
         kwargs['rest_client'] = get_rest_client()
         return func(*args, **kwargs)
+
     return wrapper_inner
 
 
@@ -563,14 +563,14 @@ def get_deployments_from_blueprint(blueprint_id, rest_client):
     """
     try:
         return rest_client.deployments.list(
-                _include=['id', 'display_name'],
-                filter_rules=[
-                    {'type': 'attribute',
-                     'operator': 'any_of',
-                     'key': 'blueprint_id',
-                     'values': [blueprint_id]
-                     }
-                ])
+            _include=['id', 'display_name'],
+            filter_rules=[
+                {'type': 'attribute',
+                 'operator': 'any_of',
+                 'key': 'blueprint_id',
+                 'values': [blueprint_id]
+                 }
+            ])
     except CloudifyClientError:
         return
 
@@ -939,7 +939,7 @@ class ExistingResourceInUse(cfy_exc.NonRecoverableError):
     def __init__(self, resource_type, resource_id, *args, **kwargs):
         msg = 'Cannot create/update {resource_type} resource {resource_id}. ' \
               'Not a create operation and not a special condition.'.format(
-                  resource_type=resource_type, resource_id=resource_id)
+            resource_type=resource_type, resource_id=resource_id)
         if not PY2:
             super().__init__(msg, *args, **kwargs)
 
@@ -953,8 +953,8 @@ class ResourceDoesNotExist(cfy_exc.NonRecoverableError):
                  **kwargs):
         msg = 'The {resource_type} resource {resource_id} is expected to ' \
               'exist, but it does not exist.'.format(
-                  resource_type=resource_type,
-                  resource_id=resource_id)
+            resource_type=resource_type,
+            resource_id=resource_id)
         if create_if_missing_key:
             msg += ' You can create a missing resource by setting {key} ' \
                    'to true'.format(key=create_if_missing_key)
@@ -1005,9 +1005,9 @@ def run_subprocess(command,
                    additional_env=None,
                    additional_args=None,
                    return_output=True,
-                   masked_env_vars=MASKED_ENV_VARS):
+                   masked_env_vars=None):
     """Execute a shell script or command."""
-
+    masked_env_vars.extend(MASKED_ENV_VARS)
     logger = logger or ctx_from_import.logger
     cwd = cwd or get_node_instance_dir()
 
@@ -1025,15 +1025,13 @@ def run_subprocess(command,
     printed_env = printed_args.get('env', {})
     for env_var in masked_env_vars:
         if env_var in printed_env:
-            printed_env[env_var] = '****'
+            printed_env[env_var] = '---'
 
     printed_args['env'] = printed_env
     logger.info('Running: command={cmd}, '
                 'cwd={cwd}, '
-                'additional_args={args}'.format(
-                    cmd=command,
-                    cwd=cwd,
-                    args=printed_args))
+                'additional_args={args}'
+                .format(cmd=command, cwd=cwd, args=printed_args))
 
     general_executor_params = additional_args
     general_executor_params['cwd'] = cwd
