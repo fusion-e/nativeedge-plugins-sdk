@@ -1005,10 +1005,11 @@ def run_subprocess(command,
                    additional_env=None,
                    additional_args=None,
                    return_output=True,
-                   masked_env_vars=MASKED_ENV_VARS):
+                   masked_env_vars=None):
     """Execute a shell script or command."""
 
     logger = logger or ctx_from_import.logger
+    masked_env_vars = masked_env_vars or MASKED_ENV_VARS
     cwd = cwd or get_node_instance_dir()
 
     if additional_args is None:
@@ -1100,6 +1101,7 @@ def find_rels_by_type(node_instance, rel_type):
 
 def unzip_and_set_permissions(zip_file, target_dir):
     """Unzip a file and fix permissions on the files."""
+    unpacked_files = []
     with zipfile.ZipFile(zip_file, 'r') as zip_ref:
         for name in zip_ref.namelist():
             try:
@@ -1115,7 +1117,9 @@ def unzip_and_set_permissions(zip_file, target_dir):
             ctx_from_import.logger.info(
                 'Setting executable permission on {loc}.'.format(
                     loc=target_file))
+            unpacked_files.append(target_file)
             set_permissions(target_file)
+    return unpacked_files
 
 
 def install_binary(

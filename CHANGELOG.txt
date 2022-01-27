@@ -1,4 +1,5 @@
 releases:
+  v0.0.54: Return unpacked files.
   v0.0.53: fix function install_binary and download_file
   v0.0.52: add helper functions from Terraform and Terragrunt
   v0.0.51: Allow skipping the skip parent directory directive in unzip.
