@@ -1038,7 +1038,7 @@ def run_subprocess(command,
     # MASK SECRET
     ctx_from_import.logger.info('*additional_args: {}'.format(additional_args))
 
-    printed_args = hidden_value(additional_args['env'], masked_env_vars)
+    printed_args = hidden_value(additional_args, masked_env_vars)
     logger.info('Running: command={cmd}, '
                 'cwd={cwd}, '
                 'additional_args={args}'
