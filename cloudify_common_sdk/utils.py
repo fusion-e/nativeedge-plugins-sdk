@@ -1035,6 +1035,9 @@ def run_subprocess(command,
         passed_env.update(os.environ)
         passed_env.update(additional_env)
 
+    ctx_from_import.logger.info('*command: {}'.format(command))
+    ctx_from_import.logger.info('*masked_env_vars: {}'.format(masked_env_vars))
+
     # MASK SECRET
     printed_args = hidden_value(additional_args, masked_env_vars)
     logger.info('Running: command={cmd}, '
