@@ -1000,8 +1000,8 @@ def get_node_instance_dir(target=False, source=False, source_path=None):
 
 
 def hidden_value(list_val, hiding_list=None):
+    ctx_from_import.logger.info('*1list_val: {}'.format(list_val))
     list_val = deepcopy(list_val).get('env', {})
-    ctx_from_import.logger.debug('*1list_val: {}'.format(list_val))
 
     if hiding_list is None:
         hiding_list = []
@@ -1011,8 +1011,7 @@ def hidden_value(list_val, hiding_list=None):
         if env_var in list_val:
             list_val[env_var] = '---'
 
-    ctx_from_import.logger.debug('*2list_val: {}'.format(list_val))
-
+    ctx_from_import.logger.info('*2list_val: {}'.format(list_val))
     return list_val
 
 
