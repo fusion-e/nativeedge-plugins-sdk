@@ -999,14 +999,14 @@ def get_node_instance_dir(target=False, source=False, source_path=None):
     return folder
 
 
-def hidden_value(list_val, hiden_list=None):
+def hidden_value(list_val, hiding_list=None):
     list_val = deepcopy(list_val).get('env', {})
 
-    if hiden_list is None:
-        hiden_list = []
-    hiden_list.extend(MASKED_ENV_VARS)
+    if hiding_list is None:
+        hiding_list = []
+    hiding_list.extend(MASKED_ENV_VARS)
 
-    for env_var in hiden_list:
+    for env_var in hiding_list:
         if env_var in list_val:
             list_val[env_var] = '---'
 
