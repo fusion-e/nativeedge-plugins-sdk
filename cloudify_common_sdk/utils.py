@@ -1023,7 +1023,7 @@ def run_subprocess(command,
                    return_output=True,
                    masked_env_vars=None):
     """Execute a shell script or command."""
-
+    ctx_from_import.logger.info('********run_subprocess***********')
     logger = logger or ctx_from_import.logger
     cwd = cwd or get_node_instance_dir()
 
