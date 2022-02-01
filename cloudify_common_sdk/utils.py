@@ -999,6 +999,22 @@ def get_node_instance_dir(target=False, source=False, source_path=None):
     return folder
 
 
+def hidden_value(list_val, hiding_list=None):
+    ctx_from_import.logger.info('*1list_val: {}'.format(list_val))
+    list_val = deepcopy(list_val).get('env', {})
+
+    if hiding_list is None:
+        hiding_list = []
+    hiding_list.extend(MASKED_ENV_VARS)
+
+    for env_var in hiding_list:
+        if env_var in list_val:
+            list_val[env_var] = '---'
+
+    ctx_from_import.logger.info('*2list_val: {}'.format(list_val))
+    return list_val
+
+
 def run_subprocess(command,
                    logger=None,
                    cwd=None,
@@ -1020,15 +1036,8 @@ def run_subprocess(command,
         passed_env.update(os.environ)
         passed_env.update(additional_env)
 
-    printed_args = deepcopy(additional_args)
-
     # MASK SECRET
-    printed_env = printed_args.get('env', {})
-    for env_var in masked_env_vars:
-        if env_var in printed_env:
-            printed_env[env_var] = '-'
-
-    printed_args['env'] = printed_env
+    printed_args = hidden_value(additional_args, masked_env_vars)
     logger.info('Running: command={cmd}, '
                 'cwd={cwd}, '
                 'additional_args={args}'.format(
