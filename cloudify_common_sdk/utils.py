@@ -999,20 +999,22 @@ def get_node_instance_dir(target=False, source=False, source_path=None):
     return folder
 
 
-def hidden_value(list_val, hiding_list=None):
-    ctx_from_import.logger.info('*1list_val: {}'.format(list_val))
-    list_val = deepcopy(list_val).get('env', {})
+def hidden_value(dic_val, hiding_list=None):
+    ctx_from_import.logger.info('*1list_val: {}'.format(dic_val))
+    ctx_from_import.logger.info('*hiding_list: {}'.format(hiding_list))
+
+    dic_val = deepcopy(dic_val).get('env', {})
 
     if hiding_list is None:
         hiding_list = []
     hiding_list.extend(MASKED_ENV_VARS)
 
     for env_var in hiding_list:
-        if env_var in list_val:
-            list_val[env_var] = '---'
+        if env_var in dic_val:
+            dic_val[env_var] = '---'
 
-    ctx_from_import.logger.info('*2list_val: {}'.format(list_val))
-    return list_val
+    ctx_from_import.logger.info('*2list_val: {}'.format(dic_val))
+    return dic_val
 
 
 def run_subprocess(command,
