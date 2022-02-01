@@ -999,6 +999,18 @@ def get_node_instance_dir(target=False, source=False, source_path=None):
     return folder
 
 
+def hidden_value(dic_val, hiding_list=None):
+    if hiding_list is None:
+        hiding_list = []
+    hiding_list.extend(MASKED_ENV_VARS)
+
+    for env_var in hiding_list:
+        if env_var in dic_val:
+            dic_val[env_var] = '-'
+
+    return dic_val
+
+
 def run_subprocess(command,
                    logger=None,
                    cwd=None,
@@ -1007,9 +1019,7 @@ def run_subprocess(command,
                    return_output=True,
                    masked_env_vars=None):
     """Execute a shell script or command."""
-
     logger = logger or ctx_from_import.logger
-    masked_env_vars = masked_env_vars or MASKED_ENV_VARS
     cwd = cwd or get_node_instance_dir()
 
     if additional_args is None:
@@ -1020,21 +1030,13 @@ def run_subprocess(command,
         passed_env.update(os.environ)
         passed_env.update(additional_env)
 
-    printed_args = deepcopy(additional_args)
-
     # MASK SECRET
-    printed_env = printed_args.get('env', {})
-    for env_var in masked_env_vars:
-        if env_var in printed_env:
-            printed_env[env_var] = '****'
-
-    printed_args['env'] = printed_env
+    dic_env = deepcopy(additional_args).get('env', {})
+    printed_args = hidden_value(dic_env, masked_env_vars)
     logger.info('Running: command={cmd}, '
                 'cwd={cwd}, '
-                'additional_args={args}'.format(
-                    cmd=command,
-                    cwd=cwd,
-                    args=printed_args))
+                'additional_args={args}'
+                .format(cmd=command, cwd=cwd, args=printed_args))
 
     general_executor_params = additional_args
     general_executor_params['cwd'] = cwd
