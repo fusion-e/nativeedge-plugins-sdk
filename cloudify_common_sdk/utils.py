@@ -1000,8 +1000,6 @@ def get_node_instance_dir(target=False, source=False, source_path=None):
 
 
 def hidden_value(dic_val, hiding_list=None):
-    dic_val = deepcopy(dic_val).get('env', {})
-
     if hiding_list is None:
         hiding_list = []
     hiding_list.extend(MASKED_ENV_VARS)
@@ -1021,7 +1019,6 @@ def run_subprocess(command,
                    return_output=True,
                    masked_env_vars=None):
     """Execute a shell script or command."""
-
     logger = logger or ctx_from_import.logger
     cwd = cwd or get_node_instance_dir()
 
@@ -1034,7 +1031,8 @@ def run_subprocess(command,
         passed_env.update(additional_env)
 
     # MASK SECRET
-    printed_args = hidden_value(additional_args, masked_env_vars)
+    dic_env = deepcopy(additional_args).get('env', {})
+    printed_args = hidden_value(dic_env, masked_env_vars)
     logger.info('Running: command={cmd}, '
                 'cwd={cwd}, '
                 'additional_args={args}'
