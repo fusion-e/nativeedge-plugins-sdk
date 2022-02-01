@@ -1027,7 +1027,6 @@ def run_subprocess(command,
     """Execute a shell script or command."""
 
     logger = logger or ctx_from_import.logger
-    masked_env_vars = masked_env_vars or MASKED_ENV_VARS
     cwd = cwd or get_node_instance_dir()
 
     if additional_args is None:
