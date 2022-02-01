@@ -1000,9 +1000,6 @@ def get_node_instance_dir(target=False, source=False, source_path=None):
 
 
 def hidden_value(dic_val, hiding_list=None):
-    ctx_from_import.logger.info('*1list_val: {}'.format(dic_val))
-    ctx_from_import.logger.info('*hiding_list: {}'.format(hiding_list))
-
     dic_val = deepcopy(dic_val).get('env', {})
 
     if hiding_list is None:
@@ -1011,9 +1008,8 @@ def hidden_value(dic_val, hiding_list=None):
 
     for env_var in hiding_list:
         if env_var in dic_val:
-            dic_val[env_var] = '---'
+            dic_val[env_var] = '-'
 
-    ctx_from_import.logger.info('*2list_val: {}'.format(dic_val))
     return dic_val
 
 
@@ -1041,10 +1037,8 @@ def run_subprocess(command,
     printed_args = hidden_value(additional_args, masked_env_vars)
     logger.info('Running: command={cmd}, '
                 'cwd={cwd}, '
-                'additional_args={args}'.format(
-                    cmd=command,
-                    cwd=cwd,
-                    args=printed_args))
+                'additional_args={args}'
+                .format(cmd=command, cwd=cwd, args=printed_args))
 
     general_executor_params = additional_args
     general_executor_params['cwd'] = cwd
