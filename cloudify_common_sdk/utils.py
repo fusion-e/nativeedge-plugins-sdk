@@ -1026,7 +1026,7 @@ def run_subprocess(command,
     printed_env = printed_args.get('env', {})
     for env_var in masked_env_vars:
         if env_var in printed_env:
-            printed_env[env_var] = '****'
+            printed_env[env_var] = '-'
 
     printed_args['env'] = printed_env
     logger.info('Running: command={cmd}, '
