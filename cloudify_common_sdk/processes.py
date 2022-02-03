@@ -64,7 +64,7 @@ class GeneralExecutor(object):
             bufsize=48,
             close_fds=on_posix)
         self.pid = self.process.pid
-        self.logger.info('Process created, PID: {0}'.format(self.pid))
+        self.logger.debug('Process created, PID: {0}'.format(self.pid))
         self.last_clock = time.time()
         self._return_code = None
         self.last_state = self.current_status = self.get_status()
@@ -161,7 +161,7 @@ class GeneralExecutor(object):
                     self.process)
                 if not self.last_state and not self.last_clock:
                     break
-                self.logger.info(
+                self.logger.debug(
                     'Waiting for process {0} to end...'.format(self.pid))
                 # Reset the number of times the process has changed since last
                 # called handle_max_sleep.
@@ -175,7 +175,7 @@ class GeneralExecutor(object):
             self.last_state = self.current_status
             time.sleep(POLL_LOOP_INTERVAL)
 
-        self.logger.info(
+        self.logger.debug(
             'Execution done (PID={0}, return_code={1}): {2}'.format(
                 self.pid, self.return_code, self.command))
 
