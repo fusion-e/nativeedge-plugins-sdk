@@ -1033,10 +1033,10 @@ def run_subprocess(command,
     # MASK SECRET
     dic_env = deepcopy(additional_args).get('env', {})
     printed_args = hidden_value(dic_env, masked_env_vars)
-    logger.info('Running: command={cmd}, '
-                'cwd={cwd}, '
-                'additional_args={args}'
-                .format(cmd=command, cwd=cwd, args=printed_args))
+    logger.debug('Running: command={cmd}, '
+                 'cwd={cwd}, '
+                 'additional_args={args}'
+                 .format(cmd=command, cwd=cwd, args=printed_args))
 
     general_executor_params = additional_args
     general_executor_params['cwd'] = cwd
@@ -1116,7 +1116,7 @@ def unzip_and_set_permissions(zip_file, target_dir):
                         folder=target_dir,
                         err=e))
             target_file = os.path.join(target_dir, name)
-            ctx_from_import.logger.info(
+            ctx_from_import.logger.debug(
                 'Setting executable permission on {loc}.'.format(
                     loc=target_file))
             unpacked_files.append(target_file)
@@ -1136,7 +1136,7 @@ def install_binary(
         else:
             target = installation_dir
 
-        ctx_from_import.logger.info(
+        ctx_from_import.logger.debug(
             'Downloading Executable from {source} into {zip}.'.format(
                 source=installation_source,
                 zip=target))

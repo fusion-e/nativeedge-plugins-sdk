@@ -52,6 +52,8 @@ def convert_list_to_hcl(data):
 
 
 def convert_string_to_hcl(data, indentation_depth):
+    if isinstance(data, bool):
+        str(bool)
     if indentation_depth:
         prefix = '    ' * indentation_depth
     else:

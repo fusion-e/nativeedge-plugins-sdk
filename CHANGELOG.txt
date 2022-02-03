@@ -1,4 +1,5 @@
 releases:
+  v0.0.56: Send less info logs.
   v0.0.55: Basic JSON - HCL converter
   v0.0.54: Return unpacked files.
   v0.0.53: fix function install_binary and download_file
