@@ -103,11 +103,11 @@ class GeneralExecutor(object):
 
     @property
     def stdout(self):
-        return ''.join(self._stdout)
+        return '\n'.join(self._stdout)
 
     @property
     def stderr(self):
-        return ''.join(self._stderr)
+        return '\n'.join(self._stderr)
 
     def poll(self):
         self._return_code = self.process.poll()
