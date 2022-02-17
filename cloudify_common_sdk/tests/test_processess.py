@@ -91,4 +91,4 @@ class TestProcesses(unittest.TestCase):
                 outfile.write(many_children)
             general_executor_params['args'] = [t.name]
             result = general_executor('bash', ctx, general_executor_params)
-            self.assertEqual(len(result), 86)
+            self.assertEqual(len(result), 89)
