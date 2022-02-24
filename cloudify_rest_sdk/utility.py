@@ -49,9 +49,9 @@ def process(params, template, request_props, prerender=False,
         'Template:\n{}'.format(shorted_text(obfuscate_passwords(template))))
     if prerender:
         rendered_call = render_template(template, params)
-        template_yaml = yaml.load(rendered_call)
+        template_yaml = yaml.safe_load(rendered_call)
     else:
-        template_yaml = yaml.load(template)
+        template_yaml = yaml.safe_load(template)
     result_properties = {}
     calls = []
     if not template_yaml or not template_yaml.get('rest_calls'):
