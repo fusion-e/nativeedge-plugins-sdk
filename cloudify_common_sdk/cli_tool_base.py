@@ -238,12 +238,15 @@ class CliTool(object):
         args.extend(flags)
         return args
 
-    def execute(self,
-                command,
-                cwd,
-                env,
-                additional_args=None,
-                return_output=True):
+    def execute(self, *args, **kwargs):
+        return self._execute(*args, **kwargs)
+
+    def _execute(self,
+                 command,
+                 cwd,
+                 env,
+                 additional_args=None,
+                 return_output=True):
         return run_subprocess(
             command,
             self.logger,
