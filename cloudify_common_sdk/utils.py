@@ -1147,8 +1147,6 @@ def install_binary(
         executable_path,
         installation_source=None,
         suffix=None):
-    ctx_from_import.logger.info('install_binary*******')
-
     """For example suffix='tf.zip'"""
     if installation_source:
         if suffix:
@@ -1162,16 +1160,10 @@ def install_binary(
                 zip=target))
         download_file(target, installation_source)
         executable_dir = os.path.dirname(executable_path)
-        ctx_from_import.logger.info('**6 executable_path: {}'
-                                    .format(executable_path))
-        ctx_from_import.logger.info('**6 executable_dir: {}'
-                                    .format(executable_dir))
-        ctx_from_import.logger.info('**6 suffix: {}'.format(suffix))
         if suffix and 'zip' in suffix:
             unzip_and_set_permissions(target, executable_dir)
             os.remove(target)
         if suffix and 'tar.gz' in suffix:
-            ctx_from_import.logger.info('**6 suffix tar.gz  **')
             unzip_and_set_permissions_tar(target, executable_dir)
             os.remove(target)
         else:
