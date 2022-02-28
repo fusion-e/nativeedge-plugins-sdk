@@ -16,6 +16,7 @@
 
 import os
 import re
+import tarfile
 import zipfile
 from time import sleep
 from copy import deepcopy
@@ -1101,6 +1102,26 @@ def find_rels_by_type(node_instance, rel_type):
             if rel_type in x.type_hierarchy]
 
 
+def unzip_and_set_permissions_tar(tar_file, target_dir):
+    try:
+        if tar_file.endswith('tar.gz'):
+            tar = tarfile.open(tar_file, "r:gz")
+            tar.extractall()
+            tar.close()
+    except PermissionError as e:
+        raise NonRecoverableError(
+            'Attempted to download a file {name} to {folder}. '
+            'Failed with permission denied {err}.'.format(
+                name=tar_file.name,
+                folder=target_dir,
+                err=e))
+    target_file = os.path.join(target_dir, tar_file.name)
+    ctx_from_import.logger.debug(
+        'Setting executable permission on {loc}.'.format(
+            loc=target_file))
+    set_permissions(target_file)
+
+
 def unzip_and_set_permissions(zip_file, target_dir):
     """Unzip a file and fix permissions on the files."""
     unpacked_files = []
@@ -1144,6 +1165,9 @@ def install_binary(
         executable_dir = os.path.dirname(executable_path)
         if suffix and 'zip' in suffix:
             unzip_and_set_permissions(target, executable_dir)
+            os.remove(target)
+        if suffix and 'tar.gz' in suffix:
+            unzip_and_set_permissions_tar(target, executable_dir)
             os.remove(target)
         else:
             set_permissions(executable_path)
