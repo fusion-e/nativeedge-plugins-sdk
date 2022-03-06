@@ -1163,7 +1163,7 @@ def install_binary(
         if suffix and 'zip' in suffix:
             unzip_and_set_permissions(target, executable_dir)
             os.remove(target)
-        if suffix and 'tar.gz' in suffix:
+        elif suffix and 'tar.gz' in suffix:
             unzip_and_set_permissions_tar(target, executable_dir)
             os.remove(target)
         else:
