@@ -864,8 +864,15 @@ class TestSdk(unittest.TestCase):
                 "cloudify_rest_sdk.utility.tempfile.mkstemp",
                 mock.Mock(return_value=['fake_fd', '/tmp/fake_tmp'])
             ):
+                def _verify_cert_data_type(_, data):
+                    assert isinstance(data, bytes), \
+                        "Attempt of writing to temp file certificate data " \
+                        "which has invalid type: " \
+                        f"`{type(data).__name__}`, expected: `bytes`"
+
                 fake_os = mock.Mock()
                 fake_os.path.isfile = mock.Mock(return_value=False)
+                fake_os.write = mock.Mock(side_effect=_verify_cert_data_type)
                 fake_os.remove = mock.Mock(
                     side_effect=Exception("can't remove"))
                 with mock.patch("cloudify_rest_sdk.utility.os", fake_os):
