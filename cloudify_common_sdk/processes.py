@@ -74,16 +74,17 @@ class GeneralExecutor(object):
         self.log_stderr = log_stderr
 
     def _emit_log_message(self, message, prefix=None, logger=None):
-        prefix = prefix or '<out>'
         logger = logger or self.logger.info
         clean_message = obfuscate_passwords(message.decode('utf-8', 'replace'))
         try:
             clean_message = clean_message.rstrip('\r\n')
         except (AttributeError, TypeError):
             pass
-        if 'out' in prefix and self.log_stdout:
+        if not prefix and self.log_stdout:
+            logger(clean_message)
+        elif 'out' in prefix and self.log_stdout:
             logger("{}: {}".format(prefix, clean_message))
-        if 'err' in prefix and self.log_stderr:
+        elif 'err' in prefix and self.log_stderr:
             logger("{}: {}".format(prefix, clean_message))
         return clean_message
 
