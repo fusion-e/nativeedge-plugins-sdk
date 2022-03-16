@@ -1,4 +1,5 @@
 releases:
+  v0.0.60: Several improvements.
   v0.0.59: CliTool Execute private Func
   v0.0.58: CliTool base class
   v0.0.57: Join stdout/stderr lists with new lines so the result would make more sense.
