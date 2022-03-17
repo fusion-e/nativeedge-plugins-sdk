@@ -82,9 +82,9 @@ class GeneralExecutor(object):
             pass
         if not prefix and self.log_stdout:
             logger(clean_message)
-        elif 'out' in prefix and self.log_stdout:
+        elif prefix is not None and 'out' in prefix and self.log_stdout:
             logger("{}: {}".format(prefix, clean_message))
-        elif 'err' in prefix and self.log_stderr:
+        elif prefix is not None and 'err' in prefix and self.log_stderr:
             logger("{}: {}".format(prefix, clean_message))
         return clean_message
 
