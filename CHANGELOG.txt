@@ -1,4 +1,5 @@
 releases:
+  v0.0.62: Fix issue in logging.
   v0.0.61: Fix issue in logging.
   v0.0.60: Several improvements.
   v0.0.59: CliTool Execute private Func
