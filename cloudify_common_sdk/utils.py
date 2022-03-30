@@ -480,7 +480,7 @@ def get_parent_deployment(deployment_id, rest_client):
     deployment_id = get_deployment_label_by_name(
         'csys-obj-parent', deployment_id)
     if not deployment_id:
-        ctx_from_import.logger.warn(
+        ctx_from_import.logger.warning(
             'Unable to get parent deployment. '
             'No "csys-obj-parent" label set for deployment. '
             'Assuming manual subcloud enrollment. Set label manually.')
@@ -708,7 +708,7 @@ def is_use_anyway(props, prop_name, resource_id):
     """
     use_anyway = is_or_isnt(props, prop_name)
     if use_anyway and not resource_id:
-        ctx_from_import.logger.error(
+        ctx_from_import.logger.warning(
             'The property {} indicates that the resource may already exist, '
             'however an identifier was not provided. '
             'The plugin will behave as if use_if_exists is False.'.format(
@@ -922,7 +922,7 @@ def skip_creative_or_destructive_operation(
         raise ExistingResourceInUse(resource_type, resource_id)
     elif not exists and not use_existing and \
             not create_anyway and not create_operation:
-        ctx_from_import.logger.debug(
+        ctx_from_import.logger.warning(
             'The {resource_type} resource {resource_id} does not exist, '
             'but Cloudify is not authorized to create it or it is not a '
             'create operation.'.format(
