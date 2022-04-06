@@ -73,16 +73,18 @@ class GeneralExecutor(object):
         self.state_changes = 0
         self.log_stdout = log_stdout
         self.log_stderr = log_stderr
-        self._timeout = 300
-
 
     def _emit_log_message(self, message, prefix=None, logger=None):
         logger = logger or self.logger.info
-        clean_message = obfuscate_passwords(message.decode('utf-8', 'replace'))
+        if hasattr(message, 'decode'):
+            message = message.decode('utf-8', 'replace')
+        clean_message = obfuscate_passwords(message)
+
         try:
             clean_message = clean_message.rstrip('\r\n')
         except (AttributeError, TypeError):
             pass
+
         if not prefix and self.log_stdout:
             logger(clean_message)
         elif prefix is not None and 'out' in prefix and self.log_stdout:
@@ -91,27 +93,20 @@ class GeneralExecutor(object):
             logger("{}: {}".format(prefix, clean_message))
         return clean_message
 
-    def emit_stdout(self):
-        self.logger.info('emit_stdout1')
-
-        for line in self.process.stdout.readlines():
-            self.logger.info('emit_stdout...')
-            self._stdout.append(self._emit_log_message(line))
-
-    def emit_stderr(self):
-        self.logger.info('emit_stderr1')
-        for line in self.process.stderr.readlines():
-            self.logger.info('emit_stderr....')
-            self._stderr.append(
-                self._emit_log_message(
-                    line, prefix='<err>', logger=self.logger.error))
-
     def emit_io(self):
-        self.logger.info('emit_io1')
-        self.emit_stdout()
-        self.logger.info('emit_io2')
-        self.emit_stderr()
-        self.logger.info('emit_io3')
+        try:
+            stdout, stderr = self.process.communicate()
+            if stdout:
+                for line in stdout.decode('utf-8').splitlines():
+                    self._stdout.append(self._emit_log_message(line))
+            if stderr:
+                for line in stderr.decode('utf-8').splitlines():
+                    self._stderr.append(
+                        self._emit_log_message(
+                            line, prefix='<err>', logger=self.logger.error))
+        except Exception as e:
+            self.logger.error('Failure to emit log {}'.format(str(e)))
+        sys.stdout.flush()
 
     @property
     def stdout(self):
@@ -122,18 +117,13 @@ class GeneralExecutor(object):
         return '\n'.join(self._stderr)
 
     def poll(self):
-        self.logger.info('poll1')
         try:
             self._return_code = self.process.wait(timeout=5)
         except subprocess.TimeoutExpired:
             pass
-        self.logger.info('poll2')
+        except ValueError:
+            return
         self.emit_io()
-        self.logger.info('poll3')
-
-    @property
-    def timeout(self):
-        return self._timeout/10
 
     @property
     def return_code(self):
@@ -141,17 +131,14 @@ class GeneralExecutor(object):
 
     @property
     def status(self):
-        self.logger.info('status1')
         try:
             self.current_status = self.get_status()
         except psutil.NoSuchProcess:
             self.current_status = None
-        self.logger.info('status2')
+
         return self.current_status
-        self.logger.info('status3')
 
     def get_status(self):
-        self.logger.info('get_status1')
         return psutil.Process(self.pid)
 
     def check_exception(self):
@@ -164,25 +151,18 @@ class GeneralExecutor(object):
                     self.command, self.return_code, self.stdout, self.stderr)
 
     def run(self, proxy, max_sleep_time):
-
-        self._timeout = max_sleep_time
         self.last_state = self.current_status
 
         while True:
-            self.logger.info('while True1')
             process_ctx_request(proxy)
-            # return_code = execution.poll()
             self.poll()
             if self.return_code is not None:
                 break
-            self.logger.info('while True2')
             self.liveness_counter += 1
             # Poke the process with a stick every 20 seconds
             # to see if it's alive.
-            self.logger.info('while True3')
             if self.liveness_counter == POLL_LOOP_LOG_ITERATIONS:
                 self.liveness_counter = 0
-                self.logger.info('while True4')
                 self.last_state, self.last_clock = handle_max_sleep(
                     self.pid,
                     self.last_state,
@@ -190,7 +170,6 @@ class GeneralExecutor(object):
                     self.last_clock,
                     max_sleep_time,
                     self.process)
-                self.logger.info('while True5')
                 if not self.last_state and not self.last_clock:
                     break
                 self.logger.debug(
@@ -199,15 +178,12 @@ class GeneralExecutor(object):
                 # called handle_max_sleep.
                 self.state_changes = 0
 
-            self.logger.info('while True6')
             # If the state has changed since the last time we checked, it means
             # it's not dead.
             if self.status != self.last_state:
-                self.logger.info('while True7')
                 self.state_changes += 1
                 self.last_clock = time.time()
             self.last_state = self.current_status
-            self.logger.info('while True8')
             time.sleep(POLL_LOOP_INTERVAL)
 
         self.logger.debug(
