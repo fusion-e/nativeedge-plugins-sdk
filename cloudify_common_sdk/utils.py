@@ -1049,7 +1049,9 @@ def run_subprocess(command,
         general_executor_params['stderr_to_stdout'] = False
     script_path = command.pop(0)
     general_executor_params['args'] = command
-    general_executor_params['max_sleep_time'] = get_ctx_node().properties.get(
+    general_executor_process = get_ctx_node().properties.get(
+        'general_executor_process', {})
+    general_executor_params['max_sleep_time'] = general_executor_process.get(
         'max_sleep_time', 300)
 
     return process_execution(
