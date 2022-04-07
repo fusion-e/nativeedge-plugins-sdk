@@ -105,7 +105,7 @@ class GeneralExecutor(object):
                         self._emit_log_message(
                             line, prefix='<err>', logger=self.logger.error))
         except Exception as e:
-            self.logger.error('Failure to emit log {}'.format(str(e)))
+            pass
         sys.stdout.flush()
 
     @property
