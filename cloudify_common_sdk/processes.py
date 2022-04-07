@@ -104,7 +104,7 @@ class GeneralExecutor(object):
                     self._stderr.append(
                         self._emit_log_message(
                             line, prefix='<err>', logger=self.logger.error))
-        except Exception as e:
+        except Exception:
             pass
         sys.stdout.flush()
 
