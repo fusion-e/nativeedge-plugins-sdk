@@ -61,13 +61,13 @@ def get_shared_resource(source_path, dir=None, username=None, password=None):
     split = source_path.split('://')
     schema = split[0]
     if schema in ['http', 'https']:
-        file_name = source_path.rsplit('/', 1)[1]
+        bare_url, *query_string = source_path.split('?')
+        file_name = bare_url.rsplit('/', 1)[1]
         # user might provide a link to file with no extension
-        file_type = ""
         try:
             file_type = file_name.rsplit('.', 1)[1]
         except IndexError:
-            pass
+            file_type = ""
         if file_type != 'git':
             if not file_type:
                 # try and figure-out the type from headers
