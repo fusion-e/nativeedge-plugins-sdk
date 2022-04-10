@@ -59,6 +59,7 @@ class GeneralExecutor(object):
             shell=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
+            stdin=subprocess.PIPE,
             env=env,
             cwd=cwd,
             bufsize=48,
@@ -75,11 +76,15 @@ class GeneralExecutor(object):
 
     def _emit_log_message(self, message, prefix=None, logger=None):
         logger = logger or self.logger.info
-        clean_message = obfuscate_passwords(message.decode('utf-8', 'replace'))
+        if hasattr(message, 'decode'):
+            message = message.decode('utf-8', 'replace')
+        clean_message = obfuscate_passwords(message)
+
         try:
             clean_message = clean_message.rstrip('\r\n')
         except (AttributeError, TypeError):
             pass
+
         if not prefix and self.log_stdout:
             logger(clean_message)
         elif prefix is not None and 'out' in prefix and self.log_stdout:
@@ -88,19 +93,20 @@ class GeneralExecutor(object):
             logger("{}: {}".format(prefix, clean_message))
         return clean_message
 
-    def emit_stdout(self):
-        for line in self.process.stdout.readlines():
-            self._stdout.append(self._emit_log_message(line))
-
-    def emit_stderr(self):
-        for line in self.process.stderr.readlines():
-            self._stderr.append(
-                self._emit_log_message(
-                    line, prefix='<err>', logger=self.logger.error))
-
     def emit_io(self):
-        self.emit_stdout()
-        self.emit_stderr()
+        try:
+            stdout, stderr = self.process.communicate()
+            if stdout:
+                for line in stdout.decode('utf-8').splitlines():
+                    self._stdout.append(self._emit_log_message(line))
+            if stderr:
+                for line in stderr.decode('utf-8').splitlines():
+                    self._stderr.append(
+                        self._emit_log_message(
+                            line, prefix='<err>', logger=self.logger.error))
+        except Exception:
+            pass
+        sys.stdout.flush()
 
     @property
     def stdout(self):
@@ -111,7 +117,12 @@ class GeneralExecutor(object):
         return '\n'.join(self._stderr)
 
     def poll(self):
-        self._return_code = self.process.poll()
+        try:
+            self._return_code = self.process.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            pass
+        except ValueError:
+            return
         self.emit_io()
 
     @property
@@ -124,6 +135,7 @@ class GeneralExecutor(object):
             self.current_status = self.get_status()
         except psutil.NoSuchProcess:
             self.current_status = None
+
         return self.current_status
 
     def get_status(self):
@@ -139,12 +151,10 @@ class GeneralExecutor(object):
                     self.command, self.return_code, self.stdout, self.stderr)
 
     def run(self, proxy, max_sleep_time):
-
         self.last_state = self.current_status
 
         while True:
             process_ctx_request(proxy)
-            # return_code = execution.poll()
             self.poll()
             if self.return_code is not None:
                 break
