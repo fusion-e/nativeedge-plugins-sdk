@@ -366,7 +366,7 @@ class TestFilters(unittest.TestCase):
             'host': 'localhost',
             'auth': {
                 'user': 'someone',
-                'password': 'check'
+                'password': 'check\n'
             },
             'port': -1,
             'response_translation': {
@@ -377,7 +377,7 @@ class TestFilters(unittest.TestCase):
             'host': 'localhost',
             'auth': {
                 'user': 'someone',
-                'password': 'xxxxxxxxxxxxxxxx'
+                'password': 'xxxxxxxxxxxxxxxx\n'
             },
             'port': -1,
             'response_translation': {
