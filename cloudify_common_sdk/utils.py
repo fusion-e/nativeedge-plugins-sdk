@@ -38,6 +38,7 @@ from cloudify_rest_client.exceptions import (
     CloudifyClientError,
     DeploymentEnvironmentCreationPendingError,
     DeploymentEnvironmentCreationInProgressError)
+from dsl_parser.functions import get_nested_attribute_value_of_capability
 
 try:
     from cloudify.constants import RELATIONSHIP_INSTANCE, NODE_INSTANCE
@@ -313,6 +314,12 @@ def resolve_intrinsic_functions(prop, dep_id=None):
     :return: The resolved property value from intrinsic function.
     :rtype: Any JSON serializable value.
     """
+    def resolve_args(args, dep_id=None):
+        if isinstance(args, list):
+            for i, v in enumerate(args):
+                if isinstance(v, dict):
+                    args[i] = resolve_intrinsic_functions(v, dep_id)
+
     if isinstance(prop, dict):
         if 'get_secret' in prop:
             prop = prop.get('get_secret')
@@ -328,9 +335,111 @@ def resolve_intrinsic_functions(prop, dep_id=None):
             prop = prop.get('get_attribute')
             if isinstance(prop, dict):
                 prop = resolve_intrinsic_functions(prop, dep_id)
+            resolve_args(prop, dep_id)
             node_id = prop[0]
             runtime_property = prop[1]
             return get_attribute(node_id, runtime_property, dep_id)
+        if 'get_sys' in prop:
+            prop = prop.get('get_sys')
+            if isinstance(prop, dict):
+                prop = resolve_intrinsic_functions(prop, dep_id)
+            resolve_args(prop, dep_id)
+            sys_type = prop[0]
+            property = prop[1]
+            return get_sys(sys_type, property, dep_id)
+        if 'get_capability' in prop:
+            prop = prop.get('get_capability')
+            if isinstance(prop, dict):
+                prop = resolve_intrinsic_functions(prop, dep_id)
+            resolve_args(prop, dep_id)
+            target_dep_id = prop[0]
+            capability = prop[1]
+            path = None
+            if len(prop) > 2:
+                path = prop
+            return get_capability(target_dep_id, capability, path)
+        if 'get_environment_capability' in prop:
+            prop = prop.get('get_environment_capability')
+            if isinstance(prop, dict):
+                prop = resolve_intrinsic_functions(prop, dep_id)
+            resolve_args(prop, dep_id)
+            target_dep_id = get_label('csys-obj-parent', 0, dep_id)
+            capability = prop
+            path = None
+            if len(prop) > 1:
+                capability = prop[0]
+                path = prop
+            return get_capability(target_dep_id, capability, path)
+        if 'get_label' in prop:
+            prop = prop.get('get_label')
+            if isinstance(prop, dict):
+                prop = resolve_intrinsic_functions(prop, dep_id)
+            resolve_args(prop, dep_id)
+            label_key = prop
+            label_val_index = None
+            if len(prop) == 2:
+                label_key = prop[0]
+                label_val_index = prop[1]
+            return get_label(label_key, label_val_index, dep_id)
+        if 'string_find' in prop:
+            prop = prop.get('string_find')
+            if isinstance(prop, dict):
+                prop = resolve_intrinsic_functions(prop, dep_id)
+            resolve_args(prop, dep_id)
+            haystack = prop[0]
+            needle = prop[1]
+            return haystack.find(needle)
+        if 'string_replace' in prop:
+            prop = prop.get('string_replace')
+            if isinstance(prop, dict):
+                prop = resolve_intrinsic_functions(prop, dep_id)
+            resolve_args(prop, dep_id)
+            haystack = prop[0]
+            needle = prop[1]
+            replacement = prop[2]
+            if len(prop) == 4:
+                count = prop[3]
+                return haystack.replace(needle, replacement, count)
+            return haystack.replace(needle, replacement)
+        if 'string_split' in prop:
+            prop = prop.get('string_split')
+            if isinstance(prop, dict):
+                prop = resolve_intrinsic_functions(prop, dep_id)
+            resolve_args(prop, dep_id)
+            input = prop[0]
+            sep = prop[1]
+            if len(prop) == 3:
+                index = prop[2]
+                return input.split(sep)[index]
+            return input.split(sep)
+        if 'string_lower' in prop:
+            prop = prop.get('string_lower')
+            if isinstance(prop, dict):
+                prop = resolve_intrinsic_functions(prop, dep_id)
+            resolve_args(prop, dep_id)
+            return prop.lower()
+        if 'string_upper' in prop:
+            prop = prop.get('string_upper')
+            if isinstance(prop, dict):
+                prop = resolve_intrinsic_functions(prop, dep_id)
+            resolve_args(prop, dep_id)
+            return prop.upper()
+        if 'concat' in prop:
+            result = ''
+            prop = prop.get('concat')
+            for v in prop:
+                if isinstance(v, dict):
+                    v = resolve_intrinsic_functions(v, dep_id)
+                result += str(v)
+            return result
+        if 'merge' in prop:
+            result = {}
+            prop = prop.get('merge')
+            for i in prop:
+                if isinstance(prop, dict):
+                    prop[i] = resolve_intrinsic_functions(prop[i], dep_id)
+                result.update(prop[i])
+            return result
     return prop
 
 
@@ -354,8 +463,14 @@ def get_input(input_name, rest_client):
     :return: The input value.
     :rtype: Any JSON serializable type.
     """
-    deployment = rest_client.deployments.get(wtx_from_import.deployment.id)
-    return deployment.inputs.get(input_name)
+    try:
+        deployment_id = wtx_from_import.deployment.id
+        deployment = rest_client.deployments.get(deployment_id)
+        return deployment.inputs.get(input_name)
+    except CloudifyClientError as e:
+        if '404' in str(e):
+            raise NonRecoverableError(
+                'deployment [{0}] not found'.format(deployment_id))
 
 
 @with_rest_client
@@ -366,7 +481,7 @@ def get_attribute(node_id, runtime_property, deployment_id, rest_client):
     :type node_id: str
     :param runtime_property: The key of a runtime property.
     :type runtime_property: str
-    :param deployment_id: A Cloudify REST client.
+    :param deployment_id: A Cloudify Deployment ID.
     :type deployment_id: str
     :param rest_client: A Cloudify REST client.
     :type rest_client: cloudify_rest_client.client.CloudifyClient
@@ -377,6 +492,106 @@ def get_attribute(node_id, runtime_property, deployment_id, rest_client):
         if node_instance.deployment_id != deployment_id:
             continue
         return node_instance.runtime_properties.get(runtime_property)
+
+
+@with_rest_client
+def get_sys(sys_type, property, deployment_id, rest_client):
+    """ Get a system property for deployment/tenant.
+    :param sys_type: could be one of 2 [tenant, deployment].
+    :type sys_type: str
+    :param property: The key of a property.
+    :type property: str
+    :param deployment_id: A Cloudify Deployment ID.
+    :type deployment_id: str
+    :param rest_client: A Cloudify REST client.
+    :type rest_client: cloudify_rest_client.client.CloudifyClient
+    :return: The system property value.
+    :rtype: Any JSON serializable type.
+    """
+    deployment = {}
+    try:
+        deployment = rest_client.deployments.get(deployment_id)
+    except CloudifyClientError as e:
+        if '404' in str(e):
+            raise NonRecoverableError(
+                'deployment [{0}] not found'.format(deployment_id))
+    if sys_type == 'deployment':
+        if property == 'owner':
+            property = 'created_by'
+        elif property == 'blueprint':
+            property = 'blueprint_id'
+        return deployment.get(property)
+    elif sys_type == 'tenant' and property == 'name':
+        return deployment.get('tenant_name')
+    else:
+        raise NonRecoverableError(
+            '{{ get_sys: [{0},{1}] }} is not supported'.format(
+                sys_type, property))
+
+
+@with_rest_client
+def get_capability(target_dep_id, capability, path, rest_client):
+    """ Get a capability for deployment.
+    :param target_dep_id: target deployment to get capability for.
+    :type target_dep_id: str
+    :param capability: capability name to get.
+    :type capability: str
+    :param path: a list of index -path- inside the capability.
+    :type path: list
+    :param rest_client: A Cloudify REST client.
+    :type rest_client: cloudify_rest_client.client.CloudifyClient
+    :return: The capability property value.
+    :rtype: Any JSON serializable type.
+    """
+    deployment = {}
+    try:
+        deployment = rest_client.deployments.get(target_dep_id)
+    except CloudifyClientError as e:
+        if '404' in str(e):
+            raise NonRecoverableError(
+                'deployment [{0}] not found'.format(target_dep_id))
+    root = deployment.capabilities.get(capability).get('value')
+    if path:
+        nested_val = get_nested_attribute_value_of_capability(root, path)
+        return nested_val.get('value')
+    return root
+
+
+@with_rest_client
+def get_label(label_key, label_val_index, deployment_id, rest_client):
+    """ Get a label for deployment.
+    :param label_key: label key value.
+    :type label_key: str
+    :param label_val_index: index of label_value since it is an array.
+    :type label_val_index: int
+    :param deployment_id: A Cloudify Deployment ID.
+    :type deployment_id: str
+    :param rest_client: A Cloudify REST client.
+    :type rest_client: cloudify_rest_client.client.CloudifyClient
+    :return: The label property value.
+    :rtype: Any JSON serializable type.
+    """
+    deployment = {}
+    try:
+        deployment = rest_client.deployments.get(deployment_id)
+    except CloudifyClientError as e:
+        if '404' in str(e):
+            raise NonRecoverableError(
+                'deployment [{0}] not found'.format(deployment_id))
+    labels = deployment.labels or []
+    found = False
+    if labels:
+        for label in labels:
+            if label['key'] == label_key:
+                labels = label['value']
+                found = True
+                break
+    if found:
+        if isinstance(labels, list) and label_val_index:
+            return labels[label_val_index]
+        return labels
+    else:
+        raise NonRecoverableError('label [{0}] not found'.format(label_key))
 
 
 @with_rest_client
