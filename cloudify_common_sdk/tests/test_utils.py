@@ -20,6 +20,7 @@ import unittest
 from cloudify.state import current_ctx
 from cloudify.mocks import MockCloudifyContext
 from cloudify.constants import NODE_INSTANCE
+from cloudify.exceptions import NonRecoverableError
 
 from .. import utils
 from ..exceptions import NonRecoverableError as SDKNonRecoverableError
@@ -360,6 +361,53 @@ class BatchUtilsTests(unittest.TestCase):
         prop = 'bar'
         utils.get_secret(secret_name=prop)
         assert mock.call().secrets.get('bar') in mock_client.mock_calls
+
+    @mock.patch('cloudify_common_sdk.utils.get_rest_client')
+    def test_get_attribute(self, mock_client):
+        deployment_id = 'mock'
+        prop = ['some_node', 'bar']
+        utils.get_attribute(
+            node_id=prop[0],
+            runtime_property=prop[1],
+            deployment_id=deployment_id
+        )
+        assert mock.call().node_instances.list(node_id='some_node') \
+            in mock_client.mock_calls
+
+    @mock.patch('cloudify_common_sdk.utils.get_rest_client')
+    def test_get_sys(self, mock_client):
+        deployment_id = 'mock'
+        prop = ['deployment', 'owner']
+        utils.get_sys(
+            sys_type=prop[0],
+            property=prop[1],
+            deployment_id=deployment_id
+        )
+        assert mock.call().deployments.get(deployment_id) \
+            in mock_client.mock_calls
+
+    @mock.patch('cloudify_common_sdk.utils.get_rest_client')
+    def test_get_capability(self, mock_client):
+        prop = ['mock', 'some_cap']
+        utils.get_capability(
+            target_dep_id=prop[0],
+            capability=prop[1],
+            path=None
+        )
+        assert mock.call().deployments.get(prop[0]) \
+            in mock_client.mock_calls
+
+    @mock.patch('cloudify_common_sdk.utils.get_rest_client')
+    def test_get_label(self, mock_client):
+        deployment_id = 'mock'
+        prop = ['some_label']
+        with self.assertRaisesRegexp(NonRecoverableError,
+                                     'not found'):
+            utils.get_label(
+                label_key=prop[0],
+                label_val_index=None,
+                deployment_id=deployment_id
+            )
 
     @mock.patch('cloudify_common_sdk.utils.get_rest_client')
     def test_create_deployment(self, mock_client):
