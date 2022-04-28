@@ -463,15 +463,14 @@ def get_input(input_name, rest_client):
     :return: The input value.
     :rtype: Any JSON serializable type.
     """
-    deployment = {}
     try:
         deployment_id = wtx_from_import.deployment.id
         deployment = rest_client.deployments.get(deployment_id)
+        return deployment.inputs.get(input_name)
     except CloudifyClientError as e:
         if '404' in str(e):
             raise NonRecoverableError(
                 'deployment [{0}] not found'.format(deployment_id))
-    return deployment.inputs.get(input_name)
 
 
 @with_rest_client
@@ -579,7 +578,7 @@ def get_label(label_key, label_val_index, deployment_id, rest_client):
         if '404' in str(e):
             raise NonRecoverableError(
                 'deployment [{0}] not found'.format(deployment_id))
-    labels = deployment.labels
+    labels = deployment.labels or []
     found = False
     if labels:
         for label in labels:
