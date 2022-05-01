@@ -1387,3 +1387,10 @@ def install_binary(
             set_permissions(executable_path)
 
     return executable_path
+
+
+def update_dict_values(original_dict, new_dict):
+    if new_dict and original_dict:
+        for key, value in new_dict.items():
+            original_dict[key] = value
+    return original_dict
