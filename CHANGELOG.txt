@@ -1,4 +1,5 @@
 releases:
+  v0.0.66: Add update_dict_values in utils.py
   v0.0.65: Add more intrinsic functions support.
   v0.0.64: Include new lines in obfuscated values.
   v0.0.63: Handle logging in processes.
