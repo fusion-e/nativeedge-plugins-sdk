@@ -20,8 +20,9 @@ import re
 from ._compat import text_type
 
 OBFUSCATION_KEYWORDS = ('PASSWORD', 'SECRET', 'TOKEN',)
-OBFUSCATION_RE = re.compile(r'((password|secret|token)(:|=)\s*)(?:[^\\"])*',
-                            flags=re.IGNORECASE | re.MULTILINE)
+OBFUSCATION_RE = re.compile(
+    r'(("*)(password|secret|token)("*)(:|=)\s*("*))[^\n",]*',
+    flags=re.IGNORECASE | re.MULTILINE)
 OBFUSCATED_SECRET = 'x' * 16
 
 
@@ -199,8 +200,14 @@ def obfuscate_passwords(obj):
     but only when absolutely necessary.  If a given object does not contain
     any passwords, original is returned and deepcopy never performed.
     """
+    def obfuscate_value(matchobj):
+        if not matchobj.group(1).endswith('""'):
+            return matchobj.group(1) + OBFUSCATED_SECRET
+        else:
+            return matchobj.group(1)
+
     if isinstance(obj, (text_type, bytes,)):
-        result = OBFUSCATION_RE.sub('\\1{0}'.format(OBFUSCATED_SECRET), obj)
+        result = OBFUSCATION_RE.sub(obfuscate_value, obj)
         if isinstance(obj, text_type) and obj.endswith('\n'):
             result = result + '\n'
         return result
