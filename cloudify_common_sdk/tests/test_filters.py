@@ -435,6 +435,56 @@ class TestFilters(unittest.TestCase):
         self.assertIn(u'Hello world!',
                       u'{0}'.format(filters.obfuscate_passwords(call)))
 
+    def test_obfuscate_json_string(self):
+        call = """{
+    "Token": "HIDE ME",
+    "number": -2,
+    "SECRET": "HIDE ME",
+    "Authentication Header": {
+        "Bearer Token": "HIDE ME",
+        "Bearer-Token": "HIDE ME TOO",
+    },
+    "message": "Hello world!",
+    "src_registry_password": {
+        "value": "some_value"
+    },
+    "array_password": ["first_val", "second_val"],
+    "true_false_token": true,
+    "null_password": null,
+    "set_token": ("firstToken","secondToken","thirdToken"),
+    "number_secret": 123.456,
+    "weird_password": "foo:",
+    "array2_password": [123.123],
+    "array3_password": [false],
+    "array4_password": [true, false],
+    "dict2_password": {"x":true},
+}"""
+        obfuscated_call = """{
+    "Token": "xxxxxxxxxxxxxxxx",
+    "number": -2,
+    "SECRET": "xxxxxxxxxxxxxxxx",
+    "Authentication Header": {
+        "Bearer Token": "xxxxxxxxxxxxxxxx",
+        "Bearer-Token": "xxxxxxxxxxxxxxxx",
+    },
+    "message": "Hello world!",
+    "src_registry_password": {
+        "value": "some_value"
+    },
+    "array_password": ["first_val", "second_val"],
+    "true_false_token": true,
+    "null_password": null,
+    "set_token": ("firstToken","secondToken","thirdToken"),
+    "number_secret": 123.456,
+    "weird_password": "xxxxxxxxxxxxxxxx",
+    "array2_password": [123.123],
+    "array3_password": [false],
+    "array4_password": [true, false],
+    "dict2_password": {"x":true},
+}"""
+        self.assertEqual(filters.obfuscate_passwords(call),
+                         obfuscated_call)
+
 
 if __name__ == '__main__':
     unittest.main()
