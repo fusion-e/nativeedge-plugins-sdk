@@ -1,4 +1,5 @@
 releases:
+  v0.0.69: handle dict obfuscation value.
   v0.0.68: Add more generic handling to obfuscation.
   v0.0.67: Add special handling to obfuscation regex to preserve double-quotes.
   v0.0.66: Add update_dict_values in utils.py
