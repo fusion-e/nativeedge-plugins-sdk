@@ -202,9 +202,12 @@ def obfuscate_passwords(obj):
     """
     def obfuscate_value(matchobj):
         last_portion = matchobj.group(0).split()[-1].lower()
-        re_numbers = re.compile(r'\d+')
+        re_numbers = re.compile(r'^[.0-9]+')
+        re_bracket_numbers = re.compile(r'[[+][.0-9]+')
         true_false = re.compile(r'[[+](true|false)')
-        if re_numbers.search(last_portion) or true_false.search(last_portion):
+        if re_numbers.search(last_portion) or \
+            re_bracket_numbers.search(last_portion) or \
+                true_false.search(last_portion):
             return matchobj.group(1) + last_portion
         if matchobj.group(0).endswith('{'):
             return matchobj.group(1) + '{'
