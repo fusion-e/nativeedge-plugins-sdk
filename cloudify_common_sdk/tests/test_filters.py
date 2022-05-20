@@ -448,6 +448,7 @@ class TestFilters(unittest.TestCase):
     "src_registry_password": {
         "value": "some_value"
     },
+    "client_secret": {"secret": "b4611ohg_k0vtazwr8jn8h88rcg2a98odapqzev-"},
     "array_password": ["first_val", "second_val"],
     "true_false_token": true,
     "null_password": null,
@@ -457,6 +458,7 @@ class TestFilters(unittest.TestCase):
     "array2_password": [123.123],
     "array3_password": [false],
     "array4_password": [true, false],
+    "array5_password": [123.123,456.335,654.23],
     "dict2_password": {"x":true},
 }"""
         obfuscated_call = """{
@@ -471,6 +473,7 @@ class TestFilters(unittest.TestCase):
     "src_registry_password": {
         "value": "some_value"
     },
+    "client_secret": {"secret": "xxxxxxxxxxxxxxxx"},
     "array_password": ["first_val", "second_val"],
     "true_false_token": true,
     "null_password": null,
@@ -480,6 +483,7 @@ class TestFilters(unittest.TestCase):
     "array2_password": [123.123],
     "array3_password": [false],
     "array4_password": [true, false],
+    "array5_password": [123.123,456.335,654.23],
     "dict2_password": {"x":true},
 }"""
         self.assertEqual(filters.obfuscate_passwords(call),
