@@ -77,7 +77,7 @@ class GeneralExecutor(object):
     def _emit_log_message(self, message, prefix=None, logger=None):
         logger = logger or self.logger.info
         if hasattr(message, 'decode'):
-            message = message.decode('utf-8', 'replace')
+            message = message.decode('ascii', 'ignore')
         clean_message = obfuscate_passwords(message)
 
         try:
@@ -97,10 +97,10 @@ class GeneralExecutor(object):
         try:
             stdout, stderr = self.process.communicate()
             if stdout:
-                for line in stdout.decode('utf-8').splitlines():
+                for line in stdout.decode('ascii', 'ignore').splitlines():
                     self._stdout.append(self._emit_log_message(line))
             if stderr:
-                for line in stderr.decode('utf-8').splitlines():
+                for line in stderr.decode('ascii', 'ignore').splitlines():
                     self._stderr.append(
                         self._emit_log_message(
                             line, prefix='<err>', logger=self.logger.error))
@@ -239,7 +239,8 @@ def general_executor(script_path, ctx, process):
         ctx.logger.debug("Context proxy closed")
 
     execution.check_exception()
-    return execution.stdout
+    # some processes returns only stderr
+    return execution.stdout if execution.stdout else execution.stderr
 
 
 def process_execution(script_func, script_path, ctx=None, process=None):
