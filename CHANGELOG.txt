@@ -1,4 +1,5 @@
 releases:
+  v0.0.71: Only update values if new value provided in dict update.
   v0.0.70: handle array of numbers and number regex.
   v0.0.69: handle dict obfuscation value.
   v0.0.68: Add more generic handling to obfuscation.
