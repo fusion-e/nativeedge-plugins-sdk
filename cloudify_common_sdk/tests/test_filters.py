@@ -460,6 +460,12 @@ class TestFilters(unittest.TestCase):
     "array4_password": [true, false],
     "array5_password": [123.123,456.335,654.23],
     "dict2_password": {"x":true},
+    "empty_list_secret": [],
+    "empty_dict_password": {},
+    "list_dict_secret": [{
+        "default_mode": "0644",
+        "secret_name": "kubernetes-dashboard-certs"
+    }],
 }"""
         obfuscated_call = """{
     "Token": "xxxxxxxxxxxxxxxx",
@@ -485,6 +491,12 @@ class TestFilters(unittest.TestCase):
     "array4_password": [true, false],
     "array5_password": [123.123,456.335,654.23],
     "dict2_password": {"x":true},
+    "empty_list_secret": [],
+    "empty_dict_password": {},
+    "list_dict_secret": [{
+        "default_mode": "0644",
+        "secret_name": "kubernetes-dashboard-certs"
+    }],
 }"""
         self.assertEqual(filters.obfuscate_passwords(call),
                          obfuscated_call)

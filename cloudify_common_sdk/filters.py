@@ -209,18 +209,15 @@ def obfuscate_passwords(obj):
             re_bracket_numbers.search(last_portion) or \
                 true_false.search(last_portion):
             return matchobj.group(1) + last_portion
-        if matchobj.group(0).endswith('{'):
-            return matchobj.group(1) + '{'
-        if matchobj.group(0).endswith('['):
-            return matchobj.group(1) + '['
-        if matchobj.group(0).endswith('('):
-            return matchobj.group(1) + '('
-        if matchobj.group(0).lower().endswith('true'):
-            return matchobj.group(1) + 'true'
-        if matchobj.group(0).lower().endswith('false'):
-            return matchobj.group(1) + 'false'
-        if matchobj.group(0).lower().endswith('null'):
-            return matchobj.group(1) + 'null'
+        last_portion = last_portion.replace(']', '')
+        last_portion = last_portion.replace('}', '')
+        last_portion = last_portion.replace(')', '')
+        if last_portion.endswith('{') or last_portion.endswith('[') or \
+            last_portion.endswith('(') or \
+            last_portion.lower().endswith('true') or \
+            last_portion.lower().endswith('false') or \
+                last_portion.lower().endswith('null'):
+            return matchobj.group(0)
         if not matchobj.group(1).endswith('""'):
             return matchobj.group(1) + OBFUSCATED_SECRET
         else:
