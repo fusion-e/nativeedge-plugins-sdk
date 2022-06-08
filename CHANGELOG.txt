@@ -1,4 +1,5 @@
 releases:
+  v0.0.74: handle dynamic shell variables obfuscation.
   v0.0.73: handle empty set and dict values obfuscation.
   v0.0.72: Handle logging errors with weird characters being emitted by processes stdout/stderr.
   v0.0.71: Only update values if new value provided in dict update.
