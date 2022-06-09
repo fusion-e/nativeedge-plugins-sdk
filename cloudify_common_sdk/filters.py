@@ -201,14 +201,17 @@ def obfuscate_passwords(obj):
     any passwords, original is returned and deepcopy never performed.
     """
     def obfuscate_value(matchobj):
-        last_portion = matchobj.group(0).split()[-1].lower()
-        re_numbers = re.compile(r'^[.0-9]+')
+        last_portion = matchobj.group(0).lower().replace(
+            matchobj.group(1).lower(), '')
+        re_numbers = re.compile(r'^[.0-9]+$')
         re_bracket_numbers = re.compile(r'[[+][.0-9]+')
-        true_false = re.compile(r'[[+](true|false)')
+        re_bracket_true_false = re.compile(r'[[+](true|false)')
+        re_dynamic = re.compile(r'^(\$|\\)')
         if re_numbers.search(last_portion) or \
             re_bracket_numbers.search(last_portion) or \
-                true_false.search(last_portion):
-            return matchobj.group(1) + last_portion
+                re_bracket_true_false.search(last_portion) or \
+                re_dynamic.search(last_portion):
+            return matchobj.group(0)
         last_portion = last_portion.replace(']', '')
         last_portion = last_portion.replace('}', '')
         last_portion = last_portion.replace(')', '')

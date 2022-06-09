@@ -466,6 +466,8 @@ class TestFilters(unittest.TestCase):
         "default_mode": "0644",
         "secret_name": "kubernetes-dashboard-certs"
     }],
+    "notes": "run: export POSTGRES_PASSWORD=$(get_secret | base64 --decode)",
+    "some_other_notes": "you can also run POSTGRES_PASSWORD=\\"$ENV_VAR\\"",
 }"""
         obfuscated_call = """{
     "Token": "xxxxxxxxxxxxxxxx",
@@ -497,6 +499,8 @@ class TestFilters(unittest.TestCase):
         "default_mode": "0644",
         "secret_name": "kubernetes-dashboard-certs"
     }],
+    "notes": "run: export POSTGRES_PASSWORD=$(get_secret | base64 --decode)",
+    "some_other_notes": "you can also run POSTGRES_PASSWORD=\\"$ENV_VAR\\"",
 }"""
         self.assertEqual(filters.obfuscate_passwords(call),
                          obfuscated_call)
