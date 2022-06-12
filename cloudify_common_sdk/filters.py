@@ -207,6 +207,18 @@ def obfuscate_passwords(obj):
         re_bracket_numbers = re.compile(r'[[+][.0-9]+')
         re_bracket_true_false = re.compile(r'[[+](true|false)')
         re_dynamic = re.compile(r'^(\$|\\)')
+        re_new_line = re.compile(r'.*\\n')
+
+        if re_new_line.search(last_portion):
+            result = ""
+            splits = matchobj.group(0).split(r'\n')
+            for i, line in enumerate(splits):
+                if i < len(splits)-1:
+                    result += OBFUSCATION_RE.sub(obfuscate_value, line) + r'\n'
+                else:
+                    result += OBFUSCATION_RE.sub(obfuscate_value, line)
+            return result
+
         if re_numbers.search(last_portion) or \
             re_bracket_numbers.search(last_portion) or \
                 re_bracket_true_false.search(last_portion) or \
