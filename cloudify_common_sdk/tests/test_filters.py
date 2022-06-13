@@ -468,6 +468,7 @@ class TestFilters(unittest.TestCase):
     }],
     "notes": "run: export POSTGRES_PASSWORD=$(get_secret | base64 --decode)",
     "some_other_notes": "you can also run POSTGRES_PASSWORD=\\"$ENV_VAR\\"",
+    "new_lines_notes": "MyToken: hide_me\\n  MyNamespace: test\\n",
 }"""
         obfuscated_call = """{
     "Token": "xxxxxxxxxxxxxxxx",
@@ -501,6 +502,7 @@ class TestFilters(unittest.TestCase):
     }],
     "notes": "run: export POSTGRES_PASSWORD=$(get_secret | base64 --decode)",
     "some_other_notes": "you can also run POSTGRES_PASSWORD=\\"$ENV_VAR\\"",
+    "new_lines_notes": "MyToken: xxxxxxxxxxxxxxxx\\n  MyNamespace: test\\n",
 }"""
         self.assertEqual(filters.obfuscate_passwords(call),
                          obfuscated_call)
