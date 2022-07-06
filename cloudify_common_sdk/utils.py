@@ -16,6 +16,7 @@
 
 import os
 import re
+import json
 import tarfile
 import zipfile
 from time import sleep
@@ -124,6 +125,12 @@ def with_rest_client(func):
 
 
 @with_rest_client
+def get_node(deployment_id, node_id, rest_client):
+    return rest_client.nodes.get(
+        deployment_id, node_id, evaluate_functions=False)
+
+
+@with_rest_client
 def get_node_instance(node_instance_id, rest_client):
     """ Get a node instance object.
     :param node_instance_id: The ID of the node instance.
@@ -133,7 +140,8 @@ def get_node_instance(node_instance_id, rest_client):
     :return: request's JSON response
     :rtype: dict
     """
-    return rest_client.node_instance.get(node_instance_id=node_instance_id)
+    return rest_client.node_instances.get(
+        node_instance_id=node_instance_id, evaluate_functions=False)
 
 
 @with_rest_client
@@ -320,17 +328,26 @@ def resolve_intrinsic_functions(prop, dep_id=None):
                 if isinstance(v, dict):
                     args[i] = resolve_intrinsic_functions(v, dep_id)
 
+    if isinstance(prop, str):
+        try:
+            tmp_prop = json.loads(prop)
+            if isinstance(tmp_prop, dict) and 'get_secret' in tmp_prop:
+                prop = tmp_prop
+        except json.decoder.JSONDecodeError:
+            pass
+
     if isinstance(prop, dict):
         if 'get_secret' in prop:
             prop = prop.get('get_secret')
             if isinstance(prop, dict):
                 prop = resolve_intrinsic_functions(prop, dep_id)
-            return get_secret(prop)
+            secret = CommonSDKSecret(prop)
+            return secret
         if 'get_input' in prop:
             prop = prop.get('get_input')
             if isinstance(prop, dict):
                 prop = resolve_intrinsic_functions(prop, dep_id)
-            return get_input(prop)
+            return IntrinsicFunction(prop)
         if 'get_attribute' in prop:
             prop = prop.get('get_attribute')
             if isinstance(prop, dict):
@@ -338,7 +355,8 @@ def resolve_intrinsic_functions(prop, dep_id=None):
             resolve_args(prop, dep_id)
             node_id = prop[0]
             runtime_property = prop[1]
-            return get_attribute(node_id, runtime_property, dep_id)
+            attribute = get_attribute(node_id, runtime_property, dep_id)
+            return IntrinsicFunction(attribute)
         if 'get_sys' in prop:
             prop = prop.get('get_sys')
             if isinstance(prop, dict):
@@ -346,7 +364,8 @@ def resolve_intrinsic_functions(prop, dep_id=None):
             resolve_args(prop, dep_id)
             sys_type = prop[0]
             property = prop[1]
-            return get_sys(sys_type, property, dep_id)
+            attribute = get_sys(sys_type, property, dep_id)
+            return IntrinsicFunction(attribute)
         if 'get_capability' in prop:
             prop = prop.get('get_capability')
             if isinstance(prop, dict):
@@ -357,7 +376,8 @@ def resolve_intrinsic_functions(prop, dep_id=None):
             path = None
             if len(prop) > 2:
                 path = prop
-            return get_capability(target_dep_id, capability, path)
+            capability = get_capability(target_dep_id, capability, path)
+            return IntrinsicFunction(capability)
         if 'get_environment_capability' in prop:
             prop = prop.get('get_environment_capability')
             if isinstance(prop, dict):
@@ -369,7 +389,8 @@ def resolve_intrinsic_functions(prop, dep_id=None):
             if len(prop) > 1:
                 capability = prop[0]
                 path = prop
-            return get_capability(target_dep_id, capability, path)
+            capability = get_capability(target_dep_id, capability, path)
+            return IntrinsicFunction(capability)
         if 'get_label' in prop:
             prop = prop.get('get_label')
             if isinstance(prop, dict):
@@ -380,7 +401,8 @@ def resolve_intrinsic_functions(prop, dep_id=None):
             if len(prop) == 2:
                 label_key = prop[0]
                 label_val_index = prop[1]
-            return get_label(label_key, label_val_index, dep_id)
+            label = get_label(label_key, label_val_index, dep_id)
+            return IntrinsicFunction(label)
         if 'string_find' in prop:
             prop = prop.get('string_find')
             if isinstance(prop, dict):
@@ -441,6 +463,21 @@ def resolve_intrinsic_functions(prop, dep_id=None):
                 result.update(prop[i])
             return result
     return prop
+
+
+# TODO: Not sure this should be derived from str,
+#  maybe only CommonSDKSecret should be.
+class IntrinsicFunction(str):
+    pass
+
+
+class CommonSDKSecret(IntrinsicFunction):
+
+    def __new__(cls, value, *_, **__):
+        return super().__new__(cls, json.dumps({'get_secret': value}))
+
+    def __init__(self, value):
+        self.secret = get_secret(value)
 
 
 @with_rest_client
