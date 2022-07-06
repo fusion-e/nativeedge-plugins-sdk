@@ -64,8 +64,7 @@ def get_shared_resource(source_path, dir=None, username=None, password=None):
     if "git@" in source_path:
         try:
             tmp_path = tempfile.mkdtemp(dir=dir)
-            git.Repo.clone_from(source_path,
-                            tmp_path)
+            git.Repo.clone_from(source_path, tmp_path)
         except git.exc.GitCommandError as e:
             if "Permission denied" in str(e):
                 raise NonRecoverableError(
@@ -115,8 +114,7 @@ def get_shared_resource(source_path, dir=None, username=None, password=None):
                     auth_url_part = '{}:{}@'.format(username, password)
                 updated_url = '{}://{}{}'.format(
                     schema, auth_url_part, split[1])
-                git.Repo.clone_from(updated_url,
-                                tmp_path)
+                git.Repo.clone_from(updated_url, tmp_path)
             except ImportError:
                 raise NonRecoverableError(
                     "Clone git repo is only supported if git is installed "
