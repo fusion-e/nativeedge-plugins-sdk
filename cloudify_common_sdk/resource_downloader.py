@@ -1,4 +1,5 @@
 import os
+import git
 import zipfile
 import requests
 import tempfile
@@ -60,7 +61,22 @@ def get_shared_resource(source_path, dir=None, username=None, password=None):
     tmp_path = source_path
     split = source_path.split('://')
     schema = split[0]
-    if schema in ['http', 'https']:
+    if "git@" in source_path:
+        try:
+            tmp_path = tempfile.mkdtemp(dir=dir)
+            git.Repo.clone_from(source_path, tmp_path)
+        except git.exc.GitCommandError as e:
+            if "Permission denied" in str(e):
+                raise NonRecoverableError(
+                    "User cfyuser might not have read permissions to "
+                    "the private key or the key is not allowed to the repo"
+                )
+        except ImportError:
+            raise NonRecoverableError(
+                "Clone git repo is only supported if git is installed "
+                "on your manager and accessible in the management "
+                "user's path.")
+    elif schema in ['http', 'https']:
         bare_url, *query_string = source_path.split('?')
         file_name = bare_url.rsplit('/', 1)[1]
         # user might provide a link to file with no extension
@@ -92,15 +108,13 @@ def get_shared_resource(source_path, dir=None, username=None, password=None):
                         source_temp.write(chunk)
         else:
             try:
-                from git import Repo
                 tmp_path = tempfile.mkdtemp(dir=dir)
                 auth_url_part = ''
                 if username:
                     auth_url_part = '{}:{}@'.format(username, password)
                 updated_url = '{}://{}{}'.format(
                     schema, auth_url_part, split[1])
-                Repo.clone_from(updated_url,
-                                tmp_path)
+                git.Repo.clone_from(updated_url, tmp_path)
             except ImportError:
                 raise NonRecoverableError(
                     "Clone git repo is only supported if git is installed "
