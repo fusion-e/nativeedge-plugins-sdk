@@ -61,6 +61,7 @@ def resolve_props(value, deployment_id):
         new_value = []
         for item in resolved_value:
             new_value.append(resolve_props(item, deployment_id))
+        return new_value
     else:
         return value
 
