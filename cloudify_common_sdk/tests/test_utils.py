@@ -352,8 +352,18 @@ class BatchUtilsTests(unittest.TestCase):
         expected = 'foo'
         result = utils.resolve_intrinsic_functions(expected)
         assert expected == result
-        prop = {'get_secret': 'bar'}
+        secret = {'get_secret': 'bar'}
+        prop = {
+            'variables': {
+                'foo': secret,
+            },
+            'resource_config': {
+                'source': {'get_capability': ['bar', 'baz']},
+            }
+        }
         utils.resolve_intrinsic_functions(prop)
+        assert mock.call().secrets.get('bar') not in mock_client.mock_calls
+        utils.resolve_intrinsic_functions(secret)
         assert mock.call().secrets.get('bar') in mock_client.mock_calls
 
     @mock.patch('cloudify_common_sdk.utils.get_rest_client')
