@@ -25,7 +25,11 @@ from cloudify import ctx
 from cloudify_rest_client.exceptions import CloudifyClientError
 
 
-def get_stored_property(_ctx, property_name, target=False):
+def get_stored_property(_ctx, property_name, target=False, force_node=None):
+
+    if not isinstance(force_node, bool):
+        force_node = ctx.workflow_id == 'update'
+
     try:
         if _ctx.type == RELATIONSHIP_INSTANCE:
             if target:
@@ -42,7 +46,8 @@ def get_stored_property(_ctx, property_name, target=False):
         instance = get_ctx_instance(_ctx, target)
     node_property = node.properties.get(property_name)
     instance_property = instance.runtime_properties.get(property_name)
-    if ctx.workflow_id == 'update':
+
+    if force_node:
         return resolve_props(node_property, ctx.deployment.id)
     result = resolve_props(
         instance_property or node_property, ctx.deployment.id)
