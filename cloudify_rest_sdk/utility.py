@@ -274,6 +274,11 @@ def _process_response(response, call, store_props):
             logger.debug('XML transformed to dict: {}'
                          .format(shorted_text(obfuscate_passwords(json))))
 
+        # if empty do nothing
+        if not json:
+            logger.debug('Empty {0} response'.format(response_format))
+            return
+
         _check_response(json, call.get('nonrecoverable_response'), False)
         _check_response(json, call.get('response_expectation'), True)
 
