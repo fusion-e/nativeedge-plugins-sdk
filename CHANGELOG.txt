@@ -1,5 +1,6 @@
 releases:
-  v0.0.78: Resource downloader: fix ssh and add git:: tf like support
+  v0.0.79: Resource downloader: fix ssh and add git:: tf like support
+  v0.0.78: Enable selective getting of node properties in update workflow.
   v0.0.77: Add support for securely storing properties.
   v0.0.76: support git ssh notation in get_shared_resource
   v0.0.75: fix obfuscate pattern to handle new lines inside string.
