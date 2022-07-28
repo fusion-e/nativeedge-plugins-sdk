@@ -95,6 +95,9 @@ def _translate_and_save_v1(response_json, response_translation, runtime_dict):
     if isinstance(response_translation, list):
         for idx, val in enumerate(response_translation):
             if isinstance(val, (list, dict)):
+                # check if response json matches expectation
+                if not response_json:
+                    return
                 _translate_and_save_v1(response_json[idx], val, runtime_dict)
             else:
                 _save(runtime_dict, response_translation, response_json)
@@ -251,7 +254,7 @@ def obfuscate_passwords(obj):
     for k, v in list(result.items()):
         if any(x for x in OBFUSCATION_KEYWORDS if x in k.upper()):
             a_copy = deepcopy(result)
-            if a_copy[k].endswith('\n'):
+            if isinstance(a_copy[k], text_type) and a_copy[k].endswith('\n'):
                 a_copy[k] = OBFUSCATED_SECRET + '\n'
             else:
                 a_copy[k] = OBFUSCATED_SECRET
