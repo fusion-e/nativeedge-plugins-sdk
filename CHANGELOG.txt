@@ -1,4 +1,5 @@
 releases:
+  v0.0.80: Make obfuscation only for logs.
   v0.0.79: Resource downloader: fix ssh and add git:: tf like support
   v0.0.78: Enable selective getting of node properties in update workflow.
   v0.0.77: Add support for securely storing properties.
