@@ -91,7 +91,11 @@ class GeneralExecutor(object):
             logger("{}: {}".format(prefix, clean_message))
         elif prefix is not None and 'err' in prefix and self.log_stderr:
             logger("{}: {}".format(prefix, clean_message))
-        return clean_message
+        try:
+            message = message.rstrip('\r\n')
+        except (AttributeError, TypeError):
+            pass
+        return message
 
     def emit_io(self):
         try:
