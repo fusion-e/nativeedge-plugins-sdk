@@ -39,7 +39,6 @@ from cloudify_rest_client.exceptions import (
     CloudifyClientError,
     DeploymentEnvironmentCreationPendingError,
     DeploymentEnvironmentCreationInProgressError)
-from dsl_parser.functions import get_nested_attribute_value_of_capability
 
 try:
     from cloudify.constants import RELATIONSHIP_INSTANCE, NODE_INSTANCE
@@ -314,6 +313,25 @@ def desecretize_client_config(config):
     return config
 
 
+def evaluate_path(root, path):
+    value = root
+    for index, attr in enumerate(path[2:]):
+        if isinstance(value, dict):
+            if attr not in value:
+                return None
+            value = value[attr]
+        elif isinstance(value, list):
+            try:
+                value = value[attr]
+            except TypeError:
+                return None
+            except IndexError:
+                return None
+        else:
+            return None
+    return value
+
+
 def resolve_intrinsic_functions(prop, dep_id=None):
     """ Resolve intrinsic functions for node properties\
     in rest client responses.
@@ -355,7 +373,10 @@ def resolve_intrinsic_functions(prop, dep_id=None):
             resolve_args(prop, dep_id)
             node_id = prop[0]
             runtime_property = prop[1]
-            attribute = get_attribute(node_id, runtime_property, dep_id)
+            path = None
+            if len(prop) > 2:
+                path = prop
+            attribute = get_attribute(node_id, runtime_property, dep_id, path)
             return IntrinsicFunction(attribute)
         if 'get_sys' in prop:
             prop = prop.get('get_sys')
@@ -511,7 +532,7 @@ def get_input(input_name, rest_client):
 
 
 @with_rest_client
-def get_attribute(node_id, runtime_property, deployment_id, rest_client):
+def get_attribute(node_id, runtime_property, deployment_id, path, rest_client):
     """ Get a runtime property for the first node instance of a node in
     a deployment.
     :param node_id: The ID of a node template in a deployment.
@@ -520,6 +541,8 @@ def get_attribute(node_id, runtime_property, deployment_id, rest_client):
     :type runtime_property: str
     :param deployment_id: A Cloudify Deployment ID.
     :type deployment_id: str
+    :param path: A Custom path if the runtime property is a dict.
+    :type path: str
     :param rest_client: A Cloudify REST client.
     :type rest_client: cloudify_rest_client.client.CloudifyClient
     :return: The runtime property value.
@@ -528,7 +551,11 @@ def get_attribute(node_id, runtime_property, deployment_id, rest_client):
     for node_instance in rest_client.node_instances.list(node_id=node_id):
         if node_instance.deployment_id != deployment_id:
             continue
-        return node_instance.runtime_properties.get(runtime_property)
+        root = node_instance.runtime_properties.get(runtime_property)
+        if path:
+            nested_val = evaluate_path(root, path)
+            return nested_val
+        return root
 
 
 @with_rest_client
@@ -557,6 +584,8 @@ def get_sys(sys_type, property, deployment_id, rest_client):
             property = 'created_by'
         elif property == 'blueprint':
             property = 'blueprint_id'
+        elif property == 'name':
+            property = 'display_name'
         return deployment.get(property)
     elif sys_type == 'tenant' and property == 'name':
         return deployment.get('tenant_name')
@@ -589,8 +618,8 @@ def get_capability(target_dep_id, capability, path, rest_client):
                 'deployment [{0}] not found'.format(target_dep_id))
     root = deployment.capabilities.get(capability).get('value')
     if path:
-        nested_val = get_nested_attribute_value_of_capability(root, path)
-        return nested_val.get('value')
+        nested_val = evaluate_path(root, path)
+        return nested_val
     return root
 
 
