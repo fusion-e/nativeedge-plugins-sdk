@@ -379,7 +379,8 @@ class BatchUtilsTests(unittest.TestCase):
         utils.get_attribute(
             node_id=prop[0],
             runtime_property=prop[1],
-            deployment_id=deployment_id
+            deployment_id=deployment_id,
+            path=None
         )
         assert mock.call().node_instances.list(node_id='some_node') \
             in mock_client.mock_calls
