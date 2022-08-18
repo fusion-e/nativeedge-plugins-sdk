@@ -24,7 +24,7 @@ from copy import deepcopy
 from packaging import version
 from distutils.util import strtobool
 
-from ._compat import PY2
+from ._compat import PY2, text_type
 from .constants import MASKED_ENV_VARS
 from .processes import process_execution, general_executor
 
@@ -315,7 +315,13 @@ def desecretize_client_config(config):
 
 def evaluate_path(root, path):
     value = root
-    for index, attr in enumerate(path[2:]):
+    if isinstance(path, list) and len(path) > 2:
+        # get_attribute [node, attribute, ....] returned a dict
+        targeted_path = path[2:]
+    else:
+        # in case of get_input/get_capability [attribute, ...] returned a dict
+        targeted_path = path[1:]
+    for index, attr in enumerate(targeted_path):
         if isinstance(value, dict):
             if attr not in value:
                 return None
@@ -346,6 +352,23 @@ def resolve_intrinsic_functions(prop, dep_id=None):
                 if isinstance(v, dict):
                     args[i] = resolve_intrinsic_functions(v, dep_id)
 
+    def resolve_value(result, dep_id=None):
+        # in case the resolve of the intrinsic function value has another
+        # intrinsic function try to recurse and validate
+        if isinstance(result, dict):
+            result = resolve_intrinsic_functions(result, dep_id)
+            if isinstance(result, dict):
+                for k, v in list(result.items()):
+                    if isinstance(v, dict):
+                        result[k] = resolve_intrinsic_functions(v, dep_id)
+                    elif isinstance(v, list):
+                        resolve_args(result[k], dep_id)
+        # two options either the first call result type is list
+        # or after resolving the dict
+        if isinstance(result, list):
+            resolve_args(result, dep_id)
+        return result
+
     if isinstance(prop, str):
         try:
             tmp_prop = json.loads(prop)
@@ -365,7 +388,17 @@ def resolve_intrinsic_functions(prop, dep_id=None):
             prop = prop.get('get_input')
             if isinstance(prop, dict):
                 prop = resolve_intrinsic_functions(prop, dep_id)
-            return IntrinsicFunction(prop)
+            if isinstance(prop, list):
+                input_name = prop[0]
+            else:
+                input_name = prop
+            path = None
+            if isinstance(prop, list) and len(prop) > 1:
+                path = prop
+            input = get_input(input_name, path)
+            if not isinstance(input, text_type):
+                input = resolve_value(input, dep_id)
+            return input
         if 'get_attribute' in prop:
             prop = prop.get('get_attribute')
             if isinstance(prop, dict):
@@ -374,10 +407,12 @@ def resolve_intrinsic_functions(prop, dep_id=None):
             node_id = prop[0]
             runtime_property = prop[1]
             path = None
-            if len(prop) > 2:
+            if isinstance(prop, list) and len(prop) > 2:
                 path = prop
             attribute = get_attribute(node_id, runtime_property, dep_id, path)
-            return IntrinsicFunction(attribute)
+            if not isinstance(attribute, text_type):
+                attribute = resolve_value(attribute, dep_id)
+            return attribute
         if 'get_sys' in prop:
             prop = prop.get('get_sys')
             if isinstance(prop, dict):
@@ -386,7 +421,9 @@ def resolve_intrinsic_functions(prop, dep_id=None):
             sys_type = prop[0]
             property = prop[1]
             attribute = get_sys(sys_type, property, dep_id)
-            return IntrinsicFunction(attribute)
+            if not isinstance(attribute, text_type):
+                attribute = resolve_value(attribute, dep_id)
+            return attribute
         if 'get_capability' in prop:
             prop = prop.get('get_capability')
             if isinstance(prop, dict):
@@ -395,10 +432,12 @@ def resolve_intrinsic_functions(prop, dep_id=None):
             target_dep_id = prop[0]
             capability = prop[1]
             path = None
-            if len(prop) > 2:
+            if isinstance(prop, list) and len(prop) > 2:
                 path = prop
             capability = get_capability(target_dep_id, capability, path)
-            return IntrinsicFunction(capability)
+            if not isinstance(capability, text_type):
+                capability = resolve_value(capability, dep_id)
+            return capability
         if 'get_environment_capability' in prop:
             prop = prop.get('get_environment_capability')
             if isinstance(prop, dict):
@@ -407,11 +446,13 @@ def resolve_intrinsic_functions(prop, dep_id=None):
             target_dep_id = get_label('csys-obj-parent', 0, dep_id)
             capability = prop
             path = None
-            if len(prop) > 1:
+            if isinstance(prop, list) and len(prop) > 1:
                 capability = prop[0]
                 path = prop
             capability = get_capability(target_dep_id, capability, path)
-            return IntrinsicFunction(capability)
+            if not isinstance(capability, text_type):
+                capability = resolve_value(capability, dep_id)
+            return capability
         if 'get_label' in prop:
             prop = prop.get('get_label')
             if isinstance(prop, dict):
@@ -423,7 +464,9 @@ def resolve_intrinsic_functions(prop, dep_id=None):
                 label_key = prop[0]
                 label_val_index = prop[1]
             label = get_label(label_key, label_val_index, dep_id)
-            return IntrinsicFunction(label)
+            if not isinstance(label, text_type):
+                label = resolve_value(label, dep_id)
+            return label
         if 'string_find' in prop:
             prop = prop.get('string_find')
             if isinstance(prop, dict):
@@ -514,17 +557,23 @@ def get_secret(secret_name, rest_client):
 
 
 @with_rest_client
-def get_input(input_name, rest_client):
+def get_input(input_name, path, rest_client):
     """ Get an input value for a deployment.
     :param input_name: A deployment input name.
     :type input_name: str
+    :param path: A Custom path if the input_value is a dict.
+    :type path: str
     :return: The input value.
     :rtype: Any JSON serializable type.
     """
     try:
         deployment_id = wtx_from_import.deployment.id
         deployment = rest_client.deployments.get(deployment_id)
-        return deployment.inputs.get(input_name)
+        root = deployment.inputs.get(input_name)
+        if not isinstance(root, text_type) and path:
+            nested_val = evaluate_path(root, path)
+            return nested_val
+        return root
     except CloudifyClientError as e:
         if '404' in str(e):
             raise NonRecoverableError(
@@ -552,7 +601,7 @@ def get_attribute(node_id, runtime_property, deployment_id, path, rest_client):
         if node_instance.deployment_id != deployment_id:
             continue
         root = node_instance.runtime_properties.get(runtime_property)
-        if path:
+        if not isinstance(root, text_type) and path:
             nested_val = evaluate_path(root, path)
             return nested_val
         return root
@@ -617,7 +666,7 @@ def get_capability(target_dep_id, capability, path, rest_client):
             raise NonRecoverableError(
                 'deployment [{0}] not found'.format(target_dep_id))
     root = deployment.capabilities.get(capability).get('value')
-    if path:
+    if not isinstance(root, text_type) and path:
         nested_val = evaluate_path(root, path)
         return nested_val
     return root
