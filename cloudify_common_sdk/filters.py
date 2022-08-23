@@ -203,6 +203,14 @@ def obfuscate_passwords(obj):
     but only when absolutely necessary.  If a given object does not contain
     any passwords, original is returned and deepcopy never performed.
     """
+    def is_empty_key(line):
+        if (':' in line and len(line.split(':')) == 2
+            and not line.split(':')[1]) or (
+                '=' in line and len(line.split('=')) == 2 and
+                not line.split(':')[1]):
+            return True
+        return False
+
     def obfuscate_value(matchobj):
         last_portion = matchobj.group(0).lower().replace(
             matchobj.group(1).lower(), '')
@@ -217,7 +225,11 @@ def obfuscate_passwords(obj):
             splits = matchobj.group(0).split(r'\n')
             for i, line in enumerate(splits):
                 if i < len(splits)-1:
-                    result += OBFUSCATION_RE.sub(obfuscate_value, line) + r'\n'
+                    if is_empty_key(line):
+                        result += line + r'\n'
+                    else:
+                        result += OBFUSCATION_RE.sub(obfuscate_value, line) + \
+                            r'\n'
                 else:
                     result += OBFUSCATION_RE.sub(obfuscate_value, line)
             return result
@@ -239,7 +251,7 @@ def obfuscate_passwords(obj):
         if not matchobj.group(1).endswith('""'):
             return matchobj.group(1) + OBFUSCATED_SECRET
         else:
-            return matchobj.group(1)
+            return matchobj.group(0)
 
     if isinstance(obj, (text_type, bytes,)):
         result = OBFUSCATION_RE.sub(obfuscate_value, obj)
