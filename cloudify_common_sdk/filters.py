@@ -204,27 +204,42 @@ def obfuscate_passwords(obj):
     any passwords, original is returned and deepcopy never performed.
     """
     def is_empty_key(line):
-        if (':' in line and len(line.split(':')) == 2
-            and not line.split(':')[1]) or (
-                '=' in line and len(line.split('=')) == 2 and
-                not line.split(':')[1]):
+        # check if line has empty key value
+        # case of yaml:
+        # secret: \n
+        #   some_value: test
+        key_val_line = ':' in line and len(line.split(':')) == 2 \
+            and not line.split(':')[1]
+        key_eq_val_line = '=' in line and len(line.split('=')) == 2 \
+            and not line.split('=')[1]
+        if key_val_line or key_eq_val_line:
             return True
         return False
 
     def obfuscate_value(matchobj):
+        # this method will investigate the value passed to it
+        # and decide whether to hide value or return it as is
         last_portion = matchobj.group(0).lower().replace(
             matchobj.group(1).lower(), '')
+        # we have numbers case
         re_numbers = re.compile(r'^[.0-9]+$')
+        # array of numbers
         re_bracket_numbers = re.compile(r'[[+][.0-9]+')
+        # true/false
         re_bracket_true_false = re.compile(r'[[+](true|false)')
+        # a value of $ inside helm comment
         re_dynamic = re.compile(r'^(\$|\\)')
+        # check if the value has new line
         re_new_line = re.compile(r'.*\\n')
 
+        # new line case
         if re_new_line.search(last_portion):
             result = ""
             splits = matchobj.group(0).split(r'\n')
+            # go line by line to check for values to obfuscate
             for i, line in enumerate(splits):
                 if i < len(splits)-1:
+                    # if empty key_value just skip the line
                     if is_empty_key(line):
                         result += line + r'\n'
                     else:
@@ -234,11 +249,14 @@ def obfuscate_passwords(obj):
                     result += OBFUSCATION_RE.sub(obfuscate_value, line)
             return result
 
+        # if we have numbers/array-of-numbers/array-of-true-false/dynamic-value
+        # return the value as is
         if re_numbers.search(last_portion) or \
             re_bracket_numbers.search(last_portion) or \
                 re_bracket_true_false.search(last_portion) or \
                 re_dynamic.search(last_portion):
             return matchobj.group(0)
+        # empty arrays/dict or true/false return the value as is
         last_portion = last_portion.replace(']', '')
         last_portion = last_portion.replace('}', '')
         last_portion = last_portion.replace(')', '')
@@ -248,6 +266,8 @@ def obfuscate_passwords(obj):
             last_portion.lower().endswith('false') or \
                 last_portion.lower().endswith('null'):
             return matchobj.group(0)
+
+        # check if value has text then obfuscate other than this return value
         if not matchobj.group(1).endswith('""'):
             return matchobj.group(1) + OBFUSCATED_SECRET
         else:
