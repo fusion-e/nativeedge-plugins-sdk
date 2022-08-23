@@ -19,10 +19,18 @@ import re
 
 from ._compat import text_type
 
-OBFUSCATION_KEYWORDS = ('PASSWORD', 'SECRET', 'TOKEN',)
-OBFUSCATION_RE = re.compile(
-    r'(("*)(password|secret|token)("*)(:|=)\s*("*))[^\n",]*',
-    flags=re.IGNORECASE | re.MULTILINE)
+OBFUSCATION_KEYWORDS = (
+    'TOKEN',
+    'SECRET',
+    'PASSWORD',
+    'AZURE_SECRET',
+    'AZURE_PASSWORD',
+    'AWS_ACCESS_KEY_ID',
+    'AWS_SECRET_ACCESS_KEY',
+)
+RE_STRING_ELEM = '|'.join(OBFUSCATION_KEYWORDS)
+RE_STR = r'(("*)(' + repr(RE_STRING_ELEM)[1:-1] + r')("*)(:|=)\s*("*))[^\n",]*'
+OBFUSCATION_RE = re.compile(RE_STR, flags=re.IGNORECASE | re.MULTILINE)
 OBFUSCATED_SECRET = 'x' * 16
 
 
@@ -195,7 +203,7 @@ def shorted_text(obj, size=1024):
     return text
 
 
-def obfuscate_passwords(obj):
+def obfuscate_passwords(obj, regex_string=OBFUSCATION_RE):
     """Obfuscate passwords in dictionary or list of dictionaries.
 
     Returns a copy of original object with elements potentially containing
@@ -243,10 +251,10 @@ def obfuscate_passwords(obj):
                     if is_empty_key(line):
                         result += line + r'\n'
                     else:
-                        result += OBFUSCATION_RE.sub(obfuscate_value, line) + \
+                        result += regex_string.sub(obfuscate_value, line) + \
                             r'\n'
                 else:
-                    result += OBFUSCATION_RE.sub(obfuscate_value, line)
+                    result += regex_string.sub(obfuscate_value, line)
             return result
 
         # if we have numbers/array-of-numbers/array-of-true-false/dynamic-value
@@ -274,7 +282,7 @@ def obfuscate_passwords(obj):
             return matchobj.group(0)
 
     if isinstance(obj, (text_type, bytes,)):
-        result = OBFUSCATION_RE.sub(obfuscate_value, obj)
+        result = regex_string.sub(obfuscate_value, obj)
         if isinstance(obj, text_type) and obj.endswith('\n'):
             result = result + '\n'
         return result
