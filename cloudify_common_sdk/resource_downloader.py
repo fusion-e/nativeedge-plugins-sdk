@@ -111,22 +111,28 @@ def get_http_https_resource(source_path,
         content_type = h.headers.get('content-type')
         file_type = \
             mimetypes.guess_extension(content_type, False) or ""
+    bare_url, *query_string = source_path.split('?')
+    file_name = bare_url.rsplit('/', 1)[1]
     auth = None
     if username:
         auth = (username, password)
+    # special handle for tf.json file type
+    if file_type == 'json' and file_name.endswith('tf.json'):
+        file_type = 'tf.json'
+    suffix = ".{0}".format(file_type)
     with requests.get(source_path,
                       allow_redirects=True,
                       stream=True,
                       auth=auth) as response:
         response.raise_for_status()
         with tempfile.NamedTemporaryFile(
-                suffix=file_type, dir=dir, delete=False) \
+                suffix=suffix, dir=dir, delete=False) \
                 as source_temp:
             tmp_path = source_temp.name
             for chunk in \
                     response.iter_content(chunk_size=None):
                 source_temp.write(chunk)
-    if file_type.endswith('zip'):
+    if file_type == 'zip':
         unzipped_path = unzip_archive(tmp_path)
         os.remove(tmp_path)
         return unzipped_path
@@ -134,6 +140,10 @@ def get_http_https_resource(source_path,
         unzipped_path = untar_archive(tmp_path)
         os.remove(tmp_path)
         return unzipped_path
+    elif file_type == 'tf.json':
+        file_path = "{0}/{1}".format(os.path.dirname(tmp_path), file_name)
+        os.rename(tmp_path, file_path)
+        tmp_path = file_path
     return tmp_path
 
 
