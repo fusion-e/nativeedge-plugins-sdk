@@ -68,7 +68,7 @@ def resolve_props(value, deployment_id):
             new_value.append(resolve_props(item, deployment_id))
         return new_value
     else:
-        return value
+        return resolved_value
 
 
 def store_property(_ctx, property_name, value, target):
