@@ -1,4 +1,5 @@
 releases:
+  v0.0.86: Return the correct resolved value of properties.
   v0.0.85: Name the downloaded resources with proper-suffix.
   v0.0.84: Add more keys to obfuscation.
   v0.0.83: Handle Obfuscation case from helm output.
