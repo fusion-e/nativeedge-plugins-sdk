@@ -1,4 +1,5 @@
 import os
+import shutil
 import zipfile
 import requests
 import tempfile
@@ -35,6 +36,10 @@ def unzip_archive(archive_path, skip_parent_directory=True):
                     os.chmod(reset_target, info.external_attr >> 16)
         if skip_parent_directory:
             into_dir = _handle_parent_directory(into_dir)
+    except zipfile.BadZipFile as e:
+        # clean up that temp directory and raise the exception
+        shutil.rmtree(into_dir)
+        raise e
     finally:
         if zip_in:
             zip_in.close()
@@ -50,6 +55,10 @@ def untar_archive(archive_path, skip_parent_directory=True):
         tar_in.extractall(into_dir)
         if skip_parent_directory:
             into_dir = _handle_parent_directory(into_dir)
+    except tarfile.TarError as e:
+        # clean up that temp directory and raise the exception
+        shutil.rmtree(into_dir)
+        raise e
     finally:
         if tar_in:
             tar_in.close()
