@@ -551,7 +551,7 @@ class CommonSDKSecret(IntrinsicFunction):
             if isinstance(value, list) and len(value) > 1:
                 secret_key = value[0]
                 path = value
-                # just to fool the path evaluate logic , since checks length
+                # just to fool the path evaluate logic , since it checks length
                 path.insert(0, secret_key)
             else:
                 secret_key = value
