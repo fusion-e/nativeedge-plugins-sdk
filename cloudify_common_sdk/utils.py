@@ -338,6 +338,31 @@ def evaluate_path(root, path):
     return value
 
 
+def resolve_args(args, dep_id=None):
+    if isinstance(args, list):
+        for i, v in enumerate(args):
+            if isinstance(v, dict):
+                args[i] = resolve_intrinsic_functions(v, dep_id)
+
+
+def resolve_value(result, dep_id=None):
+    # in case the resolve of the intrinsic function value has another
+    # intrinsic function try to recurse and validate
+    if isinstance(result, dict):
+        result = resolve_intrinsic_functions(result, dep_id)
+        if isinstance(result, dict):
+            for k, v in list(result.items()):
+                if isinstance(v, dict):
+                    result[k] = resolve_intrinsic_functions(v, dep_id)
+                elif isinstance(v, list):
+                    resolve_args(result[k], dep_id)
+    # two options either the first call result type is list
+    # or after resolving the dict
+    if isinstance(result, list):
+        resolve_args(result, dep_id)
+    return result
+
+
 def resolve_intrinsic_functions(prop, dep_id=None):
     """ Resolve intrinsic functions for node properties\
     in rest client responses.
@@ -346,28 +371,6 @@ def resolve_intrinsic_functions(prop, dep_id=None):
     :return: The resolved property value from intrinsic function.
     :rtype: Any JSON serializable value.
     """
-    def resolve_args(args, dep_id=None):
-        if isinstance(args, list):
-            for i, v in enumerate(args):
-                if isinstance(v, dict):
-                    args[i] = resolve_intrinsic_functions(v, dep_id)
-
-    def resolve_value(result, dep_id=None):
-        # in case the resolve of the intrinsic function value has another
-        # intrinsic function try to recurse and validate
-        if isinstance(result, dict):
-            result = resolve_intrinsic_functions(result, dep_id)
-            if isinstance(result, dict):
-                for k, v in list(result.items()):
-                    if isinstance(v, dict):
-                        result[k] = resolve_intrinsic_functions(v, dep_id)
-                    elif isinstance(v, list):
-                        resolve_args(result[k], dep_id)
-        # two options either the first call result type is list
-        # or after resolving the dict
-        if isinstance(result, list):
-            resolve_args(result, dep_id)
-        return result
 
     if isinstance(prop, str):
         try:
@@ -382,7 +385,7 @@ def resolve_intrinsic_functions(prop, dep_id=None):
             prop = prop.get('get_secret')
             if isinstance(prop, dict):
                 prop = resolve_intrinsic_functions(prop, dep_id)
-            secret = CommonSDKSecret(prop)
+            secret = CommonSDKSecret(prop, dep_id)
             return secret
         if 'get_input' in prop:
             prop = prop.get('get_input')
@@ -540,8 +543,29 @@ class CommonSDKSecret(IntrinsicFunction):
     def __new__(cls, value, *_, **__):
         return super().__new__(cls, json.dumps({'get_secret': value}))
 
-    def __init__(self, value):
-        self.secret = get_secret(value)
+    def __init__(self, value, dep_id):
+        if isinstance(value, list):
+            resolve_args(value, dep_id)
+            secret_key = None
+            path = None
+            if isinstance(value, list) and len(value) > 1:
+                secret_key = value[0]
+                path = value
+                # just to fool the path evaluate logic , since checks length
+                path.insert(0, secret_key)
+            else:
+                secret_key = value
+            secret_value = get_secret(secret_key)
+            if path:
+                # json.loads because secrets are stored as strings :(
+                try:
+                    secret_value = json.loads(secret_value)
+                except json.decoder.JSONDecodeError:
+                    pass
+                secret_value = evaluate_path(secret_value, path)
+            self.secret = secret_value
+        else:
+            self.secret = get_secret(value)
 
 
 @with_rest_client

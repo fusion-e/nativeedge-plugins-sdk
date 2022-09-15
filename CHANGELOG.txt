@@ -1,4 +1,5 @@
 releases:
+  v0.0.88: Add support for complex get_secret.
   v0.0.87: Handle Some cleanup of temp directories in case of Exception.
   v0.0.86: Return the correct resolved value of properties.
   v0.0.85: Name the downloaded resources with proper-suffix.
