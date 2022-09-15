@@ -60,7 +60,7 @@ class GeneralExecutor(object):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             stdin=subprocess.PIPE,
-            env=env,
+            env=self.desecretize_env(env),
             cwd=cwd,
             bufsize=48,
             close_fds=on_posix)
@@ -73,6 +73,15 @@ class GeneralExecutor(object):
         self.state_changes = 0
         self.log_stdout = log_stdout
         self.log_stderr = log_stderr
+
+    @staticmethod
+    def desecretize_env(env):
+        for k, v in env.items():
+            try:
+                env[k] = v.secret
+            except AttributeError:
+                env[k] = v
+        return env
 
     def _emit_log_message(self, message, prefix=None, logger=None):
         logger = logger or self.logger.info
