@@ -454,7 +454,7 @@ def resolve_intrinsic_functions(prop, dep_id=None):
                 path = prop
             capability = get_capability(target_dep_id, capability, path)
             if not isinstance(capability, text_type):
-                capability = resolve_value(capability, dep_id)
+                capability = resolve_value(capability, target_dep_id)
             return capability
         if 'get_label' in prop:
             prop = prop.get('get_label')
