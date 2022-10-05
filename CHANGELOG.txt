@@ -1,4 +1,5 @@
 releases:
+  v0.0.90: Pass correct node_instace_dir for git download.
   v0.0.89: Pass parent id to resolve get_environment_capability intrinsic functions.
   v0.0.88: Add support for complex get_secret.
   v0.0.87: Handle Some cleanup of temp directories in case of Exception.

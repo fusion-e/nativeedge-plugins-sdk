@@ -184,7 +184,7 @@ def get_shared_resource(source_path, dir=None, username=None, password=None):
             source_path, tag_name = source_path.split("?ref=")
         tmp_path = get_git_repo(source_path, tag_name, dir, username, password)
     elif "git@" in source_path:
-        tmp_path = get_git_repo(source_path)
+        tmp_path = get_git_repo(source_path, dir=dir)
     elif schema in ['http', 'https']:
         file_type = get_file_type_from_url(source_path)
         if file_type == 'git':
