@@ -20,7 +20,7 @@ import json
 import tarfile
 import zipfile
 from time import sleep
-from copy import deepcopy
+from copy import copy, deepcopy
 from packaging import version
 from distutils.util import strtobool
 
@@ -127,6 +127,12 @@ def with_rest_client(func):
 def get_node(deployment_id, node_id, rest_client):
     return rest_client.nodes.get(
         deployment_id, node_id, evaluate_functions=False)
+
+
+@with_rest_client
+def get_node_evaluated(deployment_id, node_id, rest_client):
+    return rest_client.nodes.get(
+        deployment_id, node_id, evaluate_functions=True)
 
 
 @with_rest_client
@@ -568,6 +574,55 @@ class CommonSDKSecret(IntrinsicFunction):
             self.secret = get_secret(value)
 
 
+def deep_comp(o1, o2):
+    # NOTE: dict don't have __dict__
+    o1d = getattr(o1, '__dict__', None)
+    o2d = getattr(o2, '__dict__', None)
+
+    # if both are objects
+    if o1d is not None and o2d is not None:
+        # we will compare their dictionaries
+        o1, o2 = o1.__dict__, o2.__dict__
+
+    if o1 is not None and o2 is not None:
+        # if both are dictionaries, we will compare each key
+        if isinstance(o1, dict) and isinstance(o2, dict):
+            for k in set().union(o1.keys(), o2.keys()):
+                if k in o1 and k in o2:
+                    if not deep_comp(o1[k], o2[k]):
+                        return False
+                else:
+                    return False  # some key missing
+            return True
+    # mismatched object types or both are scalers, or one or both None
+    return o1 == o2
+
+
+def find_path(result, path, dict_obj, key, value, i=None):
+    for k, v in dict_obj.items():
+        # add key to path
+        path.append(k)
+        if isinstance(v, dict):
+            # continue searching
+            find_path(result, path, v, key, value, i)
+        if isinstance(v, list):
+            # search through list of dictionaries
+            for i, item in enumerate(v):
+                # add the index of list that item dict is part of, to path
+                path.append(i)
+                if isinstance(item, dict):
+                    # continue searching in item dict
+                    find_path(result, path, item, key, value, i)
+                # if here, the last added index was incorrect, remove it
+                path.pop()
+        if k == key and v == value:
+            # add path to our result
+            result.append(copy(path))
+        # remove the key added in the first line
+        if path != []:
+            path.pop()
+
+
 @with_rest_client
 def get_secret(secret_name, rest_client):
     """ Get an secret's value.
@@ -577,6 +632,29 @@ def get_secret(secret_name, rest_client):
     :rtype: str
     """
     secret = rest_client.secrets.get(secret_name)
+    # in case we have hidden value [jump through hoops to get the value]
+    # reason for that , if the belongs to another user and the user
+    # executing the worklow is not an admin rest will return empty value,
+    # but in general the node would still have the correct value
+    if secret.value == '':
+        # so we go and get the node one time hidden and the other evaluated
+        node_id = ctx_from_import.node.id
+        dep_id = ctx_from_import.deployment.id
+        hidden_node = get_node(dep_id, node_id).properties
+        eval_node = get_node_evaluated(dep_id, node_id).properties
+        # compare if we have difference, and in case of secrets they will
+        # certainly be then we call find path since we know the structure
+        # {"get_secret": secret_name} , and we just get the value from
+        # the evaluated node that has the value
+        result = deep_comp(hidden_node, eval_node)
+        if not result:
+            result = []
+            path = []
+            secret_value = eval_node
+            find_path(result, path, hidden_node, 'get_secret', secret_name)
+            for k in result[0][:-1]:
+                secret_value = secret_value.get(k)
+            return secret_value
     return secret.value
 
 
