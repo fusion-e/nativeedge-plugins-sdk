@@ -561,17 +561,21 @@ class CommonSDKSecret(IntrinsicFunction):
                 path.insert(0, secret_key)
             else:
                 secret_key = value
-            secret_value = get_secret(secret_key)
+            secret_value = get_secret(secret_key, value)
             if path:
                 # json.loads because secrets are stored as strings :(
                 try:
                     secret_value = json.loads(secret_value)
                 except json.decoder.JSONDecodeError:
                     pass
-                secret_value = evaluate_path(secret_value, path)
+                # evaluate path only if the secret is not str
+                # this introduced because at some cases we are getting
+                # the evaluated secret already
+                if not isinstance(secret_value, str):
+                    secret_value = evaluate_path(secret_value, path)
             self.secret = secret_value
         else:
-            self.secret = get_secret(value)
+            self.secret = get_secret(value, None)
 
 
 def deep_comp(o1, o2):
@@ -615,6 +619,8 @@ def find_path(result, path, dict_obj, key, value, i=None):
                     find_path(result, path, item, key, value, i)
                 # if here, the last added index was incorrect, remove it
                 path.pop()
+        # one more note about the value the secret_value could be list
+        # as the secret is JSON structure or list
         if k == key and v == value:
             # add path to our result
             result.append(copy(path))
@@ -624,10 +630,12 @@ def find_path(result, path, dict_obj, key, value, i=None):
 
 
 @with_rest_client
-def get_secret(secret_name, rest_client):
+def get_secret(secret_name, path, rest_client):
     """ Get an secret's value.
-    :param input_name: A secret name.
-    :type input_name: str
+    :param secret_name: A secret name.
+    :type secret_name: str
+    :param path: A secret path if it contains JSON format.
+    :type path: list
     :return: The secret property value.
     :rtype: str
     """
@@ -649,9 +657,16 @@ def get_secret(secret_name, rest_client):
         result = deep_comp(hidden_node, eval_node)
         if not result:
             result = []
-            path = []
+            trace_path = []
             secret_value = eval_node
-            find_path(result, path, hidden_node, 'get_secret', secret_name)
+            if path is None:
+                path = secret_name
+            elif path and secret_name != path:
+                # let's pop the first element that we injected for eval_path
+                # so it will match the hidden node structure when looking for
+                # the evaluated path
+                path.pop(0)
+            find_path(result, trace_path, hidden_node, 'get_secret', path)
             for k in result[0][:-1]:
                 secret_value = secret_value.get(k)
             return secret_value
