@@ -369,7 +369,7 @@ class BatchUtilsTests(unittest.TestCase):
     @mock.patch('cloudify_common_sdk.utils.get_rest_client')
     def test_get_secret(self, mock_client):
         prop = 'bar'
-        utils.get_secret(secret_name=prop)
+        utils.get_secret(secret_name=prop, path=None)
         assert mock.call().secrets.get('bar') in mock_client.mock_calls
 
     @mock.patch('cloudify_common_sdk.utils.get_rest_client')
