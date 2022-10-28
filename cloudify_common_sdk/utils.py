@@ -623,6 +623,8 @@ def find_path(result, path, dict_obj, key, value, i=None):
         # as the secret is JSON structure or list
         if k == key and v == value:
             # add path to our result
+            # removing the last key as it is what we are looking for
+            path.pop()
             result.append(copy(path))
         # remove the key added in the first line
         if path != []:
@@ -630,7 +632,7 @@ def find_path(result, path, dict_obj, key, value, i=None):
 
 
 @with_rest_client
-def get_secret(secret_name, path, rest_client):
+def get_secret(secret_name=None, path=None, rest_client=None):
     """ Get an secret's value.
     :param secret_name: A secret name.
     :type secret_name: str
@@ -646,17 +648,20 @@ def get_secret(secret_name, path, rest_client):
     # but in general the node would still have the correct value
     if secret.value == '':
         # so we go and get the node one time hidden and the other evaluated
-        node_id = ctx_from_import.node.id
-        dep_id = ctx_from_import.deployment.id
-        hidden_node = get_node(dep_id, node_id).properties
-        eval_node = get_node_evaluated(dep_id, node_id).properties
+        hidden_node = get_node(ctx_from_import.deployment.id,
+                               ctx_from_import.node.id).properties
+        eval_node = get_node_evaluated(ctx_from_import.deployment.id,
+                                       ctx_from_import.node.id).properties
         # compare if we have difference, and in case of secrets they will
         # certainly be then we call find path since we know the structure
         # {"get_secret": secret_name} , and we just get the value from
         # the evaluated node that has the value
-        result = deep_comp(hidden_node, eval_node)
-        if not result:
+        hidden_eq_eval = deep_comp(hidden_node, eval_node)
+        if not hidden_eq_eval:
+            # result will be holding the traversale path
             result = []
+            # trace_path is just a temp-like global list to keep track
+            # of the finiding progress
             trace_path = []
             secret_value = eval_node
             if path is None:
@@ -667,7 +672,7 @@ def get_secret(secret_name, path, rest_client):
                 # the evaluated path
                 path.pop(0)
             find_path(result, trace_path, hidden_node, 'get_secret', path)
-            for k in result[0][:-1]:
+            for k in result[0]:
                 secret_value = secret_value.get(k)
             return secret_value
     return secret.value
