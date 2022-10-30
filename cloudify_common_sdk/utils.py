@@ -20,7 +20,7 @@ import json
 import tarfile
 import zipfile
 from time import sleep
-from copy import deepcopy
+from copy import copy, deepcopy
 from packaging import version
 from distutils.util import strtobool
 
@@ -127,6 +127,12 @@ def with_rest_client(func):
 def get_node(deployment_id, node_id, rest_client):
     return rest_client.nodes.get(
         deployment_id, node_id, evaluate_functions=False)
+
+
+@with_rest_client
+def get_node_evaluated(deployment_id, node_id, rest_client):
+    return rest_client.nodes.get(
+        deployment_id, node_id, evaluate_functions=True)
 
 
 @with_rest_client
@@ -555,28 +561,120 @@ class CommonSDKSecret(IntrinsicFunction):
                 path.insert(0, secret_key)
             else:
                 secret_key = value
-            secret_value = get_secret(secret_key)
+            secret_value = get_secret(secret_key, value)
             if path:
                 # json.loads because secrets are stored as strings :(
                 try:
                     secret_value = json.loads(secret_value)
                 except json.decoder.JSONDecodeError:
                     pass
-                secret_value = evaluate_path(secret_value, path)
+                # evaluate path only if the secret is not str
+                # this introduced because at some cases we are getting
+                # the evaluated secret already
+                if not isinstance(secret_value, str):
+                    secret_value = evaluate_path(secret_value, path)
             self.secret = secret_value
         else:
-            self.secret = get_secret(value)
+            self.secret = get_secret(value, None)
+
+
+def deep_comp(o1, o2):
+    # NOTE: dict don't have __dict__
+    o1d = getattr(o1, '__dict__', None)
+    o2d = getattr(o2, '__dict__', None)
+
+    # if both are objects
+    if o1d is not None and o2d is not None:
+        # we will compare their dictionaries
+        o1, o2 = o1.__dict__, o2.__dict__
+
+    if o1 is not None and o2 is not None:
+        # if both are dictionaries, we will compare each key
+        if isinstance(o1, dict) and isinstance(o2, dict):
+            for k in set().union(o1.keys(), o2.keys()):
+                if k in o1 and k in o2:
+                    if not deep_comp(o1[k], o2[k]):
+                        return False
+                else:
+                    return False  # some key missing
+            return True
+    # mismatched object types or both are scalers, or one or both None
+    return o1 == o2
+
+
+def find_path(result, path, dict_obj, key, value, i=None):
+    for k, v in dict_obj.items():
+        # add key to path
+        path.append(k)
+        if isinstance(v, dict):
+            # continue searching
+            find_path(result, path, v, key, value, i)
+        if isinstance(v, list):
+            # search through list of dictionaries
+            for i, item in enumerate(v):
+                # add the index of list that item dict is part of, to path
+                path.append(i)
+                if isinstance(item, dict):
+                    # continue searching in item dict
+                    find_path(result, path, item, key, value, i)
+                # if here, the last added index was incorrect, remove it
+                path.pop()
+        # one more note about the value the secret_value could be list
+        # as the secret is JSON structure or list
+        if k == key and v == value:
+            # add path to our result
+            # removing the last key as it is what we are looking for
+            path.pop()
+            result.append(copy(path))
+        # remove the key added in the first line
+        if path != []:
+            path.pop()
 
 
 @with_rest_client
-def get_secret(secret_name, rest_client):
+def get_secret(secret_name=None, path=None, rest_client=None):
     """ Get an secret's value.
-    :param input_name: A secret name.
-    :type input_name: str
+    :param secret_name: A secret name.
+    :type secret_name: str
+    :param path: A secret path if it contains JSON format.
+    :type path: list
     :return: The secret property value.
     :rtype: str
     """
     secret = rest_client.secrets.get(secret_name)
+    # in case we have hidden value [jump through hoops to get the value]
+    # reason for that , if the belongs to another user and the user
+    # executing the worklow is not an admin rest will return empty value,
+    # but in general the node would still have the correct value
+    if secret.value == '':
+        # so we go and get the node one time hidden and the other evaluated
+        hidden_node = get_node(ctx_from_import.deployment.id,
+                               ctx_from_import.node.id).properties
+        eval_node = get_node_evaluated(ctx_from_import.deployment.id,
+                                       ctx_from_import.node.id).properties
+        # compare if we have difference, and in case of secrets they will
+        # certainly be then we call find path since we know the structure
+        # {"get_secret": secret_name} , and we just get the value from
+        # the evaluated node that has the value
+        hidden_eq_eval = deep_comp(hidden_node, eval_node)
+        if not hidden_eq_eval:
+            # result will be holding the traversale path
+            result = []
+            # trace_path is just a temp-like global list to keep track
+            # of the finiding progress
+            trace_path = []
+            secret_value = eval_node
+            if path is None:
+                path = secret_name
+            elif path and secret_name != path:
+                # let's pop the first element that we injected for eval_path
+                # so it will match the hidden node structure when looking for
+                # the evaluated path
+                path.pop(0)
+            find_path(result, trace_path, hidden_node, 'get_secret', path)
+            for k in result[0]:
+                secret_value = secret_value.get(k)
+            return secret_value
     return secret.value
 
 
