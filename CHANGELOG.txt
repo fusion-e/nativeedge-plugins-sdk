@@ -1,4 +1,5 @@
 releases:
+  v0.0.92: Obfuscate authorization keyword.
   v0.0.91: Fix an issue with hidden value secret in case of other user.
   v0.0.90: Pass correct node_instace_dir for git download.
   v0.0.89: Pass parent id to resolve get_environment_capability intrinsic functions.
