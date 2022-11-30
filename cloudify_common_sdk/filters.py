@@ -20,6 +20,7 @@ import re
 from ._compat import text_type
 
 OBFUSCATION_KEYWORDS = (
+    'AUTHORIZATION',
     'TOKEN',
     'SECRET',
     'PASSWORD',
