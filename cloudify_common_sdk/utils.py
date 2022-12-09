@@ -521,11 +521,24 @@ def resolve_intrinsic_functions(prop, dep_id=None):
             return prop.upper()
         if 'concat' in prop:
             result = ''
+            # store the value in tmp due to logic where we have
+            # get_secert inside concat if we just append to the
+            # string we would lose the CommonSDKSecret type
+            tmp_result = ''
             prop = prop.get('concat')
+            has_get_secert = False
             for v in prop:
                 if isinstance(v, dict):
                     v = resolve_intrinsic_functions(v, dep_id)
+                # return secret as it would be the value we want
+                if isinstance(v, IntrinsicFunction):
+                    has_get_secert = True
+                    tmp_result += v.secret
+                else:
+                    tmp_result += str(v)
                 result += str(v)
+            if has_get_secert:
+                result = tmp_result
             return result
         if 'merge' in prop:
             result = {}
@@ -533,7 +546,11 @@ def resolve_intrinsic_functions(prop, dep_id=None):
             for i in prop:
                 if isinstance(prop, dict):
                     prop[i] = resolve_intrinsic_functions(prop[i], dep_id)
-                result.update(prop[i])
+                # return secret as it would be the value we want
+                if isinstance(v, IntrinsicFunction):
+                    result.update(prop[i].secret)
+                else:
+                    result.update(prop[i])
             return result
     return prop
 
