@@ -57,8 +57,22 @@ commands:
           at: workspace
       - run: ecosystem-tests package-release --name cloudify-utilities-plugin-sdk
 
+  release_sdk_to_pypi:
+    steps:
+      - run:
+          name: "Trigger upload to pypi job"
+          command: |
+           curl $JENKINS_URL \
+           --user $JENKINS_USER:$JENKINS_TOKEN \
+           --data BRANCH=master \
+           --data GITHUB_PROJECT_URL=$GH_REPO
 
 jobs:
+
+  release_sdk_to_pypi:
+    executor: py36
+    steps:
+      - release_sdk_to_pypi
 
 workflows:
   version: 2
@@ -67,6 +81,14 @@ workflows:
       - node/check_py3_compat_job
       - node/unittests_job
       - releaseorb/release:
+          filters:
+            branches:
+              only: /master/
+          requires:
+            - node/unittests_job
+      - release_sdk_to_pypi:
+          context:
+            - cloudify-utilities-plugins-sdk
           filters:
             branches:
               only: /master/
