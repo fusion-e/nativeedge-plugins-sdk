@@ -85,7 +85,9 @@ def get_git_repo(source_path,
             updated_url = '{}://{}{}'.format(
                 schema, auth_url_part, split[1])
             source_path = updated_url
-        git.Repo.clone_from(source_path, tmp_path, **kwargs)
+        repo = git.Repo.clone_from(source_path, tmp_path, **kwargs)
+        for submodule in repo.submodules:
+            submodule.update(init=True)
     except git.exc.GitCommandError as e:
         if "Permission denied" in str(e):
             raise NonRecoverableError(
