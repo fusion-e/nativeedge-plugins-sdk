@@ -1,4 +1,5 @@
 releases:
+  v0.0.95: Kubernetes SDK
   v0.0.94: Add support for git submodules to resource downloader
   v0.0.93: Make Concat and Merge handle secure property logic.
   v0.0.92: Obfuscate authorization keyword.
