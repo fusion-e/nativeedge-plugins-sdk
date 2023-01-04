@@ -21,6 +21,7 @@ from cloudify import ctx as ctx_from_import
 # get_stored_property)
 
 from .utils import (
+    get_host,
     get_auth_token,
     get_ssl_ca_file,
     get_kubeconfig_file,
@@ -64,11 +65,13 @@ def with_connection_details(fn):
         ca_file = get_ssl_ca_file(
             client_config, shared_cluster.get('ssl_ca_cert'))
         token = get_auth_token(client_config, shared_cluster.get('api_key'))
+        host = get_host(client_config, shared_cluster.get('host'))
         kwargs.update(
             {
                 'kubeconfig': kubeconfig,
                 'ca_file': ca_file,
                 'token': token,
+                'host': host,
             }
         )
         try:
