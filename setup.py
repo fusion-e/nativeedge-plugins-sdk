@@ -17,7 +17,7 @@ import setuptools
 
 setuptools.setup(
     name='cloudify-utilities-plugins-sdk',
-    version='0.0.95',
+    version='0.0.96',
     author='Cloudify Platform Ltd.',
     author_email='hello@cloudify.co',
     description='Utilities SDK for extending Cloudify',
@@ -35,10 +35,7 @@ setuptools.setup(
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
     ],
-    packages=['cloudify_common_sdk',
-              'cloudify_rest_sdk',
-              'cloudify_kubernetes_sdk',
-              'cloudify_terminal_sdk'],
+    packages=setuptools.find_packages(),
     install_requires=[
         'cloudify-common>=4.5.5',
         'paramiko>=2.7.1',  # terminal
