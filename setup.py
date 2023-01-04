@@ -17,7 +17,7 @@ import setuptools
 
 setuptools.setup(
     name='cloudify-utilities-plugins-sdk',
-    version='0.0.94',
+    version='0.0.95',
     author='Cloudify Platform Ltd.',
     author_email='hello@cloudify.co',
     description='Utilities SDK for extending Cloudify',
@@ -37,6 +37,7 @@ setuptools.setup(
     ],
     packages=['cloudify_common_sdk',
               'cloudify_rest_sdk',
+              'cloudify_kubernetes_sdk',
               'cloudify_terminal_sdk'],
     install_requires=[
         'cloudify-common>=4.5.5',
@@ -50,5 +51,7 @@ setuptools.setup(
         "GitPython",  # shared download resource
         'psutil',
         'packaging',
+        'kubernetes==v25.3.0',
+        'google-auth==2.15.0',
     ]
 )
