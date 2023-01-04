@@ -144,7 +144,6 @@ def get_auth_token(client_config, token_from_shared_cluster):
         API_OPTIONS, {}).get(API_KEY)
     if api_key:
         return api_key
-
     authentication_property = client_config.get(AUTHENTICATION, {})
     return token_from_shared_cluster or KubernetesApiAuthenticationVariants(
         ctx_from_import.logger,
