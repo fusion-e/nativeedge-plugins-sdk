@@ -39,8 +39,9 @@ CERT_KEYS = ['ssl_ca_cert', 'cert_file', 'key_file', 'ca_file']
 
 def setup_configuration(**kwargs):
     if 'kubeconfig' in kwargs:
+        if isinstance(kwargs['kubeconfig'], client.Configuration):
+            return client.ApiClient(kwargs['kubeconfig'])
         return config.load_kube_config(kwargs['kubeconfig'])
-
     configuration = client.Configuration()
     if 'host' in kwargs:
         configuration.host = kwargs['host']
@@ -48,7 +49,11 @@ def setup_configuration(**kwargs):
         configuration.api_key = {
             'authorization': 'Bearer ' + kwargs['api_key']
         }
-    return configuration
+    elif 'token' in kwargs:
+        configuration.api_key = {
+            'authorization': 'Bearer ' + kwargs['token']
+        }
+    return client.ApiClient(configuration)
 
 
 def with_connection_details(fn):
@@ -58,14 +63,14 @@ def with_connection_details(fn):
         client_config = ctx.node.properties.get(config_key)
         # TODO: Logic when to use stored property
         shared_cluster = get_connection_details_from_shared_cluster()
+        token = get_auth_token(client_config, shared_cluster.get('api_key'))
+        host = get_host(client_config, shared_cluster.get('host'))
         kubeconfig = get_kubeconfig_file(
             client_config,
             ctx.logger,
             ctx.download_resource)
         ca_file = get_ssl_ca_file(
             client_config, shared_cluster.get('ssl_ca_cert'))
-        token = get_auth_token(client_config, shared_cluster.get('api_key'))
-        host = get_host(client_config, shared_cluster.get('host'))
         kwargs.update(
             {
                 'kubeconfig': kubeconfig,
@@ -78,7 +83,7 @@ def with_connection_details(fn):
             fn(**kwargs)
         except Exception as e:
             debug = client_config.get('debug')
-            if kubeconfig and not debug:
+            if kubeconfig and isinstance(kubeconfig, str) and not debug:
                 os.remove(kubeconfig)
             if isinstance(ca_file, str) and not debug:
                 os.remove(ca_file)
