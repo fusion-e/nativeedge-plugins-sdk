@@ -17,6 +17,7 @@ import os
 import yaml
 import tempfile
 from shutil import copyfile
+from kubernetes.client import Configuration
 
 from ..exceptions import CloudifyKubernetesSDKException
 
@@ -110,6 +111,37 @@ class FileContentConfiguration(KubernetesConfiguration):
         return None
 
 
+class ApiOptionsConfiguration(KubernetesConfiguration):
+    API_OPTIONS_KEY = 'api_options'
+    API_OPTIONS_HOST_KEY = 'host'
+    API_OPTIONS_ALL_KEYS = ['host', 'ssl_ca_cert', 'cert_file', 'key_file',
+                            'verify_ssl', 'api_key', 'debug']
+
+    def get_kubeconfig(self):
+        if self.API_OPTIONS_KEY in self.configuration_data:
+            api_options = self.configuration_data[self.API_OPTIONS_KEY]
+
+            if self.API_OPTIONS_HOST_KEY not in api_options:
+                return None
+            else:
+                api_options[self.API_OPTIONS_HOST_KEY] = \
+                    api_options[self.API_OPTIONS_HOST_KEY].rstrip('/')
+
+            configuration = Configuration()
+
+            for key in self.API_OPTIONS_ALL_KEYS:
+                if key in api_options:
+                    # Update the api_key value in order to use on the header
+                    #  api request
+                    if key == 'api_key':
+                        api_options[key] =\
+                            {"authorization":
+                                "Bearer {0}".format(api_options[key])}
+                    setattr(configuration, key, api_options[key])
+            return configuration
+        return None
+
+
 class KubeConfigConfigurationVariants(KubernetesConfiguration):
     """
         This class responsible for try to get the kubeconf in every method
@@ -118,7 +150,9 @@ class KubeConfigConfigurationVariants(KubernetesConfiguration):
     VARIANTS = (
         BlueprintFileConfiguration,
         ManagerFilePathConfiguration,
-        FileContentConfiguration,)
+        FileContentConfiguration,
+        ApiOptionsConfiguration,
+    )
 
     def get_kubeconfig(self):
         return self._get_kubeconfig()
