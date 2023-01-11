@@ -1,4 +1,5 @@
 releases:
+  v0.0.99: Enforce submodules init in resource downloader.
   v0.0.98: Support GCP in K8s SDK.
   v0.0.97: Add host to kube sdk decorator.
   v0.0.96: Use setuptools.find_packages in setup.py.

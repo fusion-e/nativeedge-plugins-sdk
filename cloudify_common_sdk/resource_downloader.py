@@ -79,15 +79,11 @@ def get_git_repo(source_path,
         if tag_name:
             kwargs["branch"] = tag_name
         if username:
-            auth_url_part = ''
-            if username:
-                auth_url_part = '{}:{}@'.format(username, password)
+            auth_url_part = '{}:{}@'.format(username, password)
             updated_url = '{}://{}{}'.format(
                 schema, auth_url_part, split[1])
             source_path = updated_url
-        repo = git.Repo.clone_from(source_path, tmp_path, **kwargs)
-        for submodule in repo.submodules:
-            submodule.update(init=True)
+        git_clone(git, source_path, tmp_path, kwargs)
     except git.exc.GitCommandError as e:
         if "Permission denied" in str(e):
             raise NonRecoverableError(
@@ -100,7 +96,7 @@ def get_git_repo(source_path,
             host = source_path[host_beginning: host_end]
             os.system("ssh-keyscan -t rsa {} >> ~/.ssh/known_hosts"
                       .format(host))
-            git.Repo.clone_from(source_path, tmp_path, **kwargs)
+            git_clone(git, source_path, tmp_path, kwargs)
         else:
             raise NonRecoverableError(e)
     except ImportError:
@@ -109,6 +105,14 @@ def get_git_repo(source_path,
             "on your manager and accessible in the management "
             "user's path.")
     return tmp_path
+
+
+def git_clone(git, source_path, tmp_path, kwargs):
+    repo = git.Repo.clone_from(source_path, tmp_path, **kwargs)
+    for submodule in repo.submodules:
+        # force needed in case there are folders already in the repo otherwise
+        # it initiates the submodule but says that all files were deleted
+        submodule.update(init=True, recursive=True, force=True)
 
 
 def get_http_https_resource(source_path,
