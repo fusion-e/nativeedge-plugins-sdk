@@ -109,10 +109,7 @@ def get_git_repo(source_path,
 
 def git_clone(git, source_path, tmp_path, kwargs):
     repo = git.Repo.clone_from(source_path, tmp_path, **kwargs)
-    for submodule in repo.submodules:
-        # force needed in case there are folders already in the repo otherwise
-        # it initiates the submodule but says that all files were deleted
-        submodule.update(init=True, recursive=True, force=True)
+    repo.git.submodule("update", "--init", "--recursive")
 
 
 def get_http_https_resource(source_path,
