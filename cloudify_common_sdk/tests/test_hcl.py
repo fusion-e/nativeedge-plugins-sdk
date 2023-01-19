@@ -1,7 +1,7 @@
 from .. import hcl
 
 CONFIG_RESULT = """config {
-   variables = foo=barbar=["baz"]
+   variables = "[foo=bar, bar=[baz]]"
 
 }
 rule "terraform_unused_declarations" {
@@ -10,8 +10,8 @@ rule "terraform_unused_declarations" {
 }
 plugin "foo" {
    enabled = true
-   version = 0.1.0
-   source = github.com/org/tflint-ruleset-foo
+   version = "0.1.0"
+   source = "github.com/org/tflint-ruleset-foo"
    signing_key = <<-KEY
    -----BEGIN PGP PUBLIC KEY BLOCK-----
 
@@ -41,7 +41,7 @@ def test_hcl_from_json():
                 'option_value': {
                     'variables': [
                         "foo=bar",
-                        "bar=[\"baz\"]"
+                        "bar=[baz]"
                     ]
                 }
             },
