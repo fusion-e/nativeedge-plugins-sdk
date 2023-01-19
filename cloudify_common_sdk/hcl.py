@@ -12,12 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 from textwrap import indent
 
 NEW_HCL_BLOCK = """{} {{
 {}
 }}
 """
+
+DBL = '"'
 
 
 def extract_hcl_from_dict(data):
@@ -32,6 +35,21 @@ def extract_hcl_from_dict(data):
     return data
 
 
+def format_value(value):
+    if isinstance(value, str):
+        if value.lower() == 'true':
+            value = json.dumps(True)
+        elif value.lower() == 'false':
+            value = json.dumps(False)
+        elif value.isdigit():
+            value = int(value)
+        elif value.startswith('<<'):
+            pass
+        elif not value.startswith(DBL) and not value.endswith(DBL):
+            return '{}{}{}'.format(DBL, value, DBL)
+    return value
+
+
 def convert_dict_to_hcl(data):
     hcl_dict = str()
     for key, value in data.items():
@@ -39,7 +57,7 @@ def convert_dict_to_hcl(data):
         if isinstance(value, dict):
             new_block = NEW_HCL_BLOCK.format(key, indent(new_value, '   '))
         else:
-            new_block = '{} = {}\n'.format(key, new_value)
+            new_block = '{} = {}\n'.format(key, format_value(new_value))
         hcl_dict += convert_json_hcl(new_block)
     return hcl_dict
 
@@ -48,7 +66,7 @@ def convert_list_to_hcl(data):
     hcl_list = []
     for item in data:
         hcl_list.append(convert_json_hcl(item, 0))
-    return ''.join(hcl_list)
+    return '[{}]'.format(', '.join(hcl_list))
 
 
 def convert_string_to_hcl(data, indentation_depth):
