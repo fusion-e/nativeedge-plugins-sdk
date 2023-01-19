@@ -19,6 +19,8 @@ NEW_HCL_BLOCK = """{} {{
 }}
 """
 
+DBL = '"'
+
 
 def extract_hcl_from_dict(data):
     if 'type_name' in data:
@@ -32,6 +34,13 @@ def extract_hcl_from_dict(data):
     return data
 
 
+def format_value(value):
+    if isinstance(value, str):
+        if not value.startswith(DBL) and not value.endswith(DBL):
+            return '{}{}{}'.format(DBL, value, DBL)
+    return value
+
+
 def convert_dict_to_hcl(data):
     hcl_dict = str()
     for key, value in data.items():
@@ -39,7 +48,7 @@ def convert_dict_to_hcl(data):
         if isinstance(value, dict):
             new_block = NEW_HCL_BLOCK.format(key, indent(new_value, '   '))
         else:
-            new_block = '{} = {}\n'.format(key, new_value)
+            new_block = '{} = {}\n'.format(key, format_value(new_value))
         hcl_dict += convert_json_hcl(new_block)
     return hcl_dict
 
