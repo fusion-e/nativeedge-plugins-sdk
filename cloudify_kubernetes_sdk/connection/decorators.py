@@ -41,7 +41,11 @@ def setup_configuration(**kwargs):
     if 'kubeconfig' in kwargs:
         if isinstance(kwargs['kubeconfig'], client.Configuration):
             return client.ApiClient(kwargs['kubeconfig'])
-        return config.load_kube_config(kwargs['kubeconfig'])
+        elif isinstance(kwargs['kubeconfig'], str) and \
+                os.path.exists(kwargs['kubeconfig']):
+            return config.new_client_from_config(kwargs['kubeconfig'])
+        else:
+            return config.new_client_from_config_dict(kwargs['kubeconfig'])
     configuration = client.Configuration()
     if 'host' in kwargs:
         configuration.host = kwargs['host']
