@@ -77,7 +77,7 @@ jobs:
 workflows:
   version: 2
   tests:
-    jobs: &all_jobs
+    jobs:
       - node/check_py3_compat_job
       - node/unittests_job
       - releaseorb/release:
@@ -102,4 +102,6 @@ workflows:
           branches:
             only:
               - master
-    jobs: *all_jobs
+    jobs:
+      - node/check_py3_compat_job
+      - node/unittests_job
