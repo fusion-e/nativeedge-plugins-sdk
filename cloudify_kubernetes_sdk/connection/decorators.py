@@ -57,6 +57,10 @@ def setup_configuration(**kwargs):
         configuration.api_key = {
             'authorization': 'Bearer ' + kwargs['token']
         }
+    ca_file = kwargs.get('ca_file')
+    if ca_file:
+        configuration.ssl_ca_cert = ca_file
+        configuration.verify_ssl = kwargs.get('verify_ssl', True)
     return client.ApiClient(configuration)
 
 
