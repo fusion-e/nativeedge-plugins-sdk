@@ -1,4 +1,5 @@
 releases:
+  v0.0.103: RD-7040 Update Kubernetes Client SSL.
   v0.0.102: RD-6692 Update Kubernetes Client.
   v0.0.101: RD-6610 Improve HCL.
   v0.0.100: Fix submodules to behave like the CLI.
