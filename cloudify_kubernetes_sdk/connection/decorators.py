@@ -17,8 +17,7 @@ import os
 
 from kubernetes import client, config
 from cloudify import ctx as ctx_from_import
-# from cloudify_common_sdk.secure_property_management import (
-# get_stored_property)
+from cloudify_common_sdk.utils import uses_debug_node
 
 from .utils import (
     get_host,
@@ -90,7 +89,7 @@ def with_connection_details(fn):
         try:
             fn(**kwargs)
         except Exception as e:
-            debug = client_config.get('debug')
+            debug = client_config.get('debug', uses_debug_node())
             if kubeconfig and isinstance(kubeconfig, str) and not debug:
                 os.remove(kubeconfig)
             if isinstance(ca_file, str) and not debug:
