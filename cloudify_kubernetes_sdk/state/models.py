@@ -16,7 +16,9 @@
 
 from cloudify import ctx
 from cloudify.exceptions import (
-    NonRecoverableError, OperationRetry)
+    OperationRetry,
+    NonRecoverableError
+)
 
 
 class KubernetesResourceStatus(object):
