@@ -1549,6 +1549,22 @@ def set_permissions(target_file):
     )
 
 
+def delete_debug(node_instance=None):
+    """return True if there is no debug node relationship"""
+    node_instance = node_instance or get_ctx_instance()
+    return not uses_debug_node(node_instance)
+
+
+def uses_debug_node(node_instance):
+    return find_rel_by_node_type(
+        node_instance, 'cloudify.nodes.Debug')
+
+
+def find_rel_by_node_type(node_instance, node_type):
+    rels = find_rels_by_node_type(node_instance, node_type)
+    return rels[0] if len(rels) > 0 else None
+
+
 def find_rels_by_node_type(node_instance, node_type):
     """
         Finds all specified relationships of the Cloudify
