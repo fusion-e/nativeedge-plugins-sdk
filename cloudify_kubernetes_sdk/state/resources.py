@@ -39,7 +39,9 @@ class Resource(object):
     @property
     def model(self):
         status_obj_name = 'Kubernetes{0}Status'.format(self.state.get('kind'))
-        return getattr(models, status_obj_name)
+        return getattr(models,
+                       status_obj_name,
+                       getattr(models.KubernetesResourceStatus))
 
     def check_status(self):
         try:
