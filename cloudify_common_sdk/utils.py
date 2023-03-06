@@ -1555,7 +1555,8 @@ def delete_debug(node_instance=None):
     return not uses_debug_node(node_instance)
 
 
-def uses_debug_node(node_instance):
+def uses_debug_node(node_instance=None):
+    node_instance = node_instance or get_ctx_instance()
     return find_rel_by_node_type(
         node_instance, 'cloudify.nodes.Debug')
 
