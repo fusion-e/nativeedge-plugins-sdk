@@ -54,13 +54,15 @@ class AzureServiceAccountAuthentication(KubernetesApiAuthentication):
     PROPERTY_AZURE_SERVICE_ACCOUNT = 'azure_service_account'
 
     def get_kubeconfig(self):
-        azure_client_config = self.authentication_data.get(self.PROPERTY_AZURE_SERVICE_ACCOUNT)
-        subscription_id = azure_client_config.get(subscription_id)
-        resource_group_name= azure_client_config.get(resource_group_name)
-        cluster_name = azure_client_config.get(cluster_name)
+        azure_client_config = self.authentication_data.get(
+            self.PROPERTY_AZURE_SERVICE_ACCOUNT)
+        subscription_id = azure_client_config.get('subscription_id')
+        resource_group_name= azure_client_config.get('resource_group_name')
+        cluster_name = azure_client_config.get('cluster_name')
         credential = DefaultAzureCredential(exclude_cli_credential=True)
         az_client = ContainerServiceClient(credential, subscription_id)
-        cluster_creds = az_client.managed_clusters.list_cluster_user_credentials(resource_group_name, cluster_name)
+        cluster_creds = az_client.managed_clusters.list_cluster_user_credentials(
+            resource_group_name, cluster_name)
         return cluster_creds.kubeconfigs[0].value.decode(encoding='UTF-8')
 
     def _get_token(self):
