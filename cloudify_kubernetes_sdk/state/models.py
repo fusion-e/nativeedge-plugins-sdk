@@ -31,8 +31,6 @@ class KubernetesResourceStatus(object):
             self._response = response or {}
             self._status = self.assign_status()
 
-        ctx.logger.info('initailizing status with {}'.format(self._status))
-
         self.validate_status = validate_status
 
     def assign_status(self):
