@@ -84,7 +84,8 @@ class KubernetesServiceStatus(KubernetesResourceStatus):
 
     @property
     def status(self):
-        if self._response.get('spec', {}).get('type', '').lower() == 'loadbalancer':
+        if self._response.get(
+                'spec', {}).get('type', '').lower() == 'loadbalancer':
             return self._status.get('load_balancer', {}).get('ingress', False)
         return True
 
