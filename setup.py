@@ -51,5 +51,6 @@ setuptools.setup(
         'kubernetes==v25.3.0',
         'google-auth==2.15.0',
         'azure-identity',
+        'azure-mgmt-containerservice==17.0.0',
     ]
 )
