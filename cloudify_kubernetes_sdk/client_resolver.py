@@ -35,6 +35,16 @@ def get_kubernetes_api(api_version: str, client: Optional[str] = None):
 
 def get_read_function_name(kind: str) -> str:
     kind = '_'.join(re.findall('[A-Z][^A-Z]*', kind))
+    kind = kind.lower()
+    # Handle Kubernetes departure from convention for cluster role.
+    if kind == 'cluster_role':
+        kind = 'role'
+    # Handle Kubernetes departure from convention for cluster role binding.
+    elif kind == 'cluster_role_binding':
+        kind = 'role_binding'
+    # Handle Kubernetes departure from convention for csi driver
+    elif kind == 'c_s_i_driver':
+        return 'read_csi_driver'
     return 'read_namespaced_{kind}'.format(kind=kind.lower())
 
 

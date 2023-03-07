@@ -1,4 +1,5 @@
 releases:
+  v0.0.107: Improve Kubernetes Status.
   v0.0.106: Fix bug.
   v0.0.105: Bump PyYAML
   v0.0.104:
