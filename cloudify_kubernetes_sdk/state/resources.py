@@ -43,14 +43,17 @@ class Resource(object):
     def model(self):
         status_obj_name = 'Kubernetes{0}Status'.format(self.state.get('kind'))
         if status_obj_name:
-            attribute = getattr(models, status_obj_name, models.KubernetesResourceStatus)
+            attribute = getattr(
+                models, status_obj_name, models.KubernetesResourceStatus)
         else:
             attribute = models.KubernetesResourceStatus
         return attribute(response=self.state, validate_status=True)
 
     def check_status(self):
         if not self.state:
-            ctx.logger.error('No response was provided to check state against.')
+            ctx.logger.error(
+                'Check status did not provide a read response '
+                'from the Kubernetes API, so no status can be verified.')
         try:
             return self.model.is_resource_ready()
         except Exception as e:
