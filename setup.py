@@ -50,5 +50,6 @@ setuptools.setup(
         'packaging',
         'kubernetes==v25.3.0',
         'google-auth==2.15.0',
+        'azure-identity==1.12.0',
     ]
 )
