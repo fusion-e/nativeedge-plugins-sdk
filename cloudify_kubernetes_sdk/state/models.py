@@ -23,9 +23,18 @@ from cloudify.exceptions import (
 
 class KubernetesResourceStatus(object):
 
-    def __init__(self, status, validate_status=False):
-        self._status = status
+    def __init__(self, status=None, response=None, validate_status=False):
+        self._status = {}
+        if status:
+            self._status = status
+        elif response:
+            self._response = response or {}
+            self._status = self.assign_status()
+
         self.validate_status = validate_status
+
+    def assign_status(self):
+        return self._response.get('status')
 
     @property
     def status(self):
@@ -36,7 +45,7 @@ class KubernetesResourceStatus(object):
         return 'Status is {0}'.format(self._status)
 
     def is_resource_ready(self):
-        pass
+        return True
 
     def ready(self):
         ctx.logger.info('Checking if the resource is ready.')
@@ -44,7 +53,7 @@ class KubernetesResourceStatus(object):
             ctx.logger.info('Ignoring status validation. '
                             'You can toggle this with '
                             '"validate_resource_status" node property. '
-                            'Status: {0}'.format(self._status))
+                            'Status: {0}'.format(self.status))
         else:
             return self.is_resource_ready()
 
@@ -73,7 +82,10 @@ class KubernetesServiceStatus(KubernetesResourceStatus):
 
     @property
     def status(self):
-        return self._status.get('load_balancer', {}).get('ingress', False)
+        if self._response.get(
+                'spec', {}).get('type', '').lower() == 'loadbalancer':
+            return self._status.get('load_balancer', {}).get('ingress', False)
+        return True
 
     def is_resource_ready(self):
         if not self.status:
@@ -109,6 +121,10 @@ class KubernetesPersistentVolumeClaimStatus(KubernetesResourceStatus):
 
 
 class KubernetesPersistentVolumeStatus(KubernetesResourceStatus):
+
+    @property
+    def status(self):
+        return self._status['phase']
 
     def is_resource_ready(self):
         if self.status['phase'] in ['Bound', 'Available']:
