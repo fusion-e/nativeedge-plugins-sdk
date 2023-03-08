@@ -1666,3 +1666,41 @@ def update_dict_values(original_dict, new_dict):
             if value:
                 original_dict[key] = value
     return original_dict
+
+
+def cleanup_empty_params(data):
+    """
+        This method will remove key with empty values, and handle renaming
+        of old [REST] to [SDK] for example dnsSettings will be dns_settings
+        and some more special cases can't be handled here, will be handled
+        manually
+    :param data: dict that holds all parameters that will be passed to sdk api
+    """
+
+    def convert_key_val(key):
+        # convert from CamelCase to snake_case
+        key = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', key)
+        return re.sub('([a-z0-9])([A-Z])', r'\1_\2', key).lower()
+
+    if type(data) is dict:
+        new_data = {}
+        for key in data:
+            # skip tags from the snake_case convention
+            if key == 'tags' and data[key]:
+                new_data[key] = data[key]
+                continue
+            if data[key]:
+                val = cleanup_empty_params(data[key])
+                if val:
+                    new_data[convert_key_val(key)] = val
+        return new_data
+    elif type(data) is list:
+        new_data = []
+        for index in range(len(data)):
+            if data[index]:
+                val = cleanup_empty_params(data[index])
+                if val:
+                    new_data.append(val)
+        return new_data
+    else:
+        return data

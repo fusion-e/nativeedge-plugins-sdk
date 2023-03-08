@@ -1,4 +1,5 @@
 releases:
+  v0.0.108: Add support for azure service account in Kubernetes.
   v0.0.107: Improve Kubernetes Status.
   v0.0.106: Fix bug.
   v0.0.105: Bump PyYAML
