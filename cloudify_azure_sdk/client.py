@@ -28,7 +28,8 @@ class AzureConnection(object):
 
     def __init__(self, azure_config):
         self.creds = cleanup_empty_params(azure_config)
-        azure_config_env_vars = azure_config.get('environment_variables')
+        azure_config_env_vars = azure_config.get(
+            'environment_variables', {})
 
         if self.creds.get("china"):
             self.creds['cloud_environment'] = AZURE_CHINA_CLOUD
@@ -106,8 +107,10 @@ class AKSConnection(object):
         self.azure_config = azure_config
         self.resource_group_name = azure_config.pop(
             'resource_group_name', None)
-        self.cluster_name = azure_config.pop('cluster_name', None)
-        self.profile_name = azure_config.pop('profile_name', None)
+        self.cluster_name = azure_config.pop(
+            'cluster_name', None)
+        self.profile_name = azure_config.pop(
+            'profile_name', None)
         self.account = AzureContainerServiceConnection(
             azure_config=self.azure_config)
 
