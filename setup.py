@@ -17,7 +17,7 @@ import setuptools
 
 setuptools.setup(
     name='cloudify-utilities-plugins-sdk',
-    version='0.0.108`',
+    version='0.0.108',
     author='Cloudify Platform Ltd.',
     author_email='hello@cloudify.co',
     description='Utilities SDK for extending Cloudify',
@@ -50,6 +50,7 @@ setuptools.setup(
         'packaging',
         'kubernetes==v25.3.0',
         'google-auth==2.15.0',
+        'msrestazure==0.6.4',
         'azure-identity',
         'azure-mgmt-containerservice==17.0.0',
     ]

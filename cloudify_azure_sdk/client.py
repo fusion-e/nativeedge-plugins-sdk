@@ -15,7 +15,6 @@
 import io
 import os
 import yaml
-from configparser import SafeConfigParser
 
 from cloudify_common_sdk.utils import cleanup_empty_params
 
@@ -101,13 +100,19 @@ class AzureContainerServiceConnection(AzureConnection):
 class AKSConnection(object):
     PROPERTY_AZURE_SERVICE_ACCOUNT = 'azure_service_account'
 
-    def __init__(self, azure_config):
+    def __init__(self, config):
+        azure_config = config.get(self.PROPERTY_AZURE_SERVICE_ACCOUNT)
         self.azure_config = azure_config
-        self.resource_group_name = azure_config.pop('resource_group_name')
-        self.cluster_name = azure_config.pop('cluster_name')
-        self.profile_name = azure_config.pop('profile_name')
+        self.resource_group_name = azure_config.pop(
+            'resource_group_name', None)
+        self.cluster_name = azure_config.pop('cluster_name', None)
+        self.profile_name = azure_config.pop('profile_name', None)
         self.account = AzureContainerServiceConnection(
             azure_config=self.azure_config)
+
+    @property
+    def has_service_account(self):
+        return bool(self.azure_config)
 
     @property
     def clusters(self):
