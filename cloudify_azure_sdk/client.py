@@ -137,4 +137,4 @@ class AKSConnection(object):
         file_obj = io.StringIO()
         file_obj.write(self.profile_kubeconfig)
         file_obj.seek(0)
-        return yaml.load(file_obj)
+        return yaml.safe_load(file_obj)
