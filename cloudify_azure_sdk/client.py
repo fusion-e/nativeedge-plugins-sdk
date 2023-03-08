@@ -101,7 +101,8 @@ class AKSConnection(object):
     PROPERTY_AZURE_SERVICE_ACCOUNT = 'azure_service_account'
 
     def __init__(self, config):
-        azure_config = config.get(self.PROPERTY_AZURE_SERVICE_ACCOUNT)
+        azure_config = config.get(
+            self.PROPERTY_AZURE_SERVICE_ACCOUNT, {})
         self.azure_config = azure_config
         self.resource_group_name = azure_config.pop(
             'resource_group_name', None)
