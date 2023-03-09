@@ -24,6 +24,10 @@ from azure.identity import DefaultAzureCredential, ClientSecretCredential
 from msrestazure.azure_cloud import AZURE_CHINA_CLOUD, AZURE_PUBLIC_CLOUD
 
 
+class NoAzureConfig(Exception):
+    pass
+
+
 class AzureConnection(object):
 
     def __init__(self, azure_config):
@@ -111,8 +115,15 @@ class AKSConnection(object):
             'cluster_name', None)
         self.profile_name = azure_config.pop(
             'profile_name', None)
-        self.account = AzureContainerServiceConnection(
-            azure_config=self.azure_config)
+    
+        try:
+            self.account = AzureContainerServiceConnection(
+                azure_config=self.azure_config)
+        except NoAzureConfig:
+            self.azure_config = None
+            self.resource_group_name = None
+            self.cluster_name = None
+            self.profile_name = None
 
     @property
     def has_service_account(self):
