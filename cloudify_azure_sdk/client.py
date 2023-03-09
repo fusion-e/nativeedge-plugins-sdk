@@ -65,7 +65,7 @@ class AzureConnection(object):
                 os.environ[k] = v
 
         if not subscription_id:
-            raise RuntimeError(
+            raise NoAzureConfig(
                 'The subscription ID should either be provided in the '
                 'client_config as subscription_id or '
                 'in the environment_variables dict as AZURE_SUBSCRIPTION_ID.'
