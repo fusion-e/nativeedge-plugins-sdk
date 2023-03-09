@@ -1,4 +1,5 @@
 releases:
+  v0.0.112: AKS handle empty sub id.
   v0.0.111: AKS handle empty sub id error.
   v0.0.110: Fix bug in AKS.
   v0.0.109: Fix bug in AKS.
