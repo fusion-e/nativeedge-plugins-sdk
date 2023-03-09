@@ -1,4 +1,5 @@
 releases:
+  v0.0.111: AKS handle empty sub id error.
   v0.0.110: Fix bug in AKS.
   v0.0.109: Fix bug in AKS.
   v0.0.108: Add support for azure service account in Kubernetes.
