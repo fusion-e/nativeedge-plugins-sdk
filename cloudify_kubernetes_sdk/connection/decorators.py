@@ -87,7 +87,7 @@ def with_connection_details(fn):
             }
         )
         try:
-            fn(**kwargs)
+            return fn(**kwargs)
         except Exception as e:
             debug = client_config.get('debug', uses_debug_node())
             if kubeconfig and isinstance(kubeconfig, str) and not debug:
