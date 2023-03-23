@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import re
 import json
 from textwrap import indent
 
@@ -87,3 +88,13 @@ def convert_json_hcl(data, indentation_depth=None):
     elif isinstance(data, list):
         return convert_list_to_hcl(data)
     return convert_string_to_hcl(data, indentation_depth)
+
+
+def remove_quotes_from_vars(string):
+    pattern = r'[\"|\']var.[a-zA-z]*[\"|\']'
+
+    def replace(match):
+        new_string = match.group(0)
+        new_string = new_string.replace('"', '')
+        return new_string.replace("'", '')
+    return re.sub(pattern, replace, string)
