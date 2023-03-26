@@ -1708,7 +1708,7 @@ def cleanup_empty_params(data):
 
 def get_version():
     current_dir = pathlib.Path(__file__).parent.resolve()
-    ctx_from_import.logger.info('***** current_dir: {}'.format(current_dir))
+    print('***** current_dir: {}'.format(current_dir))
     with open(os.path.join(current_dir, 'clousify_aws/__version__.py'),
               'r') as outfile:
         var = outfile.read()
