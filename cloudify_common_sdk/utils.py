@@ -17,6 +17,7 @@
 import os
 import re
 import json
+import pathlib
 import tarfile
 import zipfile
 from time import sleep
@@ -1704,3 +1705,11 @@ def cleanup_empty_params(data):
         return new_data
     else:
         return data
+
+def get_version():
+    current_dir = pathlib.Path(__file__).parent.resolve()
+    ctx_from_import.logger.info('***** current_dir: {}'.format(current_dir))
+    with open(os.path.join(current_dir, 'clousify_aws/__version__.py'),
+              'r') as outfile:
+        var = outfile.read()
+        return re.search(r'\d+.\d+.\d+', var).group()
