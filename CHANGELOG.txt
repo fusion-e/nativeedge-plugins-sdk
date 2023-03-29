@@ -1,4 +1,5 @@
 releases:
+  v0.0.115: add __version__ file.
   v0.0.114: Remove quotes from around vars in HCL.
   v0.0.113: Return value from K8s decorator.
   v0.0.112: AKS handle empty sub id.
