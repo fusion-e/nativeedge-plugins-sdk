@@ -12,12 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+import re
+import pathlib
 import setuptools
+
+
+def get_version():
+    current_dir = pathlib.Path(__file__).parent.resolve()
+
+    with open(os.path.join(current_dir, 'cloudify_ansible/__version__.py'),
+              'r') as outfile:
+        var = outfile.read()
+        return re.search(r'\d+.\d+.\d+', var).group()
 
 
 setuptools.setup(
     name='cloudify-utilities-plugins-sdk',
-    version='0.0.114',
+    version=get_version(),
     author='Cloudify Platform Ltd.',
     author_email='hello@cloudify.co',
     description='Utilities SDK for extending Cloudify',
