@@ -1704,3 +1704,61 @@ def cleanup_empty_params(data):
         return new_data
     else:
         return data
+
+
+def get_ctx_plugin():
+    if not hasattr(ctx_from_import, 'plugin'):
+        return {}
+    elif not hasattr(ctx_from_import.plugin, 'properties'):
+        return {}
+    else:
+        return ctx_from_import.plugin.properties
+
+
+def dict_override(right, left):
+    for k, v in left.items():
+        if v:
+            right[k] = v
+    return right
+
+
+def get_client_config(ctx_plugin=None,
+                      ctx_node=None,
+                      ctx_instance=None,
+                      alternate_key=None):
+    """ Get the client config. Check first in ctx.plugin.properties.
+    Then in ctx.node.properties['client_config']
+    Then in ctx.instance.runtime_properties['client_config']
+    And also check alternates e.g., ctx.node.properties['aws_config']
+    Or azure_config.
+    """
+
+    final_config = dict()
+    # Access Storage Sources
+    plugin_properties = ctx_plugin or get_ctx_plugin()
+    for k, v in list(plugin_properties.items()):
+        if 'value' in v:
+            final_config[k] = v.get('value')
+        else:
+            del plugin_properties[k]
+
+    ctx_node = ctx_node or get_ctx_node()
+    ctx_instance = ctx_instance or get_ctx_instance()
+
+    # Get the dicts that contain stuff
+    client_config_from_node = ctx_node.properties.get('client_config')
+    client_config_from_instance = ctx_instance.runtime_properties.get(
+        'client_config')
+    alternate_config_from_node = ctx_node.properties.get(alternate_key, {})
+    alternate_config_from_instance = ctx_instance.runtime_properties.get(
+        alternate_key, {})
+
+    base_config = dict_override(
+        dict_override(
+            alternate_config_from_node,
+            alternate_config_from_instance),
+        dict_override(
+            client_config_from_node,
+            client_config_from_instance)
+    )
+    return dict_override(final_config, base_config)
