@@ -540,3 +540,60 @@ class BatchUtilsTests(unittest.TestCase):
 
         self.assertFalse(utils.v1_gteq_v2("5.2.8", "6.1.0"))
         self.assertFalse(utils.v1_gteq_v2("1.0.0", "6.1.0"))
+
+    @mock.patch('cloudify_common_sdk.utils.ctx_from_import')
+    def test_get_client_config(self, mock_ctx_from_import):
+
+        mock_plugin_properties = {
+            'foo': {
+                'value': 'plugin_foo',
+            },
+            'bar': {
+                'value': 'plugin_bar',
+            },
+            'baz': {
+                'value': 'plugin_baz',
+            },
+            'qux': {
+                'value': 'plugin_qux',
+            },
+            'quxx': {
+                'value': 'plugin_quxx',
+            },
+        }
+
+        mock_node_properties = {
+            'client_config': {
+                'bar': 'node_bar',
+            },
+            'alternate_config': {
+                'baz': 'alternate_node_baz',
+            }
+        }
+
+        mock_instance_properties = {
+            'client_config': {
+                'qux': 'instance_qux',
+            },
+            'alternate_config': {
+                'quxx': 'alternate_instance_quxx',
+            },
+        }
+
+        mock_ctx_from_import.plugin = mock.Mock(
+            properties=mock_plugin_properties)
+        mock_ctx_from_import.node = mock.Mock(
+            properties=mock_node_properties)
+        mock_ctx_from_import.instance = mock.Mock(
+            runtime_properties=mock_instance_properties)
+
+        expected_config = {
+            'foo': 'plugin_foo',
+            'bar': 'node_bar',
+            'baz': 'alternate_node_baz',
+            'qux': 'instance_qux',
+            'quxx': 'alternate_instance_quxx',
+        }
+
+        assert utils.get_client_config(
+            alternate_key='alternate_config') == expected_config
