@@ -1715,7 +1715,9 @@ def get_ctx_plugin():
         return ctx_from_import.plugin.properties
 
 
-def dict_override(right, left):
+def dict_override(right=None, left=None):
+    right = right or {}
+    left = left or {}
     for k, v in left.items():
         if v:
             right[k] = v

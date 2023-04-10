@@ -1,4 +1,5 @@
 releases:
+  v0.0.117: Minor fix to get_client_config.
   v0.0.116: add get_client_config
   v0.0.115: add __version__ file.
   v0.0.114: Remove quotes from around vars in HCL.
