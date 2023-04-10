@@ -1,8 +1,18 @@
 version: 2.1
 
+unittest-post-steps: &unittest-post-steps
+  post-steps:
+    - store_test_results:
+        path: /home/circleci/project/nosetests.xml
+    - store_artifacts:
+        path: /home/circleci/project/coverage.xml
+        prefix: tests
+    - slack/notify_failed
+
 orbs:
   node: cloudify/public-unittest-orb@volatile
   releaseorb: cloudify/release-orb@volatile
+  slack: cloudify/notify-slack@2
 
 checkout:
   post:
@@ -79,7 +89,10 @@ workflows:
   tests:
     jobs:
       - node/check_py3_compat_job
-      - node/unittests_job
+      - node/unittests_job:
+          context: 
+            - slack-secrets
+          <<: *unittest-post-steps
       - releaseorb/release:
           filters:
             branches:
@@ -104,4 +117,7 @@ workflows:
               - master
     jobs:
       - node/check_py3_compat_job
-      - node/unittests_job
+      - node/unittests_job:
+          context: 
+            - slack-secrets
+          <<: *unittest-post-steps
