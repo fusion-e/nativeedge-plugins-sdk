@@ -1711,8 +1711,7 @@ def get_ctx_plugin():
         return {}
     elif not hasattr(ctx_from_import.plugin, 'properties'):
         return {}
-    else:
-        return ctx_from_import.plugin.properties
+    return ctx_from_import.plugin.properties or {}
 
 
 def dict_override(right=None, left=None):
