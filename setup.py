@@ -60,7 +60,7 @@ setuptools.setup(
         "GitPython",  # shared download resource
         'psutil',
         'packaging',
-        'kubernetes==v25.3.0',
+        'kubernetes==v26.1.0',
         'google-auth==2.15.0',
         'msrestazure==0.6.4',
         'azure-identity',
