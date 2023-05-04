@@ -205,7 +205,7 @@ def _send_request(call, resource_callback=None):
                 raise
 
     logger.info('Response content: \n{}...'
-                .format(shorted_text(response.content)))
+                .format(shorted_text(obfuscate_passwords(repr(response.content)))))
     logger.info('Status code: {}'.format(repr(response.status_code)))
 
     try:
