@@ -395,7 +395,8 @@ class TestFilters(unittest.TestCase):
                 "object": 'object_id'
             }
         }
-        self.assertIs(filters.obfuscate_passwords(call), call)
+        self.assertEqual(
+            filters.obfuscate_passwords(call), call)
 
     def test_obfuscate_passwords_deep(self):
         call = {
