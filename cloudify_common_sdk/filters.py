@@ -300,6 +300,10 @@ def obfuscate_passwords(obj, regex_string=OBFUSCATION_RE):
             else:
                 a_copy[k] = OBFUSCATED_SECRET
             result = a_copy
+        elif isinstance(v,(text_type,)):
+            a_copy = deepcopy(result)
+            a_copy[k] = regex_string.sub(obfuscate_value, v)
+            result = a_copy
         if isinstance(v, (dict, list,)):
             obfuscated_v = obfuscate_passwords(v)
             if obfuscated_v is not v:
