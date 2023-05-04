@@ -204,8 +204,8 @@ def _send_request(call, resource_callback=None):
                 logger.error('No host from list available')
                 raise
 
-    logger.info('Response content: \n{}...'
-                .format(shorted_text(response.content)))
+    logger.info('Response content: \n{}...'.format(
+        shorted_text(obfuscate_passwords(repr(response.content)))))
     logger.info('Status code: {}'.format(repr(response.status_code)))
 
     try:
@@ -298,13 +298,15 @@ def _process_response(response, call, store_props):
 
 def _check_response(json, response, is_recoverable):
     if not is_recoverable:
-        logger.debug('Check response (nonrecoverable) in json: {} by {}'
-                     .format(shorted_text(obfuscate_passwords(json)),
-                             repr(response)))
+        logger.debug(
+            'Check response (nonrecoverable) in json: {} by {}'.format(
+                shorted_text(obfuscate_passwords(json)),
+                repr(response)))
     else:
-        logger.debug('Check response (recoverable) in json: {} by {}'
-                     .format(shorted_text(obfuscate_passwords(json)),
-                             repr(response)))
+        logger.debug(
+            'Check response (recoverable) in json: {} by {}'.format(
+                shorted_text(obfuscate_passwords(json)),
+                repr(response)))
 
     if not response:
         return
