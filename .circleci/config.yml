@@ -109,6 +109,8 @@ workflows:
           requires:
             - node/unittests_job
       - release_sdk_to_pypi:
+          context:
+            - cloudify-utilities-plugins-sdk
           filters:
             branches:
               only: /master/
