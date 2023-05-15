@@ -65,7 +65,7 @@ commands:
           command: pip install https://github.com/cloudify-incubator/cloudify-ecosystem-test/archive/latest.zip
       - attach_workspace:
           at: workspace
-      - run: ecosystem-tests package-release --name cloudify-utilities-plugin-sdk
+      - run: ecosystem-tests package-release --name cloudify-utilities-plugins-sdk
 
   release_sdk_to_pypi:
     steps:
@@ -84,7 +84,7 @@ commands:
            --data GITHUB_PROJECT_URL=$GH_REPO
       - run:
           name: "Make sure the Pypi Job was successful"
-          command: ecosystem-test pypi-release
+          command: ecosystem-test pypi-release --name cloudify-utilities-plugins-sdk
 
 jobs:
 
