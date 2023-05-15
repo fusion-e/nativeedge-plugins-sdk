@@ -70,12 +70,47 @@ commands:
   release_sdk_to_pypi:
     steps:
       - run:
+          name: "Pull Submodules"
+          command: |
+            git submodule init
+            git submodule update --remote --recursive
+      - run:
+          name: Set Python
+          command: |
+            if ! pyenv -v COMMAND &> /dev/null
+            then
+                echo "pyenv could not be found"
+                exit
+            else
+                pyenv global 3.6.5
+            fi
+      - run:
+          name: Install virtualenv
+          command: pip install --user virtualenv
+      - run:
+          name: Init virtualenv
+          command: virtualenv env
+      - run:
+          name: install tox
+          command: pip install --user pygithub pyyaml==3.10
+      - run:
+          name: upgrade setuptools
+          command: pip install --upgrade setuptools
+      - run:
+          name: install local project
+          command: pip install https://github.com/cloudify-incubator/cloudify-ecosystem-test/archive/latest.zip
+      - attach_workspace:
+          at: workspace
+      - run:
           name: "Trigger upload to pypi job"
           command: |
            curl $JENKINS_URL \
            --user $JENKINS_USER:$JENKINS_TOKEN \
            --data BRANCH=master \
            --data GITHUB_PROJECT_URL=$GH_REPO
+      - run:
+          name: "Make sure the Pypi Job was successful"
+          command: ecosystem-test pypi-release
 
 jobs:
 
