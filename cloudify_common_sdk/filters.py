@@ -204,7 +204,9 @@ def shorted_text(obj, size=1024):
     return text
 
 
-def obfuscate_passwords(obj, regex_string=OBFUSCATION_RE):
+def obfuscate_passwords(obj,
+                        regex_string=OBFUSCATION_RE,
+                        obfuscation_keywords=OBFUSCATION_KEYWORDS):
     """Obfuscate passwords in dictionary or list of dictionaries.
 
     Returns a copy of original object with elements potentially containing
@@ -293,7 +295,7 @@ def obfuscate_passwords(obj, regex_string=OBFUSCATION_RE):
         return obj
     result = obj
     for k, v in list(result.items()):
-        if any(x for x in OBFUSCATION_KEYWORDS if x in k.upper()):
+        if any(x for x in obfuscation_keywords if x in k.upper()):
             a_copy = deepcopy(result)
             if isinstance(a_copy[k], text_type) and a_copy[k].endswith('\n'):
                 a_copy[k] = OBFUSCATED_SECRET + '\n'
