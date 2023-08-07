@@ -58,6 +58,7 @@ setuptools.setup(
         'xmltodict',   # rest
         "gitdb>=0.6.4",  # shared download resource
         "GitPython",  # shared download resource
+        "cfy-lint>=0.0.31",
         'psutil',
         'packaging',
         'kubernetes==v26.1.0',
