@@ -109,7 +109,6 @@ def modify_iso(iso_path, output_iso_path, new_directories, new_files):
     for new_file in new_files:
         context = new_file.pop('file_context')
         context = bytes(context, 'utf-8')
-        print(context)
         iso.add_fp(BytesIO(context), len(context), **new_file)
     iso.write(output_iso_path)
     iso.close()
