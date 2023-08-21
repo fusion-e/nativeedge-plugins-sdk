@@ -87,19 +87,19 @@ def modify_iso(iso_path, output_iso_path, new_directories, new_files):
         :param new_directories: a list of dicts with new directories in format
             [
                 {'iso_path': path,
-                'rr_name': rr_name if rocky ridge iso
-                'joliet_path': path only for joliet iso,
+                'rr_name': rr_name if rocky ridge iso (optional)
+                'joliet_path': path only for joliet iso, (optional)
                 'file_mode': only for rocky ridge iso (optional)
-                'udf_path': path only for udf iso
+                'udf_path': path only for udf iso (optional)
             ]
         :param new_files: a list of dicts with new directories in format
             [
                 {'iso_path': path,
                 'file_context': context of new file
-                'rr_name': rr_name if rocky ridge iso
-                'joliet_path': path only for joliet iso,
+                'rr_name': rr_name if rocky ridge iso (optional)
+                'joliet_path': path only for joliet iso, (optional)
                 'file_mode': only for rocky ridge iso (optional)
-                'udf_path': path only for udf iso
+                'udf_path': path only for udf iso (optional)
             ]
     """
     iso = pycdlib.PyCdlib()
