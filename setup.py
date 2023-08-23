@@ -60,7 +60,7 @@ setuptools.setup(
         "GitPython",  # shared download resource
         "cfy-lint>=0.0.31",
         'psutil',
-        'packaging',
+        'packaging>=17.1,<=21.3',
         'kubernetes==v26.1.0',
         'google-auth==2.15.0',
         'msrestazure==0.6.4',
