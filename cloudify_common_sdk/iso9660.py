@@ -79,3 +79,36 @@ def create_iso(vol_ident, sys_ident, files=None, files_raw=None,
     iso.close()
 
     return outiso
+
+
+def modify_iso(iso_path, output_iso_path, new_directories, new_files):
+    """
+        https://clalancette.github.io/pycdlib/pycdlib-api.html
+        :param new_directories: a list of dicts with new directories in format
+            [
+                {'iso_path': path,
+                'rr_name': rr_name if rocky ridge iso (optional)
+                'joliet_path': path only for joliet iso, (optional)
+                'file_mode': only for rocky ridge iso (optional)
+                'udf_path': path only for udf iso (optional)
+            ]
+        :param new_files: a list of dicts with new directories in format
+            [
+                {'iso_path': path,
+                'file_context': context of new file
+                'rr_name': rr_name if rocky ridge iso (optional)
+                'joliet_path': path only for joliet iso, (optional)
+                'file_mode': only for rocky ridge iso (optional)
+                'udf_path': path only for udf iso (optional)
+            ]
+    """
+    iso = pycdlib.PyCdlib()
+    iso.open(iso_path)
+    for new_dir in new_directories:
+        iso.add_directory(**new_dir)
+    for new_file in new_files:
+        context = new_file.pop('file_context')
+        context = bytes(context, 'utf-8')
+        iso.add_fp(BytesIO(context), len(context), **new_file)
+    iso.write(output_iso_path)
+    iso.close()
