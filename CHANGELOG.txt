@@ -1,5 +1,6 @@
 releases:
   v0.0.124: modify iso support
+  v0.0.123: Tag packaging.
   v0.0.122: add deprecation_warning decorator.
   v0.0.121: obfuscation_keywords kw arg in obfuscate_passwords.
   v0.0.120: Upgrade Kubernetes 26.1.0.
