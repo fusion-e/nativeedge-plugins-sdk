@@ -49,6 +49,7 @@ setuptools.setup(
     ],
     packages=setuptools.find_packages(),
     install_requires=[
+        'boto3==1.23.10',
         'cloudify-common>=4.5.5',
         'paramiko>=2.7.1',  # terminal
         "Jinja2>=2.7.2",  # terminal
