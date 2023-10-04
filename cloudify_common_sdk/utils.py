@@ -110,6 +110,29 @@ def get_deployment_dir(deployment_name=None, deployment_id=None):
         raise SDKNonRecoverableError("No deployment directory found!")
 
 
+def get_blueprint_dir(blueprint_id=None):
+    """ Get the blueprint directory.
+    :param blueprint_id: The blueprint ID.
+    :type blueprint_id: str
+    :return: Return path to blueprint directory.
+    :rtype: str
+    """
+    blueprint_dir = os.path.join('/opt', 'manager',
+                                 'resources',
+                                 'blueprints',
+                                 get_tenant_name(),
+                                 blueprint_id)
+
+    if os.path.isdir(blueprint_dir):
+        return blueprint_dir
+    else:
+        ctx_from_import._context['blueprint_id'] = blueprint_id
+        blueprint_dir = ctx_from_import.download_directory()
+        if blueprint_dir and os.path.isdir(blueprint_dir):
+            return blueprint_dir
+        raise SDKNonRecoverableError("No blueprint directory found!")
+
+
 def with_rest_client(func):
     """ Add a Cloudify Rest Client into the kwargs of func.
     :param func: The wrapped function.
