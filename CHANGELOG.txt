@@ -1,4 +1,5 @@
 releases:
+  v0.0.126: Support ECR auth.
   v0.0.125: Bump cfy lint package version for upstream networkx dependency.
   v0.0.124: modify iso support
   v0.0.123: Tag packaging.
