@@ -127,7 +127,7 @@ def get_blueprint_dir(blueprint_id=None):
         return blueprint_dir
     else:
         ctx_from_import._context['blueprint_id'] = blueprint_id
-        blueprint_dir = ctx_from_import.download_directory()
+        blueprint_dir = ctx_from_import.download_directory('.')
         if blueprint_dir and os.path.isdir(blueprint_dir):
             return blueprint_dir
         raise SDKNonRecoverableError("No blueprint directory found!")
