@@ -81,5 +81,29 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     packages=setuptools.find_packages(),
+<<<<<<< HEAD
     install_requires=install_requires
+=======
+    install_requires=[
+        'boto3==1.23.10',
+        'fusion-common',
+        'requests_toolbelt>=1,<2',
+        'paramiko>=2.7.1',  # terminal
+        "Jinja2>=2.7.2",  # terminal
+        "pycdlib",  # cdrom image
+        'pyyaml>=5.4.1',  # cloudinit and rest
+        'requests>=2.7.0,<3.0.0',
+        'xmltodict',   # rest
+        "gitdb>=0.6.4",  # shared download resource
+        "GitPython",  # shared download resource
+        "cfy-lint>=0.0.34",
+        'psutil',
+        'packaging>=17.1,<=21.3',
+        'kubernetes==v26.1.0',
+        'google-auth==2.15.0',
+        'msrestazure==0.6.4',
+        'azure-identity',
+        'azure-mgmt-containerservice==17.0.0',
+    ]
+>>>>>>> b77d59f (fusion-common)
 )
