@@ -49,7 +49,7 @@ setuptools.setup(
     ],
     packages=setuptools.find_packages(),
     install_requires=[
-        'boto3==1.23.10',
+        'boto3',
         'cloudify-common>=4.5.5',
         'paramiko>=2.7.1',  # terminal
         "Jinja2>=2.7.2",  # terminal
@@ -58,14 +58,14 @@ setuptools.setup(
         'requests>=2.7.0,<3.0.0',
         'xmltodict',   # rest
         "gitdb>=0.6.4",  # shared download resource
-        "GitPython",  # shared download resource
+        "GitPython>=3.1.40",  # shared download resource
         "cfy-lint>=0.0.34",
         'psutil',
         'packaging>=17.1,<=21.3',
         'kubernetes==v26.1.0',
-        'google-auth==2.15.0',
-        'msrestazure==0.6.4',
+        'google-auth',
+        'msrestazure',
         'azure-identity',
-        'azure-mgmt-containerservice==17.0.0',
+        'azure-mgmt-containerservice',
     ]
 )
