@@ -71,3 +71,4 @@ ChangeLog
 local-storage/
 
 plugin_docs
+.python-version

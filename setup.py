@@ -42,23 +42,23 @@ install_requires = [
     'google-auth==2.15.0',
     'msrestazure==0.6.4',
     'azure-identity',
-    'azure-mgmt-containerservice==17.0.0',
+    'azure-mgmt-containerservice==17.0.0'
 ]
+
 if sys.version_info.major == 3 and sys.version_info.minor == 6:
     install_requires += [
         'cloudify-common>=4.5.5',
         'pyyaml>=5.4.1',  # cloudinit and rest
         'GitPython==3.1.18',  # shared download resource
-        'gitdb==4.0.8',  # shared download resource
+        'gitdb==4.0.8'  # shared download resource
     ]
 else:
     install_requires += [
         'cloudify-common>=7.0.2',
-        'pyyaml>=6.0.1'  # cloudinit and rest
+        'pyyaml>=6.0.1',  # cloudinit and rest
         'GitPython>=3.1.40',  # shared download resource
         'gitdb>=4.0.11',  # shared download resource
-        'requests_toolbelt>=1,<2',
-]
+    ]
 
 
 setuptools.setup(
@@ -82,5 +82,5 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     packages=setuptools.find_packages(),
-    install_requires=
+    install_requires=install_requires
 )
