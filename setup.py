@@ -29,7 +29,7 @@ def get_version():
 
 
 install_requires = [
-    'boto3==1.23.10',
+    'boto3',
     'paramiko>=2.7.1',  # terminal
     "Jinja2>=2.7.2",  # terminal
     "pycdlib",  # cdrom image
