@@ -1,17 +1,13 @@
-mock>=1.0
-nose>=1.3
+mock
+nose
 coverage
-testtools>=0.9.36,!=1.2.0
-tox
+testtools
 nose-cov
 pylint
 flake8
 requests-mock
-PyYAML
 xmltodict
 nose-exclude
 # for fake netconf server only
 PyCrypto
-gitdb>=0.6.4
-GitPython
 pytest
