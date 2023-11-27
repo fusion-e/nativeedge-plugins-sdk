@@ -14,6 +14,7 @@
 
 import os
 import re
+import sys
 import pathlib
 import setuptools
 
@@ -25,6 +26,39 @@ def get_version():
               'r') as outfile:
         var = outfile.read()
         return re.search(r'\d+.\d+.\d+', var).group()
+
+
+install_requires = [
+    'boto3==1.23.10',
+    'paramiko>=2.7.1',  # terminal
+    "Jinja2>=2.7.2",  # terminal
+    "pycdlib",  # cdrom image
+    'requests>=2.7.0,<3.0.0',
+    'xmltodict',   # rest
+    "cfy-lint>=0.0.37",
+    'psutil',
+    'packaging>=17.1,<=21.3',
+    'kubernetes==v26.1.0',
+    'google-auth==2.15.0',
+    'msrestazure==0.6.4',
+    'azure-identity',
+    'azure-mgmt-containerservice==17.0.0',
+]
+if sys.version_info.major == 3 and sys.version_info.minor == 6:
+    install_requires += [
+        'cloudify-common>=4.5.5',
+        'pyyaml>=5.4.1',  # cloudinit and rest
+        'GitPython==3.1.18',  # shared download resource
+        'gitdb==4.0.8',  # shared download resource
+    ]
+else:
+    install_requires += [
+        'cloudify-common>=7.0.2',
+        'pyyaml>=6.0.1'  # cloudinit and rest
+        'GitPython>=3.1.40',  # shared download resource
+        'gitdb>=4.0.11',  # shared download resource
+        'requests_toolbelt>=1,<2',
+]
 
 
 setuptools.setup(
@@ -48,24 +82,5 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     packages=setuptools.find_packages(),
-    install_requires=[
-        'boto3==1.23.10',
-        'cloudify-common>=4.5.5',
-        'paramiko>=2.7.1',  # terminal
-        "Jinja2>=2.7.2",  # terminal
-        "pycdlib",  # cdrom image
-        'pyyaml>=5.4.1',  # cloudinit and rest
-        'requests>=2.7.0,<3.0.0',
-        'xmltodict',   # rest
-        "gitdb>=0.6.4",  # shared download resource
-        "GitPython",  # shared download resource
-        "cfy-lint>=0.0.34",
-        'psutil',
-        'packaging>=17.1,<=21.3',
-        'kubernetes==v26.1.0',
-        'google-auth==2.15.0',
-        'msrestazure==0.6.4',
-        'azure-identity',
-        'azure-mgmt-containerservice==17.0.0',
-    ]
+    install_requires=
 )
