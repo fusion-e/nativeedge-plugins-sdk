@@ -4,17 +4,17 @@
 #
 #    pip-compile --no-emit-index-url --output-file=requirements.txt requirements.in setup.py
 #
--e file:///project/fusion-agent
+-e fusion-agent
     # via
     #   -r requirements.in
     #   fusion-mgmtworker
--e file:///project/fusion-common
+-e fusion-common
     # via
     #   -r requirements.in
     #   cloudify-utilities-plugins-sdk (setup.py)
     #   fusion-agent
     #   fusion-mgmtworker
--e file:///project/fusion-manager/mgmtworker
+-e fusion-manager/mgmtworker
     # via -r requirements.in
 adal==1.2.7
     # via msrestazure
