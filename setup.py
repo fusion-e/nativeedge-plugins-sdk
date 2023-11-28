@@ -35,7 +35,6 @@ install_requires = [
     "pycdlib",  # cdrom image
     'requests>=2.7.0,<3.0.0',
     'xmltodict',   # rest
-    "cfy-lint>=0.0.37",
     'psutil',
     'packaging>=17.1,<=21.3',
     'kubernetes==v26.1.0',

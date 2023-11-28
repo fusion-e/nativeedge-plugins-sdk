@@ -15,7 +15,7 @@
 from functools import wraps
 
 from cloudify import ctx
-from cfy_lint.yamllint_ext.rules.constants import (
+from cloudify_common_sdk.constants import (
     deprecated_node_types,
     deprecated_relationship_types
 )
