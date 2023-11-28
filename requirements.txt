@@ -4,12 +4,26 @@
 #
 #    pip-compile --no-emit-index-url --output-file=requirements.txt requirements.in setup.py
 #
+-e file:///project/fusion-agent
+    # via
+    #   -r requirements.in
+    #   fusion-mgmtworker
+-e file:///project/fusion-common
+    # via
+    #   -r requirements.in
+    #   cloudify-utilities-plugins-sdk (setup.py)
+    #   fusion-agent
+    #   fusion-mgmtworker
+-e file:///project/fusion-manager/mgmtworker
+    # via -r requirements.in
 adal==1.2.7
     # via msrestazure
 aiohttp==3.9.1
-    # via cloudify-common
+    # via fusion-common
 aiosignal==1.3.1
     # via aiohttp
+appdirs==1.4.3
+    # via fusion-agent
 attrs==23.1.0
     # via aiohttp
 azure-common==1.1.28
@@ -34,11 +48,12 @@ botocore==1.33.1
     #   boto3
     #   s3transfer
 bottle==0.12.25
-    # via cloudify-common
+    # via fusion-common
 cachetools==5.3.2
     # via google-auth
 certifi==2023.11.17
     # via
+    #   fusion-mgmtworker
     #   kubernetes
     #   msrest
     #   requests
@@ -48,19 +63,21 @@ cffi==1.16.0
     #   pynacl
 charset-normalizer==3.3.2
     # via requests
-cloudify-common==7.0.3
-    # via cloudify-utilities-plugins-sdk (setup.py)
+click==8.1.7
+    # via fusion-agent
 cryptography==41.0.7
     # via
+    #   -r requirements.in
     #   adal
     #   azure-identity
+    #   fusion-mgmtworker
     #   msal
     #   paramiko
     #   pyjwt
 distro==1.8.0
-    # via cloudify-common
+    # via fusion-common
 fasteners==0.19
-    # via cloudify-common
+    # via fusion-common
 frozenlist==1.4.0
     # via
     #   aiohttp
@@ -83,8 +100,9 @@ isodate==0.6.1
     # via msrest
 jinja2==3.1.2
     # via
-    #   cloudify-common
     #   cloudify-utilities-plugins-sdk (setup.py)
+    #   fusion-agent
+    #   fusion-common
 jmespath==1.0.1
     # via
     #   boto3
@@ -109,22 +127,29 @@ multidict==6.0.4
     # via
     #   aiohttp
     #   yarl
+networkx==2.8.8
+    # via fusion-common
 oauthlib==3.2.2
     # via requests-oauthlib
 packaging==21.3
-    # via cloudify-utilities-plugins-sdk (setup.py)
+    # via
+    #   cloudify-utilities-plugins-sdk (setup.py)
+    #   fusion-agent
+    #   fusion-mgmtworker
 paramiko==3.3.1
     # via cloudify-utilities-plugins-sdk (setup.py)
 pika==1.3.2
-    # via cloudify-common
+    # via fusion-common
 pkginfo==1.9.6
     # via wagon
 portalocker==2.8.2
     # via msal-extensions
 proxy-tools==0.1.0
-    # via cloudify-common
+    # via fusion-common
 psutil==5.9.6
     # via cloudify-utilities-plugins-sdk (setup.py)
+psycopg2==2.9.9
+    # via fusion-mgmtworker
 pyasn1==0.5.1
     # via
     #   pyasn1-modules
@@ -147,19 +172,24 @@ python-dateutil==2.8.2
     # via
     #   adal
     #   botocore
+    #   fusion-mgmtworker
     #   kubernetes
 pytz==2023.3.post1
-    # via cloudify-common
-pyyaml==6.0.1
+    # via
+    #   fusion-common
+    #   fusion-mgmtworker
+pyyaml==6.0
     # via
     #   cloudify-utilities-plugins-sdk (setup.py)
+    #   fusion-common
     #   kubernetes
 requests==2.31.0
     # via
     #   adal
     #   azure-core
-    #   cloudify-common
     #   cloudify-utilities-plugins-sdk (setup.py)
+    #   fusion-agent
+    #   fusion-common
     #   kubernetes
     #   msal
     #   msrest
@@ -170,7 +200,11 @@ requests-oauthlib==1.3.1
     #   kubernetes
     #   msrest
 requests-toolbelt==1.0.0
-    # via cloudify-common
+    # via
+    #   cloudify-utilities-plugins-sdk (setup.py)
+    #   fusion-common
+retrying==1.3.4
+    # via fusion-mgmtworker
 rsa==4.9
     # via google-auth
 s3transfer==0.8.0
@@ -183,6 +217,7 @@ six==1.16.0
     #   kubernetes
     #   msrestazure
     #   python-dateutil
+    #   retrying
 smmap==5.0.1
     # via gitdb
 typing-extensions==4.8.0
@@ -193,7 +228,7 @@ urllib3==2.0.7
     #   kubernetes
     #   requests
 wagon==1.0.1
-    # via cloudify-common
+    # via fusion-common
 websocket-client==1.6.4
     # via kubernetes
 wheel==0.42.0
