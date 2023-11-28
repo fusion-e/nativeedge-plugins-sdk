@@ -46,14 +46,10 @@ cffi==1.15.1
     # via
     #   cryptography
     #   pynacl
-cfy-lint==0.0.37
-    # via cloudify-utilities-plugins-sdk (setup.py)
 chardet==4.0.0
     # via aiohttp
 charset-normalizer==2.0.12
     # via requests
-click==8.0.4
-    # via cfy-lint
 cloudify-common==6.4.2.0
     # via
     #   -r requirements-3.6.in
@@ -65,8 +61,6 @@ cryptography==40.0.2
     #   msal
     #   paramiko
     #   pyjwt
-decorator==4.4.2
-    # via networkx
 fasteners==0.17.3
     # via cloudify-common
 gitdb==4.0.8
@@ -86,8 +80,6 @@ idna==3.6
     #   yarl
 idna-ssl==1.1.0
     # via aiohttp
-importlib-metadata==4.8.3
-    # via click
 isodate==0.6.1
     # via msrest
 jinja2==2.11.3
@@ -118,18 +110,12 @@ multidict==5.2.0
     # via
     #   aiohttp
     #   yarl
-networkx==2.5.1
-    # via cfy-lint
 oauthlib==3.2.2
     # via requests-oauthlib
 packaging==21.3
-    # via
-    #   cfy-lint
-    #   cloudify-utilities-plugins-sdk (setup.py)
+    # via cloudify-utilities-plugins-sdk (setup.py)
 paramiko==3.3.1
     # via cloudify-utilities-plugins-sdk (setup.py)
-pathspec==0.9.0
-    # via yamllint
 pika==1.1.0
     # via cloudify-common
 pkginfo==1.9.6
@@ -169,10 +155,8 @@ pytz==2021.3
     # via cloudify-common
 pyyaml==6.0.1
     # via
-    #   cfy-lint
     #   cloudify-utilities-plugins-sdk (setup.py)
     #   kubernetes
-    #   yamllint
 requests==2.27.1
     # via
     #   adal
@@ -213,7 +197,6 @@ typing-extensions==4.1.1
     #   aiohttp
     #   azure-core
     #   gitpython
-    #   importlib-metadata
     #   yarl
 urllib3==1.26.18
     # via
@@ -228,12 +211,8 @@ wheel==0.37.1
     # via wagon
 xmltodict==0.13.0
     # via cloudify-utilities-plugins-sdk (setup.py)
-yamllint==1.28.0
-    # via cfy-lint
 yarl==1.7.2
     # via aiohttp
-zipp==3.6.0
-    # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools
