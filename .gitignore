@@ -72,3 +72,6 @@ local-storage/
 
 plugin_docs
 .python-version
+fusion-agent
+fusion-common
+fusion-manager
