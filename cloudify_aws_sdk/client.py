@@ -25,12 +25,18 @@ from botocore.exceptions import (
     ClientError,
     ParamValidationError
 )
-from cloudify_common_sdk.utils import (
+from nativeedge_common_sdk.utils import (
     get_client_config,
     desecretize_client_config
 )
-from cloudify.exceptions import NonRecoverableError
-from cloudify.utils import exception_to_error_cause
+
+try:
+    from cloudify.exceptions import NonRecoverableError
+    from cloudify.utils import exception_to_error_cause
+except ImportError:
+    from nativeedge.exceptions import NonRecoverableError
+    from nativeedge.utils import exception_to_error_cause
+
 
 FATAL_EXCEPTIONS = (ClientError, ParamValidationError)
 NTP_NOTE = ". If you are positive that you are using the correct " \
