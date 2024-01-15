@@ -21,63 +21,62 @@ import setuptools
 
 def get_version():
     current_dir = pathlib.Path(__file__).parent.resolve()
-
-    with open(os.path.join(current_dir, 'cloudify_common_sdk/__version__.py'),
-              'r') as outfile:
+    with open(os.path.join(
+            current_dir,
+            'nativeedge_common_sdk/__version__.py'), 'r') as outfile:
         var = outfile.read()
         return re.search(r'\d+.\d+.\d+', var).group()
 
 
 install_requires = [
     'boto3',
-    'paramiko>=2.7.1',  # terminal
-    "Jinja2>=2.7.2",  # terminal
-    "pycdlib",  # cdrom image
-    'requests>=2.7.0,<3.0.0',
-    'xmltodict',   # rest
     'psutil',
-    'packaging>=17.1,<=21.3',
-    'kubernetes==v26.1.0',
-    'google-auth==2.15.0',
-    'msrestazure==0.6.4',
+    'xmltodict',   # rest
+    "pycdlib",  # cdrom image
+    "Jinja2>=2.7.2",  # terminal
     'azure-identity',
+    'paramiko>=2.7.1',  # terminal
+    'kubernetes==29.0.0',
+    'msrestazure==0.6.4',
+    'requests>=2.7.0,<3.0.0',
+    'packaging>=17.1,<=21.3',
     'azure-mgmt-containerservice==17.0.0'
 ]
 
 if sys.version_info.major == 3 and sys.version_info.minor == 6:
     install_requires += [
-        'cloudify-common>=4.5.5',
+        'gitdb==4.0.8',  # shared download resource
         'pyyaml>=5.4.1',  # cloudinit and rest
         'GitPython==3.1.18',  # shared download resource
-        'gitdb==4.0.8'  # shared download resource
+        'google-auth==2.22.0',
+        'cloudify-common>=4.5.5',
     ]
 else:
     install_requires += [
-        'fusion-common',
-        'requests_toolbelt>=1,<2',
-        'pyyaml>=6.0',  # cloudinit and rest
-        'GitPython>=3.1.40',  # shared download resource
-        'gitdb>=4.0.11',  # shared download resource
+        'gitdb==4.0.11',  # shared download resource
+        'pyyaml>=6.0.1',  # cloudinit and rest
+        'GitPython>=3.1.41',  # shared download resource
+        'google-auth==2.26.2',
+        'fusion-common>=7.0.2',
     ]
 
 
 setuptools.setup(
-    name='cloudify-utilities-plugins-sdk',
+    name='nativeedge-plugins-sdk',
     version=get_version(),
-    author='Cloudify Platform Ltd.',
-    author_email='hello@cloudify.co',
-    description='Utilities SDK for extending Cloudify',
+    author='Dell, Inc',
+    author_email='adam.terramel@dell.com',
+    description='Dell Native Edge Plugins SDK',
     long_description="""
-        # Cloudify Utilities SDK
+        # Native Edge Plugins SDK
 
-        Utilities SDK for extending Cloudify features.
+        Common programming features for Dell Native Edge plugins.
     """,
     long_description_content_type="text/markdown",
     license='Apache License 2.0',
-    url="https://github.com/cloudify-incubator/cloudify-utilities-plugins-sdk",
+    url="https://github.com/fusion-e/nativeedge-plugins-sdk",
     classifiers=[
-        "Programming Language :: Python :: 2.7",
-        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.11",
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
     ],
