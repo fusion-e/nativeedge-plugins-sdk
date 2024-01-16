@@ -18,8 +18,8 @@ import json
 import mock
 import six
 
-from cloudify_rest_sdk import utility
-from cloudify_common_sdk import exceptions
+from nativeedge_rest_sdk import utility
+from nativeedge_common_sdk import exceptions
 
 
 class TestSdk(unittest.TestCase):
@@ -401,7 +401,7 @@ class TestSdk(unittest.TestCase):
         response.cookies = mock.Mock()
         response.cookies.get_dict = mock.Mock(return_value={'a': 'b'})
         with mock.patch(
-            "cloudify_rest_sdk.utility.requests.request", request
+            "nativeedge_rest_sdk.utility.requests.request", request
         ):
             self.assertEqual(utility._send_request(call), response)
         request.assert_called_with('get', 'https://localhost:443/',
@@ -449,10 +449,10 @@ class TestSdk(unittest.TestCase):
             return a
 
         with mock.patch(
-            "cloudify_rest_sdk.utility.requests.request", request
+            "nativeedge_rest_sdk.utility.requests.request", request
         ):
             with mock.patch(
-                "cloudify_rest_sdk.utility.StringIO", _fake_StringIO
+                "nativeedge_rest_sdk.utility.StringIO", _fake_StringIO
             ):
                 self.assertEqual(
                     utility._send_request(call, response_callback),
@@ -503,7 +503,7 @@ class TestSdk(unittest.TestCase):
             return a
 
         with mock.patch(
-            "cloudify_rest_sdk.utility.requests.request", request
+            "nativeedge_rest_sdk.utility.requests.request", request
         ):
             self.assertEqual(
                 utility._send_request(call, response_callback),
@@ -554,7 +554,7 @@ class TestSdk(unittest.TestCase):
             return a
 
         with mock.patch(
-            "cloudify_rest_sdk.utility.requests.request", request
+            "nativeedge_rest_sdk.utility.requests.request", request
         ):
             self.assertEqual(
                 utility._send_request(call, response_callback),
@@ -599,7 +599,7 @@ class TestSdk(unittest.TestCase):
         response.cookies.get_dict = mock.Mock(return_value={'a': 'b'})
         request = mock.Mock(return_value=response)
         with mock.patch(
-            "cloudify_rest_sdk.utility.requests.request", request
+            "nativeedge_rest_sdk.utility.requests.request", request
         ):
             self.assertEqual(utility._send_request(call), response)
         request.assert_called_with('get', 'https://localhost:443/xml',
@@ -619,7 +619,7 @@ class TestSdk(unittest.TestCase):
             side_effect=utility.requests.exceptions.HTTPError('Error!')
         )
         with mock.patch(
-            "cloudify_rest_sdk.utility.requests.request", request
+            "nativeedge_rest_sdk.utility.requests.request", request
         ):
             with self.assertRaises(
                 utility.requests.exceptions.HTTPError
@@ -630,7 +630,7 @@ class TestSdk(unittest.TestCase):
         # expected error
         call['recoverable_codes'] = [404]
         with mock.patch(
-            "cloudify_rest_sdk.utility.requests.request", request
+            "nativeedge_rest_sdk.utility.requests.request", request
         ):
             with self.assertRaises(
                 exceptions.RecoverableStatusCodeCodeException
@@ -644,7 +644,7 @@ class TestSdk(unittest.TestCase):
         call['recoverable_codes'] = []
         call['successful_codes'] = [404]
         with mock.patch(
-            "cloudify_rest_sdk.utility.requests.request", request
+            "nativeedge_rest_sdk.utility.requests.request", request
         ):
             self.assertEqual(utility._send_request(call), response)
 
@@ -654,7 +654,7 @@ class TestSdk(unittest.TestCase):
                 'check connect')
         )
         with mock.patch(
-            "cloudify_rest_sdk.utility.requests.request", request
+            "nativeedge_rest_sdk.utility.requests.request", request
         ):
             with self.assertRaises(
                 utility.requests.exceptions.ConnectionError
@@ -669,7 +669,7 @@ class TestSdk(unittest.TestCase):
                 'check connect')
         )
         with mock.patch(
-            "cloudify_rest_sdk.utility.requests.request", request
+            "nativeedge_rest_sdk.utility.requests.request", request
         ):
             with self.assertRaises(
                 exceptions.RecoverableResponseException
@@ -714,7 +714,7 @@ class TestSdk(unittest.TestCase):
         response.cookies.get_dict = mock.Mock(return_value={'a': 'b'})
         request = mock.Mock(return_value=response)
         with mock.patch(
-            "cloudify_rest_sdk.utility.requests.request", request
+            "nativeedge_rest_sdk.utility.requests.request", request
         ):
             self.assertEqual(
                 utility.process({'payload': '<object>11</object>'}, template,
@@ -779,7 +779,7 @@ class TestSdk(unittest.TestCase):
         response.cookies.get_dict = mock.Mock(return_value={'a': 'b'})
         request = mock.Mock(return_value=response)
         with mock.patch(
-            "cloudify_rest_sdk.utility.requests.request", request
+            "nativeedge_rest_sdk.utility.requests.request", request
         ):
             self.assertEqual(
                 utility.process({'payload': '<object>11</object>'}, template,
@@ -858,10 +858,10 @@ class TestSdk(unittest.TestCase):
         response.cookies.get_dict = mock.Mock(return_value={'a': 'b'})
         request = mock.Mock(return_value=response)
         with mock.patch(
-            "cloudify_rest_sdk.utility.requests.request", request
+            "nativeedge_rest_sdk.utility.requests.request", request
         ):
             with mock.patch(
-                "cloudify_rest_sdk.utility.tempfile.mkstemp",
+                "nativeedge_rest_sdk.utility.tempfile.mkstemp",
                 mock.Mock(return_value=['fake_fd', '/tmp/fake_tmp'])
             ):
                 def _verify_cert_data_type(_, data):
@@ -875,7 +875,7 @@ class TestSdk(unittest.TestCase):
                 fake_os.write = mock.Mock(side_effect=_verify_cert_data_type)
                 fake_os.remove = mock.Mock(
                     side_effect=Exception("can't remove"))
-                with mock.patch("cloudify_rest_sdk.utility.os", fake_os):
+                with mock.patch("nativeedge_rest_sdk.utility.os", fake_os):
                     self.assertEqual(
                         utility.process({}, template, {}), {
                             'calls': [{
@@ -938,7 +938,7 @@ class TestSdk(unittest.TestCase):
         response.cookies.get_dict = mock.Mock(return_value={'a': 'b'})
         request = mock.Mock(return_value=response)
         with mock.patch(
-            "cloudify_rest_sdk.utility.requests.request", request
+            "nativeedge_rest_sdk.utility.requests.request", request
         ):
             self.assertEqual(
                 utility.process({}, template, {}), {
@@ -990,7 +990,7 @@ class TestSdk(unittest.TestCase):
                 - object_id"""
         request = mock.Mock(return_value=response)
         with mock.patch(
-            "cloudify_rest_sdk.utility.requests.request", request
+            "nativeedge_rest_sdk.utility.requests.request", request
         ):
             self.assertEqual(
                 utility.process({'custom': [1, 2, 3]}, template,
@@ -1057,7 +1057,7 @@ class TestSdk(unittest.TestCase):
         response.cookies.get_dict = mock.Mock(return_value={'a': 'b'})
         request = mock.Mock(return_value=response)
         with mock.patch(
-            "cloudify_rest_sdk.utility.requests.request", request
+            "nativeedge_rest_sdk.utility.requests.request", request
         ):
             self.assertEqual(
                 utility.process({}, template, {}),

@@ -23,14 +23,14 @@ import tempfile
 import xmltodict
 from six import StringIO, string_types
 
-from cloudify_rest_sdk import LOGGER_NAME
-from cloudify_common_sdk.filters import (
+from nativeedge_rest_sdk import LOGGER_NAME
+from nativeedge_common_sdk.filters import (
     translate_and_save,
     shorted_text,
     render_template,
     obfuscate_passwords,
 )
-from cloudify_common_sdk.exceptions import (
+from nativeedge_common_sdk.exceptions import (
     RecoverableStatusCodeCodeException,
     ExpectationException,
     WrongTemplateDataException,
