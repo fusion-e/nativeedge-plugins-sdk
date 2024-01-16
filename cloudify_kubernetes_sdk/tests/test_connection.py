@@ -21,9 +21,10 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 
-from ..connection import configuration
-from ..connection import authentication
-from ..exceptions import NativeEdgeKubernetesSDKException
+from nativeedge_kubernetes_sdk.connection import configuration
+from nativeedge_kubernetes_sdk.connection import authentication
+from nativeedge_kubernetes_sdk.exceptions import \
+    NativeEdgeKubernetesSDKException
 
 FILE_CONTENT = {
     'apiVersion': 'v1',

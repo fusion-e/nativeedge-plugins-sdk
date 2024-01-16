@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from mock import patch
-from .. import client_resolver as cr
+from nativeedge_kubernetes_sdk import client_resolver as cr
 
 various_mappings = [
     {'apiVersion': 'v1', 'kind': 'Pod'},

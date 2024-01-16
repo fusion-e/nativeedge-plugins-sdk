@@ -13,11 +13,9 @@
 # limitations under the License.
 #
 
-
-class NativeEdgeKubernetesSDKException(Exception):
+class CloudifyKubernetesSDKException(Exception):
     pass
 
 
-class CloudifyKubernetesSDKException(NativeEdgeKubernetesSDKException):
+class NativeEdgeKubernetesSDKException(CloudifyKubernetesSDKException):
     pass
-
