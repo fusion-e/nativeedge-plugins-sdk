@@ -11,9 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from cloudify_common_sdk import exceptions
-from cloudify_terminal_sdk import base_connection
-from cloudify_common_sdk.filters import remove_nonascii
+
+from nativeedge_common_sdk import exceptions
+from nativeedge_terminal_sdk import base_connection
+from nativeedge_common_sdk.filters import remove_nonascii
 
 DEFAULT_PROMT = ["#", "$"]
 LINE_SIZE = 256

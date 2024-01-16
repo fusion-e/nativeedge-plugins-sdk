@@ -15,7 +15,7 @@ import six
 import mock
 import unittest
 
-import cloudify_terminal_sdk.base_connection as base_connection
+import nativeedge_terminal_sdk.base_connection as base_connection
 
 
 class SSHConnectionTest(unittest.TestCase):

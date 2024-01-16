@@ -14,8 +14,8 @@
 import mock
 import unittest
 
-import cloudify_terminal_sdk.netconf_connection as netconf_connection
-from cloudify_common_sdk import exceptions
+import nativeedge_terminal_sdk.netconf_connection as netconf_connection
+from nativeedge_common_sdk import exceptions
 
 
 class NetConfConnectionTest(unittest.TestCase):
