@@ -19,7 +19,10 @@ import tempfile
 from shutil import copyfile
 from kubernetes.client import Configuration
 
-from ..exceptions import CloudifyKubernetesSDKException
+from ..exceptions import (
+    CloudifyKubernetesSDKException,
+    NativeEdgeKubernetesSDKException
+)
 
 
 class KubernetesConfiguration(object):

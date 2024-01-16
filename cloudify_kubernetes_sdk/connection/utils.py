@@ -19,9 +19,15 @@ from tempfile import NamedTemporaryFile
 from .configuration import KubeConfigConfigurationVariants
 from .authentication import KubernetesApiAuthenticationVariants
 
-from cloudify import ctx as ctx_from_import
-from cloudify.exceptions import HttpException
-from cloudify_common_sdk.utils import get_ctx_instance
+try:
+    from cloudify import ctx as ctx_from_import
+    from cloudify.exceptions import HttpException
+except ImportError:
+        from nativeedge import ctx as ctx_from_import
+        from nativeedge.exceptions import HttpException
+
+from nativeedge_common_sdk.utils import get_ctx_instance
+
 
 HOST = 'host'
 HOST_KEY = 'k8s-ip'
@@ -64,10 +70,13 @@ def get_cluster_node_instance_from_rels(rels, rel_type=None, node_type=None):
     cluster_types = [
         'cloudify.kubernetes.resources.SharedCluster',
         'cloudify.nodes.kubernetes.resources.SharedCluster'
+        'nativeedge.nodes.kubernetes.resources.SharedCluster'
     ]
     cluster_rels = [
+        'cloudify.relationships.helm.connected_to_shared_cluster',
+        'nativeedge.relationships.helm.connected_to_shared_cluster',
         'cloudify.relationships.kubernetes.connected_to_shared_cluster',
-        'cloudify.relationships.helm.connected_to_shared_cluster'
+        'nativeedge.relationships.kubernetes.connected_to_shared_cluster',
     ]
 
     if node_type:

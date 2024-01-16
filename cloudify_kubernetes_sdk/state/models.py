@@ -14,11 +14,18 @@
 #    * limitations under the License.
 
 
-from cloudify import ctx
-from cloudify.exceptions import (
-    OperationRetry,
-    NonRecoverableError
-)
+try:
+    from cloudify import ctx
+    from cloudify.exceptions import (
+        OperationRetry,
+        NonRecoverableError
+    )
+except ImportError:
+    from nativeedge import ctx
+    from nativeedge.exceptions import (
+        OperationRetry,
+        NonRecoverableError
+    )
 
 
 class KubernetesResourceStatus(object):

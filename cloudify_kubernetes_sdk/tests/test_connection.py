@@ -23,7 +23,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 
 from ..connection import configuration
 from ..connection import authentication
-from ..exceptions import CloudifyKubernetesSDKException
+from ..exceptions import NativeEdgeKubernetesSDKException
 
 FILE_CONTENT = {
     'apiVersion': 'v1',
@@ -101,12 +101,13 @@ class TestCx(TestCase):
     def test_base_kubernetes_api_auth(self):
         kaa = authentication.KubernetesApiAuthentication(
             self.logger, self.auth_data1)
-        self.assertRaises(CloudifyKubernetesSDKException, kaa.get_token)
+        self.assertRaises(NativeEdgeKubernetesSDKException, kaa.get_token)
 
     def test_gcp_kubernetes_api_auth(self):
         kaa = authentication.GCPServiceAccountAuthentication(
             self.logger, self.auth_data2)
-        p = 'cloudify_kubernetes_sdk.connection.authentication.service_account'
+        p = 'nativeedge_kubernetes_sdk.connection.' \
+            'authentication.service_account'
         with patch(p):
             kaa.get_token()
 
@@ -117,7 +118,8 @@ class TestCx(TestCase):
 
         kaa = authentication.KubernetesApiAuthenticationVariants(
             self.logger, self.auth_data2)
-        p = 'cloudify_kubernetes_sdk.connection.authentication.service_account'
+        p = 'nativeedge_kubernetes_sdk.connection.' \
+            'authentication.service_account'
         with patch(p):
             result = kaa.get_token()
         assert isinstance(result, MagicMock)
@@ -125,12 +127,16 @@ class TestCx(TestCase):
     def test_kubernetes_config(self):
         kc = configuration.KubernetesConfiguration(
             self.logger, self.conf_data)
-        self.assertRaises(CloudifyKubernetesSDKException, kc.get_kubeconfig)
+        self.assertRaises(
+            NativeEdgeKubernetesSDKException,
+            kc.get_kubeconfig)
 
     def test_blueprint_file_config(self):
         conf_data = {'blueprint_file_name': 'foo'}
         kc = configuration.BlueprintFileConfiguration(self.logger, conf_data)
-        self.assertRaises(CloudifyKubernetesSDKException, kc.get_kubeconfig)
+        self.assertRaises(
+            NativeEdgeKubernetesSDKException,
+            kc.get_kubeconfig)
         with NamedTemporaryFile() as f:
             conf_data = {
                 'blueprint_file_name': f.name,
@@ -146,7 +152,7 @@ class TestCx(TestCase):
             'manager_file_path': 'foo',
         }
         kc = configuration.ManagerFilePathConfiguration(self.logger, conf_data)
-        self.assertRaises(CloudifyKubernetesSDKException, kc.get_kubeconfig)
+        self.assertRaises(NativeEdgeKubernetesSDKException, kc.get_kubeconfig)
         with NamedTemporaryFile() as f:
             c = 'foo'
             w = open(f.name, 'w')

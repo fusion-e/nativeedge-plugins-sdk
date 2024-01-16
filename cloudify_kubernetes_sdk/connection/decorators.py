@@ -16,8 +16,12 @@
 import os
 
 from kubernetes import client, config
-from cloudify import ctx as ctx_from_import
-from cloudify_common_sdk.utils import uses_debug_node
+try:
+    from cloudify import ctx as ctx_from_import
+except ImportError:
+    from nativeedge import ctx as ctx_from_import
+
+from nativeedge_common_sdk.utils import uses_debug_node
 
 from .utils import (
     get_host,
