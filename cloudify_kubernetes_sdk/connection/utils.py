@@ -23,8 +23,8 @@ try:
     from cloudify import ctx as ctx_from_import
     from cloudify.exceptions import HttpException
 except ImportError:
-        from nativeedge import ctx as ctx_from_import
-        from nativeedge.exceptions import HttpException
+    from nativeedge import ctx as ctx_from_import
+    from nativeedge.exceptions import HttpException
 
 from nativeedge_common_sdk.utils import get_ctx_instance
 

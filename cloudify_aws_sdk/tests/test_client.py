@@ -19,10 +19,10 @@ from datetime import datetime
 
 try:
     from cloudify.state import current_ctx
-    from cloudify.mocks import MockCloudifyContext
+    from cloudify.mocks import MockCloudifyContext as MockCTX
 except ImportError:
     from nativeedge.state import current_ctx
-    from nativeedge.mocks import MockNativeEdgeContext
+    from nativeedge.mocks import MockNativeEdgeContext as MockCTX
 
 from cloudify_aws_sdk import client
 from botocore.exceptions import UnknownServiceError
@@ -37,7 +37,7 @@ class TestClient(unittest.TestCase):
 
         test_properties = test_properties or {}
 
-        ctx = MockCloudifyContext(
+        ctx = MockCTX(
             node_id="test_id",
             node_name="test_name",
             deployment_id='test_deployment',
