@@ -15,8 +15,8 @@
 import unittest
 from mock import MagicMock, patch, Mock, call
 
-import cloudify_terminal_sdk.terminal_connection as terminal_connection
-from cloudify_common_sdk import exceptions
+import nativeedge_terminal_sdk.terminal_connection as terminal_connection
+from nativeedge_common_sdk import exceptions
 
 
 class TerminalTest(unittest.TestCase):

@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cloudify_common_sdk import exceptions
-from cloudify_terminal_sdk import base_connection
+from nativeedge_common_sdk import exceptions
+from nativeedge_terminal_sdk import base_connection
 
 # final of any package
 NETCONF_1_0_END = "]]>]]>"

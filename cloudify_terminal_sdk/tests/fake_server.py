@@ -22,7 +22,7 @@ import paramiko
 import xmltodict
 from six import StringIO
 from Crypto.PublicKey import RSA
-from cloudify_terminal_sdk import netconf_connection
+from nativeedge_terminal_sdk import netconf_connection
 
 # configs
 debug_1_1 = True
