@@ -14,8 +14,12 @@
 #    * limitations under the License.
 
 from . import models
-from cloudify import ctx
-from cloudify_common_sdk.clean_json import JsonCleanuper
+try:
+    from cloudify import ctx
+except ImportError:
+    from nativeedge import ctx
+
+from nativeedge_common_sdk.clean_json import JsonCleanuper
 
 
 class Resource(object):

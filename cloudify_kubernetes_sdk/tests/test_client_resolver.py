@@ -145,7 +145,7 @@ def test_get_read_function_name():
         assert function == expected.pop(0)
 
 
-@patch('cloudify_kubernetes_sdk.client_resolver.kube_client')
+@patch('nativeedge_kubernetes_sdk.client_resolver.kube_client')
 def test_get_kubernetes_api_and_function(kube_client):
     resource = {
         'apiVersion': 'taco.bell.k8s.io/v1',

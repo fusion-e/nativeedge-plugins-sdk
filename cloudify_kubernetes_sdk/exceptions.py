@@ -14,5 +14,10 @@
 #
 
 
-class CloudifyKubernetesSDKException(Exception):
+class NativeEdgeKubernetesSDKException(Exception):
     pass
+
+
+class CloudifyKubernetesSDKException(NativeEdgeKubernetesSDKException):
+    pass
+
