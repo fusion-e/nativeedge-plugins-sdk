@@ -1,4 +1,4 @@
-# Copyright (c) 2018 - 2023 Cloudify Platform Ltd. All rights reserved
+# Copyright (c) 2024 Dell, Inc. All rights reserved
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from mock import patch
-from .. import client_resolver as cr
+from nativeedge_kubernetes_sdk import client_resolver as cr
 
 various_mappings = [
     {'apiVersion': 'v1', 'kind': 'Pod'},
@@ -145,7 +145,7 @@ def test_get_read_function_name():
         assert function == expected.pop(0)
 
 
-@patch('cloudify_kubernetes_sdk.client_resolver.kube_client')
+@patch('nativeedge_kubernetes_sdk.client_resolver.kube_client')
 def test_get_kubernetes_api_and_function(kube_client):
     resource = {
         'apiVersion': 'taco.bell.k8s.io/v1',

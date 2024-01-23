@@ -80,7 +80,7 @@ commands:
           command: |
            curl $JENKINS_URL \
            --user $JENKINS_USER:$JENKINS_TOKEN \
-           --data BRANCH=master \
+           --data BRANCH=main \
            --data GITHUB_PROJECT_URL=$GH_REPO
       - run:
           name: "Make sure the Pypi Job was successful"
