@@ -105,7 +105,7 @@ workflows:
       - releaseorb/release:
           filters:
             branches:
-              only: /master/
+              only: /main/
           requires:
             - node/unittests_job
       - release_sdk_to_pypi:
@@ -113,7 +113,7 @@ workflows:
             - cloudify-utilities-plugins-sdk
           filters:
             branches:
-              only: /master/
+              only: /main/
           requires:
             - node/unittests_job
   nightly:
@@ -123,7 +123,7 @@ workflows:
         filters:
           branches:
             only:
-              - master
+              - main
     jobs:
       - node/check_py3_compat_job
       - node/unittests_job:
