@@ -15,9 +15,9 @@
 
 from . import models
 try:
-    from cloudify import ctx
-except ImportError:
     from nativeedge import ctx
+except ImportError:
+    from cloudify import ctx
 
 from nativeedge_common_sdk.clean_json import JsonCleanuper
 

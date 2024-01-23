@@ -31,11 +31,11 @@ from nativeedge_common_sdk.utils import (
 )
 
 try:
-    from cloudify.exceptions import NonRecoverableError
-    from cloudify.utils import exception_to_error_cause
-except ImportError:
     from nativeedge.exceptions import NonRecoverableError
     from nativeedge.utils import exception_to_error_cause
+except ImportError:
+    from cloudify.exceptions import NonRecoverableError
+    from cloudify.utils import exception_to_error_cause
 
 
 FATAL_EXCEPTIONS = (ClientError, ParamValidationError)

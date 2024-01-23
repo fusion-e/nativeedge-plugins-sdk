@@ -15,11 +15,18 @@
 
 from functools import wraps
 
-from cloudify import ctx
-from cloudify_common_sdk.constants import (
-    deprecated_node_types,
-    deprecated_relationship_types
-)
+try:
+    from nativeedge import ctx
+    from nativeedge_common_sdk.constants import (
+        deprecated_node_types,
+        deprecated_relationship_types
+    )
+except ImportError:
+    from cloudify import ctx
+    from cloudify_common_sdk.constants import (
+        deprecated_node_types,
+        deprecated_relationship_types
+    )
 try:
     from cloudify.constants import RELATIONSHIP_INSTANCE, NODE_INSTANCE
 except ImportError:

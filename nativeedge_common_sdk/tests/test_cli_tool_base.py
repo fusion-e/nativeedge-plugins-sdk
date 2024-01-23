@@ -20,8 +20,12 @@ from pytest import fixture
 from mock import MagicMock, patch, call
 from tempfile import mkdtemp, NamedTemporaryFile
 
-from cloudify.state import current_ctx
-from cloudify.mocks import MockCloudifyContext
+try:
+    from nativeedge.state import current_ctx
+    from cloudify.mocks import MockNativeEdgeContext
+except ImportError:
+    from cloudify.state import current_ctx
+    from cloudify.mocks import MockCloudifyContext as MockNativeEdgeContext
 
 from .. import cli_tool_base
 
@@ -178,7 +182,7 @@ def test_format_dict_flag(get_tf_tools_params):
 
 def test_download_file(get_tf_tools_params):
     args, kwargs, info, error = get_tf_tools_params
-    ctx = MockCloudifyContext(
+    ctx = MockNativeEdgeContext(
         'test',
         deployment_id='deployment', tenant={'name': 'foo'},
         properties={},
@@ -191,7 +195,7 @@ def test_download_file(get_tf_tools_params):
     tool.tool_name = 'test_download_tool'
     test_node_inst_dir = mkdtemp()
     executable_file = NamedTemporaryFile(delete=False).name
-    with patch('cloudify_common_sdk.utils.get_node_instance_dir') as gnid:
+    with patch('nativeedge_common_sdk.utils.get_node_instance_dir') as gnid:
         gnid.return_value = test_node_inst_dir
         try:
             result = tool.install_binary(
@@ -213,7 +217,7 @@ def test_download_file(get_tf_tools_params):
 
 def test_download_archive(get_tf_tools_params):
     args, kwargs, info, error = get_tf_tools_params
-    ctx = MockCloudifyContext(
+    ctx = MockNativeEdgeContext(
         'test',
         deployment_id='deployment', tenant={'name': 'foo'},
         properties={},
@@ -221,13 +225,13 @@ def test_download_archive(get_tf_tools_params):
     )
     current_ctx.set(ctx)
 
-    source = 'https://github.com/cloudify-incubator' \
-             '/cloudify-utilities-plugins-sdk/archive/refs/heads/master.zip'
+    source = 'https://github.com/fusion-e' \
+             '/nativeedge-plugins-sdk/archive/refs/heads/main.zip'
     tool = cli_tool_base.CliTool(*args, **kwargs)
     tool.tool_name = 'test_download_archive'
     test_node_inst_dir = mkdtemp()
     executable_file = NamedTemporaryFile(delete=False).name
-    with patch('cloudify_common_sdk.utils.get_node_instance_dir') as gnid:
+    with patch('nativeedge_common_sdk.utils.get_node_instance_dir') as gnid:
         gnid.return_value = test_node_inst_dir
         result = tool.install_binary(
             source,

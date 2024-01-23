@@ -18,7 +18,7 @@
 import unittest
 from mock import Mock
 
-import cloudify_common_sdk.iso9660 as iso9660
+import nativeedge_common_sdk.iso9660 as iso9660
 
 
 class ISO9660DataTest(unittest.TestCase):

@@ -18,17 +18,17 @@
 import unittest
 from mock import Mock, patch
 
-import cloudify_common_sdk.ftp as ftp
+import nativeedge_common_sdk.ftp as ftp
 
 
 class TestFTP(unittest.TestCase):
 
     def test_ftp_bundle(self):
         for (host, tls, for_mock) in [
-            (False, False, "cloudify_common_sdk.ftp.ftplib.FTP"),
-            (False, True, "cloudify_common_sdk.ftp.ftplib.FTP_TLS"),
-            (True, False, "cloudify_common_sdk.ftp.FTP_IgnoreHost"),
-            (True, True, "cloudify_common_sdk.ftp.FTP_TLS_IgnoreHost"),
+            (False, False, "nativeedge_common_sdk.ftp.ftplib.FTP"),
+            (False, True, "nativeedge_common_sdk.ftp.ftplib.FTP_TLS"),
+            (True, False, "nativeedge_common_sdk.ftp.FTP_IgnoreHost"),
+            (True, True, "nativeedge_common_sdk.ftp.FTP_TLS_IgnoreHost"),
         ]:
             fake_session = Mock()
             fake_ftp = Mock(return_value=fake_session)
@@ -47,10 +47,10 @@ class TestFTP(unittest.TestCase):
 
     def test_ftp_delete(self):
         for (host, tls, for_mock) in [
-            (False, False, "cloudify_common_sdk.ftp.ftplib.FTP"),
-            (False, True, "cloudify_common_sdk.ftp.ftplib.FTP_TLS"),
-            (True, False, "cloudify_common_sdk.ftp.FTP_IgnoreHost"),
-            (True, True, "cloudify_common_sdk.ftp.FTP_TLS_IgnoreHost"),
+            (False, False, "nativeedge_common_sdk.ftp.ftplib.FTP"),
+            (False, True, "nativeedge_common_sdk.ftp.ftplib.FTP_TLS"),
+            (True, False, "nativeedge_common_sdk.ftp.FTP_IgnoreHost"),
+            (True, True, "nativeedge_common_sdk.ftp.FTP_TLS_IgnoreHost"),
         ]:
             fake_session = Mock()
             fake_ftp = Mock(return_value=fake_session)
@@ -72,20 +72,20 @@ class TestFTP(unittest.TestCase):
 
         # check replace of ftp
         with patch(
-            "cloudify_common_sdk.ftp.ftplib.FTP.makepasv", makepasv
+            "nativeedge_common_sdk.ftp.ftplib.FTP.makepasv", makepasv
         ):
             with patch(
-                "cloudify_common_sdk.ftp.ftplib.FTP.host", "default host"
+                "nativeedge_common_sdk.ftp.ftplib.FTP.host", "default host"
             ):
                 session = ftp.FTP_IgnoreHost()
                 self.assertEqual(session.makepasv(), ("default host", 999))
 
         # check replace of ftps
         with patch(
-            "cloudify_common_sdk.ftp.ftplib.FTP_TLS.makepasv", makepasv
+            "nativeedge_common_sdk.ftp.ftplib.FTP_TLS.makepasv", makepasv
         ):
             with patch(
-                "cloudify_common_sdk.ftp.ftplib.FTP_TLS.host", "default host"
+                "nativeedge_common_sdk.ftp.ftplib.FTP_TLS.host", "default host"
             ):
                 session = ftp.FTP_TLS_IgnoreHost()
                 self.assertEqual(session.makepasv(), ("default host", 999))
