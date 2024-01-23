@@ -1,4 +1,5 @@
-# Copyright (c) 2023 Dell. All rights reserved
+########
+# Copyright (c) 2024 Dell, Inc. All rights reserved
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,8 +17,12 @@ import mock
 import unittest
 from datetime import datetime
 
-from cloudify.state import current_ctx
-from cloudify.mocks import MockCloudifyContext
+try:
+    from cloudify.state import current_ctx
+    from cloudify.mocks import MockCloudifyContext as MockCTX
+except ImportError:
+    from nativeedge.state import current_ctx
+    from nativeedge.mocks import MockNativeEdgeContext as MockCTX
 
 from cloudify_aws_sdk import client
 from botocore.exceptions import UnknownServiceError
@@ -32,7 +37,7 @@ class TestClient(unittest.TestCase):
 
         test_properties = test_properties or {}
 
-        ctx = MockCloudifyContext(
+        ctx = MockCTX(
             node_id="test_id",
             node_name="test_name",
             deployment_id='test_deployment',
