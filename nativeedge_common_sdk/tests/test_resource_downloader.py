@@ -19,19 +19,19 @@ import os
 import mock
 import unittest
 
-import cloudify_common_sdk.resource_downloader as resource_downloader
+import nativeedge_common_sdk.resource_downloader as resource_downloader
 
 FILE_WITH_TYPE_URL = \
-    "https://github.com/cloudify-incubator/cloudify-utilities-plugins-sdk/"\
+    "https://github.com/fusion-e/nativeedge-plugins-sdk/"\
     "archive/0.0.17.zip"
 
 FILE_WITH_NO_TYPE_URL = \
-    "https://codeload.github.com/cloudify-incubator/"\
-    "cloudify-utilities-plugins-sdk/zip/master"
+    "https://codeload.github.com/fusion-e/"\
+    "nativeedge-plugins-sdk/zip/main"
 
 FILE_WITH_TF_GIT = \
-    "git::https://github.com/cloudify-incubator/"\
-    "cloudify-utilities-plugins-sdk.git"
+    "git::https://github.com/fusion-e/"\
+    "nativeedge-plugins-sdk.git"
 
 FILE_WITH_TF_GIT_TAG = FILE_WITH_TF_GIT + "?ref=0.0.17"
 

@@ -18,8 +18,12 @@ import unittest
 import subprocess
 from tempfile import NamedTemporaryFile
 
-from cloudify.state import current_ctx
-from cloudify.mocks import MockCloudifyContext
+try:
+    from nativeedge.state import current_ctx
+    from nativeedge.mocks import MockNativeEdgeContext
+except ImportError:
+    from cloudify.state import current_ctx
+    from cloudify.mocks import MockCloudifyContext as MockNativeEdgeContext
 
 from ..processes import handle_max_sleep, general_executor
 
@@ -49,7 +53,7 @@ fork
 class TestProcesses(unittest.TestCase):
 
     def test_handle_max_sleep(self):
-        ctx = MockCloudifyContext()
+        ctx = MockNativeEdgeContext()
         current_ctx.set(ctx)
 
         # Test that a sleeping process is either running or sleeping
@@ -91,7 +95,7 @@ class TestProcesses(unittest.TestCase):
             self.assertTrue(isinstance(result[1], float))
 
     def test_general_executor(self):
-        ctx = MockCloudifyContext()
+        ctx = MockNativeEdgeContext()
         ctx._return_value = None
         current_ctx.set(ctx)
         ctx.is_script_exception_defined = False

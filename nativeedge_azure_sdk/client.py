@@ -17,7 +17,7 @@ import io
 import os
 import yaml
 
-from cloudify_common_sdk.utils import cleanup_empty_params
+from nativeedge_common_sdk.utils import cleanup_empty_params
 
 from azure.mgmt.containerservice import ContainerServiceClient
 from msrestazure.azure_active_directory import UserPassCredentials

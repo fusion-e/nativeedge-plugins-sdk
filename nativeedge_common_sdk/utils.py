@@ -28,18 +28,30 @@ from distutils.util import strtobool
 from ._compat import PY2, text_type
 from .constants import MASKED_ENV_VARS
 from .processes import process_execution, general_executor
-
-from cloudify import exceptions as cfy_exc
-from cloudify.utils import get_tenant_name
-from cloudify import ctx as ctx_from_import
-from cloudify.manager import get_rest_client
-from cloudify.exceptions import NonRecoverableError
-from cloudify.workflows import ctx as wtx_from_import
 from .exceptions import NonRecoverableError as SDKNonRecoverableError
-from cloudify_rest_client.exceptions import (
-    CloudifyClientError,
-    DeploymentEnvironmentCreationPendingError,
-    DeploymentEnvironmentCreationInProgressError)
+
+try:
+    from nativeedge import exceptions as cfy_exc
+    from nativeedge.utils import get_tenant_name
+    from nativeedge import ctx as ctx_from_import
+    from nativeedge.manager import get_rest_client
+    from nativeedge.exceptions import NonRecoverableError
+    from nativeedge.workflows import ctx as wtx_from_import
+    from nativeedge_rest_client.exceptions import (
+        NativeEdgeClientError,
+        DeploymentEnvironmentCreationPendingError,
+        DeploymentEnvironmentCreationInProgressError)
+except ImportError:
+    from cloudify import exceptions as cfy_exc
+    from cloudify.utils import get_tenant_name
+    from cloudify import ctx as ctx_from_import
+    from cloudify.manager import get_rest_client
+    from cloudify.exceptions import NonRecoverableError
+    from cloudify.workflows import ctx as wtx_from_import
+    from cloudify_rest_client.exceptions import (
+        CloudifyClientError as NativeEdgeClientError,
+        DeploymentEnvironmentCreationPendingError,
+        DeploymentEnvironmentCreationInProgressError)
 
 try:
     from cloudify.constants import RELATIONSHIP_INSTANCE, NODE_INSTANCE
@@ -47,7 +59,7 @@ except ImportError:
     NODE_INSTANCE = 'node-instance'
     RELATIONSHIP_INSTANCE = 'relationship-instance'
 
-
+# TODO: Add for NE
 CLOUDIFY_TAGGED_EXT = '__cloudify_tagged_external_resource'
 
 
@@ -135,7 +147,7 @@ def get_blueprint_dir(blueprint_id=None):
 
 
 def with_rest_client(func):
-    """ Add a Cloudify Rest Client into the kwargs of func.
+    """ Add a NativeEdge Rest Client into the kwargs of func.
     :param func: The wrapped function.
     :type func: name
     :return: Return wrapper_inner.
@@ -164,8 +176,8 @@ def get_node_instance(node_instance_id, rest_client):
     """ Get a node instance object.
     :param node_instance_id: The ID of the node instance.
     :type node_instance_id: str
-    :param rest_client: A Cloudify REST client.
-    :type rest_client: cloudify_rest_client.client.CloudifyClient
+    :param rest_client: A NativeEdge REST client.
+    :type rest_client: nativeedge_rest_client.client.NativeEdgeClient
     :return: request's JSON response
     :rtype: dict
     """
@@ -178,8 +190,8 @@ def get_deployments_from_group(group, rest_client):
     """ Get a deployment group object.
     :param group: The ID of the group.
     :type group: str
-    :param rest_client: A Cloudify REST client.
-    :type rest_client: cloudify_rest_client.client.CloudifyClient
+    :param rest_client: A NativeEdge REST client.
+    :type rest_client: nativeedge_rest_client.client.NativeEdgeClient
     :return: request's JSON response
     :rtype: dict
     """
@@ -187,7 +199,7 @@ def get_deployments_from_group(group, rest_client):
     while True:
         try:
             return rest_client.deployment_groups.get(group)
-        except CloudifyClientError as e:
+        except NativeEdgeClientError as e:
             attempts += 1
             if attempts > 15:
                 raise cfy_exc.NonRecoverableError(
@@ -214,8 +226,8 @@ def create_deployment(inputs,
     :type blueprint_id: str
     :param deployment_id: The deployment ID.
     :type deployment_id: str
-    :param rest_client: A Cloudify REST client.
-    :type rest_client: cloudify_rest_client.client.CloudifyClient
+    :param rest_client: A NativeEdge REST client.
+    :type rest_client: nativeedge_rest_client.client.NativeEdgeClient
     :return: request's JSON response
     :rtype: dict
     """
@@ -242,8 +254,8 @@ def create_deployments(group_id,
     :type inputs: list
     :param labels: a list of dicts of deployment labels.
     :type labels: list
-    :param rest_client: A Cloudify REST client.
-    :type rest_client: cloudify_rest_client.client.CloudifyClient
+    :param rest_client: A NativeEdge REST client.
+    :type rest_client: nativeedge_rest_client.client.NativeEdgeClient
     :return: request's JSON response
     :rtype: dict
     """
@@ -273,8 +285,8 @@ def install_deployments(group_id, rest_client):
     """ Execute install workflow on a deployment group.
     :param group_id: An existing deployment group ID.
     :type group_id: str
-    :param rest_client: A Cloudify REST client.
-    :type rest_client: cloudify_rest_client.client.CloudifyClient
+    :param rest_client: A NativeEdge REST client.
+    :type rest_client: nativeedge_rest_client.client.NativeEdgeClient
     :return: request's JSON response
     :rtype: dict
     """
@@ -299,8 +311,8 @@ def install_deployment(deployment_id, rest_client):
     """ Execute install workflow on a deployment.
     :param deployment_id: An existing deployment ID.
     :type deployment_id: str
-    :param rest_client: A Cloudify REST client.
-    :type rest_client: cloudify_rest_client.client.CloudifyClient
+    :param rest_client: A NativeEdge REST client.
+    :type rest_client: nativeedge_rest_client.client.NativeEdgeClient
     :return: request's JSON response
     :rtype: dict
     """
@@ -737,7 +749,7 @@ def get_input(input_name, path, rest_client):
             nested_val = evaluate_path(root, path)
             return nested_val
         return root
-    except CloudifyClientError as e:
+    except NativeEdgeClientError as e:
         if '404' in str(e):
             raise NonRecoverableError(
                 'deployment [{0}] not found'.format(deployment_id))
@@ -751,12 +763,12 @@ def get_attribute(node_id, runtime_property, deployment_id, path, rest_client):
     :type node_id: str
     :param runtime_property: The key of a runtime property.
     :type runtime_property: str
-    :param deployment_id: A Cloudify Deployment ID.
+    :param deployment_id: A NativeEdge Deployment ID.
     :type deployment_id: str
     :param path: A Custom path if the runtime property is a dict.
     :type path: str
-    :param rest_client: A Cloudify REST client.
-    :type rest_client: cloudify_rest_client.client.CloudifyClient
+    :param rest_client: A NativeEdge REST client.
+    :type rest_client: nativeedge_rest_client.client.NativeEdgeClient
     :return: The runtime property value.
     :rtype: Any JSON serializable type.
     """
@@ -777,17 +789,17 @@ def get_sys(sys_type, property, deployment_id, rest_client):
     :type sys_type: str
     :param property: The key of a property.
     :type property: str
-    :param deployment_id: A Cloudify Deployment ID.
+    :param deployment_id: A NativeEdge Deployment ID.
     :type deployment_id: str
-    :param rest_client: A Cloudify REST client.
-    :type rest_client: cloudify_rest_client.client.CloudifyClient
+    :param rest_client: A NativeEdge REST client.
+    :type rest_client: nativeedge_rest_client.client.NativeEdgeClient
     :return: The system property value.
     :rtype: Any JSON serializable type.
     """
     deployment = {}
     try:
         deployment = rest_client.deployments.get(deployment_id)
-    except CloudifyClientError as e:
+    except NativeEdgeClientError as e:
         if '404' in str(e):
             raise NonRecoverableError(
                 'deployment [{0}] not found'.format(deployment_id))
@@ -816,15 +828,15 @@ def get_capability(target_dep_id, capability, path, rest_client):
     :type capability: str
     :param path: a list of index -path- inside the capability.
     :type path: list
-    :param rest_client: A Cloudify REST client.
-    :type rest_client: cloudify_rest_client.client.CloudifyClient
+    :param rest_client: A NativeEdge REST client.
+    :type rest_client: nativeedge_rest_client.client.NativeEdgeClient
     :return: The capability property value.
     :rtype: Any JSON serializable type.
     """
     deployment = {}
     try:
         deployment = rest_client.deployments.get(target_dep_id)
-    except CloudifyClientError as e:
+    except NativeEdgeClientError as e:
         if '404' in str(e):
             raise NonRecoverableError(
                 'deployment [{0}] not found'.format(target_dep_id))
@@ -842,17 +854,17 @@ def get_label(label_key, label_val_index, deployment_id, rest_client):
     :type label_key: str
     :param label_val_index: index of label_value since it is an array.
     :type label_val_index: int
-    :param deployment_id: A Cloudify Deployment ID.
+    :param deployment_id: A NativeEdge Deployment ID.
     :type deployment_id: str
-    :param rest_client: A Cloudify REST client.
-    :type rest_client: cloudify_rest_client.client.CloudifyClient
+    :param rest_client: A NativeEdge REST client.
+    :type rest_client: nativeedge_rest_client.client.NativeEdgeClient
     :return: The label property value.
     :rtype: Any JSON serializable type.
     """
     deployment = {}
     try:
         deployment = rest_client.deployments.get(deployment_id)
-    except CloudifyClientError as e:
+    except NativeEdgeClientError as e:
         if '404' in str(e):
             raise NonRecoverableError(
                 'deployment [{0}] not found'.format(deployment_id))
@@ -880,9 +892,9 @@ def get_node_instances_by_type(node_type, deployment_id, rest_client):
     :type node_type: str
     :param deployment_id: The deployment ID.
     :type deployment_id: str
-    :param rest_client: A Cloudify REST client.
-    :type rest_client: cloudify_rest_client.client.CloudifyClient
-    :return: A list of cloudify_rest_client.node_instances.NodeInstance
+    :param rest_client: A NativeEdge REST client.
+    :type rest_client: nativeedge_rest_client.client.NativeEdgeClient
+    :return: A list of nativeedge_rest_client.node_instances.NodeInstance
     :rtype: list
     """
     node_instances = []
@@ -945,12 +957,12 @@ def get_deployment_labels(deployment_id):
 @with_rest_client
 def update_deployment_labels(deployment_id, labels, rest_client):
     """ Update a deployment's labels.
-    :param deployment_id: A Cloudify deployment ID or name.
+    :param deployment_id: A NativeEdge deployment ID or name.
     :type deployment_id: str
     :param labels: A dict of labels.
     :type labels: dict
-    :param rest_client: A Cloudify REST client.
-    :type rest_client: cloudify_rest_client.client.CloudifyClient
+    :param rest_client: A NativeEdge REST client.
+    :type rest_client: nativeedge_rest_client.client.NativeEdgeClient
     :return: request's JSON response
     :rtype: dict
     """
@@ -963,10 +975,10 @@ def update_deployment_labels(deployment_id, labels, rest_client):
 @with_rest_client
 def get_parent_deployment(deployment_id, rest_client):
     """ Get a deployment's parent.
-    :param deployment_id: A Cloudify deployment ID or name.
+    :param deployment_id: A NativeEdge deployment ID or name.
     :type deployment_id: str
-    :param rest_client: A Cloudify REST client.
-    :type rest_client: cloudify_rest_client.client.CloudifyClient
+    :param rest_client: A NativeEdge REST client.
+    :type rest_client: nativeedge_rest_client.client.NativeEdgeClient
     :return: request's JSON response
     :rtype: dict
     """
@@ -996,7 +1008,7 @@ def get_deployment_label_by_name(label_name, deployment_id):
 
 def convert_list_to_dict(labels):
     """ Convert a list of dicts to a list.
-    Labels are sent as lists of dicts to the Cloudify API.
+    Labels are sent as lists of dicts to the NativeEdge API.
     :param labels: The list of labels.
     :type labels: dict
     :return: a dict
@@ -1011,7 +1023,7 @@ def convert_list_to_dict(labels):
 
 def convert_dict_to_list(labels):
     """ Convert a dict to a list of dicts.
-    This is because that's how labels should be sent to Cloudify API.
+    This is because that's how labels should be sent to NativeEdge API.
     :param labels: The labels dict.
     :type labels: dict
     :return: a list of dicts
@@ -1029,14 +1041,14 @@ def get_deployment(deployment_id, rest_client):
     """ Get a deployment by ID or name.
     :param deployment_id: The name of ID of the deployment.
     :type deployment_id: str
-    :param rest_client: A Cloudify REST client.
-    :type rest_client: cloudify_rest_client.client.CloudifyClient
+    :param rest_client: A NativeEdge REST client.
+    :type rest_client: nativeedge_rest_client.client.NativeEdgeClient
     :return: request's JSON response or None
     :rtype: dict or NoneType
     """
     try:
         return rest_client.deployments.get(deployment_id=deployment_id)
-    except CloudifyClientError as e:
+    except NativeEdgeClientError as e:
         if '404' in str(e):
             for deployment in rest_client.deployments.list(
                     _include=['id', 'display_name']):
@@ -1050,8 +1062,8 @@ def get_deployments_from_blueprint(blueprint_id, rest_client):
     """ Get a list of deployments created from a blueprint.
     :param blueprint_id: The name of the site.
     :type blueprint_id: str
-    :param rest_client: A Cloudify REST client.
-    :type rest_client: cloudify_rest_client.client.CloudifyClient
+    :param rest_client: A NativeEdge REST client.
+    :type rest_client: nativeedge_rest_client.client.NativeEdgeClient
     :return: A list of deployments
     :rtype: list
     """
@@ -1065,7 +1077,7 @@ def get_deployments_from_blueprint(blueprint_id, rest_client):
                      'values': [blueprint_id]
                      }
                 ])
-    except CloudifyClientError:
+    except NativeEdgeClientError:
         return
 
 
@@ -1080,8 +1092,8 @@ def create_site(site_name, location, rest_client):
     :type site_name: str
     :param location: The longitude and latitude of the site.
     :type location: str
-    :param rest_client: A Cloudify REST client.
-    :type rest_client: cloudify_rest_client.client.CloudifyClient
+    :param rest_client: A NativeEdge REST client.
+    :type rest_client: nativeedge_rest_client.client.NativeEdgeClient
     :return: request's JSON response
     :rtype: dict
     """
@@ -1093,26 +1105,26 @@ def get_site(site_name, rest_client):
     """ Get a site by name.
     :param site_name: The name of the site.
     :type site_name: str
-    :param rest_client: A Cloudify REST client.
-    :type rest_client: cloudify_rest_client.client.CloudifyClient
+    :param rest_client: A NativeEdge REST client.
+    :type rest_client: nativeedge_rest_client.client.NativeEdgeClient
     :return: request's JSON response or None
     :rtype: dict or NoneType
     """
     try:
         return rest_client.sites.get(site_name)
-    except CloudifyClientError:
+    except NativeEdgeClientError:
         return
 
 
 @with_rest_client
 def update_site(site_name, location, rest_client):
     """ Update a site.
-    :param deployment_id: A Cloudify deployment ID or name.
+    :param deployment_id: A NativeEdge deployment ID or name.
     :type deployment_id: str
     :param location: The longitude and latitude of the site.
     :type location: str
-    :param rest_client: A Cloudify REST client.
-    :type rest_client: cloudify_rest_client.client.CloudifyClient
+    :param rest_client: A NativeEdge REST client.
+    :type rest_client: nativeedge_rest_client.client.NativeEdgeClient
     :return: request's JSON response
     :rtype: dict
     """
@@ -1121,14 +1133,14 @@ def update_site(site_name, location, rest_client):
 
 def assign_site(deployment_id, location, location_name):
     """ Create a site or update it's location. Associate it with a deployment.
-    :param deployment_id: A Cloudify deployment ID or name.
+    :param deployment_id: A NativeEdge deployment ID or name.
     :type deployment_id: str
     :param location: The longitude and latitude of the site.
     :type location: str
     :param location_name: The name of the site.
     :type location_name: str
-    :param rest_client: A Cloudify REST client.
-    :type rest_client: cloudify_rest_client.client.CloudifyClient
+    :param rest_client: A NativeEdge REST client.
+    :type rest_client: nativeedge_rest_client.client.NativeEdgeClient
     :return:
     :rtype: NoneType
     """
@@ -1145,12 +1157,12 @@ def assign_site(deployment_id, location, location_name):
 def update_deployment_site(deployment_id, site_name, rest_client):
     """ Set a deployment's site property. If the deployment already
     has a site property set, then update it.
-    :param deployment_id: A Cloudify deployment ID or name.
+    :param deployment_id: A NativeEdge deployment ID or name.
     :type deployment_id: str
     :param site_name:
     :type site_name: str
-    :param rest_client: A Cloudify REST client.
-    :type rest_client: cloudify_rest_client.client.CloudifyClient
+    :param rest_client: A NativeEdge REST client.
+    :type rest_client: nativeedge_rest_client.client.NativeEdgeClient
     :return: request's JSON response
     :rtype: dict
     """
@@ -1250,7 +1262,7 @@ def is_skip_on_delete(use_existing,
     resource, in other words, should we skip deleting?
 
     :param bool use_existing: Is it an "existing" resource?
-    :param _ctx_instance: CloudifyNodeInstanceContext
+    :param _ctx_instance: NativeEdgeNodeInstanceContext
     :param bool create_operation: The plugin specifies this.
     :param delete_operation: The plugin specifies this.
     :return:
@@ -1282,8 +1294,8 @@ def skip_creative_or_destructive_operation(
 
     :param resource_type: A string describing the type of resource, like "vm".
     :param resource_id: A string representing a name of the resource.
-    :param _ctx: Current CloudifyContext.
-    :param _ctx_node: Current CloudifyNodeContext
+    :param _ctx: Current NativeEdgeContext.
+    :param _ctx_node: Current NativeEdgeNodeContext
     :param exists: Boolean saying whether the resource is known to exist.
     :param special_condition: A special condition that allows us to override
         the logic of the function.
@@ -1373,7 +1385,7 @@ def skip_creative_or_destructive_operation(
     if special_condition:
         ctx_from_import.logger.debug(
             'The {resource_type} resource {resource_id}, has a special '
-            'condition and Cloudify is authorized to modify it.'.format(
+            'condition and Fusion is authorized to modify it.'.format(
                 resource_type=resource_type, resource_id=resource_id))
         return False
     elif expected and not exists and skip_on_delete:
@@ -1382,27 +1394,27 @@ def skip_creative_or_destructive_operation(
     elif create_operation and should_create:
         ctx_from_import.logger.debug(
             'The {resource_type} resource {resource_id} does not exist, '
-            'and Cloudify should create it.'.format(
+            'and Fusion should create it.'.format(
                 resource_type=resource_type, resource_id=resource_id))
         return False
     elif delete_operation and not skip_on_delete:
         ctx_from_import.logger.debug(
             'The {resource_type} resource {resource_id} does exist, '
-            'and Cloudify should delete it.'.format(
+            'and Fusion should delete it.'.format(
                 resource_type=resource_type, resource_id=resource_id))
         return False
     # If a resource is existing and we can't modify.
     elif (use_existing and not may_modify) or skip_on_delete:
         ctx_from_import.logger.debug(
             'The {resource_type} resource {resource_id} exists as expected, '
-            'but Cloudify may not modify or delete it.'.format(
+            'but Fusion may not modify or delete it.'.format(
                 resource_type=resource_type, resource_id=resource_id))
         return True
     # If we are allowed to modify existing resources.
     elif use_existing and may_modify:
         ctx_from_import.logger.debug(
             'The {resource_type} resource {resource_id} exists, and'
-            'Cloudify is authorized to modify it.'.format(
+            'Fusion is authorized to modify it.'.format(
                 resource_type=resource_type, resource_id=resource_id))
         return False
     # If the resource doesn't exist, and it's expected to exist and we can't
@@ -1417,7 +1429,7 @@ def skip_creative_or_destructive_operation(
             not create_anyway and not create_operation:
         ctx_from_import.logger.warning(
             'The {resource_type} resource {resource_id} does not exist, '
-            'but Cloudify is not authorized to create it or it is not a '
+            'but Fusion is not authorized to create it or it is not a '
             'create operation.'.format(
                 resource_type=resource_type, resource_id=resource_id))
         return True
@@ -1457,12 +1469,12 @@ class ResourceDoesNotExist(cfy_exc.NonRecoverableError):
 
 
 @with_rest_client
-def get_cloudify_version(rest_client):
+def get_fusion_version(rest_client):
     version = rest_client.manager.get_version()['version']
-    cloudify_version = re.findall('(\\d+.\\d+.\\d+)', version)[0]
-    ctx_from_import.logger.debug('cloudify_version: {}'
-                                 .format(cloudify_version))
-    return cloudify_version
+    fusion_version = re.findall('(\\d+.\\d+.\\d+)', version)[0]
+    ctx_from_import.logger.debug('fusion_version: {}'
+                                 .format(fusion_version))
+    return fusion_version
 
 
 def v1_gteq_v2(v1, v2):
@@ -1582,7 +1594,7 @@ def delete_debug(node_instance=None):
 def uses_debug_node(node_instance=None):
     node_instance = node_instance or get_ctx_instance()
     return find_rel_by_node_type(
-        node_instance, 'cloudify.nodes.Debug')
+        node_instance, 'nativeedge.nodes.Debug')
 
 
 def find_rel_by_node_type(node_instance, node_type):
@@ -1592,13 +1604,13 @@ def find_rel_by_node_type(node_instance, node_type):
 
 def find_rels_by_node_type(node_instance, node_type):
     """
-        Finds all specified relationships of the Cloudify
+        Finds all specified relationships of the NativeEdge
         instance where the related node type is of a specified type.
-    :param `cloudify.context.NodeInstanceContext` node_instance:
-        Cloudify node instance.
-    :param str node_type: Cloudify node type to search
+    :param `nativeedge.context.NodeInstanceContext` node_instance:
+        NativeEdge node instance.
+    :param str node_type: NativeEdge node type to search
         node_instance.relationships for.
-    :returns: List of Cloudify relationships
+    :returns: List of NativeEdge relationships
     """
     return [x for x in node_instance.relationships
             if node_type in x.target.node.type_hierarchy]

@@ -22,8 +22,13 @@ from .utils import (
     RELATIONSHIP_INSTANCE,
     resolve_intrinsic_functions)
 
-from cloudify import ctx
-from cloudify_rest_client.exceptions import CloudifyClientError
+try:
+    from nativeedge import ctx
+    from nativeedge_rest_client.exceptions import NativeEdgeClientError
+except:
+    from cloudify import ctx
+    from cloudify_rest_client.exceptions import \
+        CloudifyClientError as NativeEdgeClientError
 
 
 def get_stored_property(_ctx, property_name, target=False, force_node=None):
@@ -42,7 +47,7 @@ def get_stored_property(_ctx, property_name, target=False, force_node=None):
         else:
             node = get_node(_ctx.deployment.id, _ctx.node.id)
             instance = get_node_instance(_ctx.instance.id)
-    except CloudifyClientError:
+    except NativeEdgeClientError:
         node = get_ctx_node(_ctx, target)
         instance = get_ctx_instance(_ctx, target)
     node_property = node.properties.get(property_name)

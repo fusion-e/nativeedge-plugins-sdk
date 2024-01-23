@@ -15,7 +15,7 @@
 
 import mock
 import unittest
-from cloudify_common_sdk.deprecation import (
+from nativeedge_common_sdk.deprecation import (
     log_deprecation,
     deprecation_warning,
     check_deprecated_node_type,
@@ -23,7 +23,7 @@ from cloudify_common_sdk.deprecation import (
 )
 
 
-@mock.patch('cloudify.state.current_ctx.get_ctx')
+@mock.patch('nativeedge.state.current_ctx.get_ctx')
 class TestDeprecation(unittest.TestCase):
 
     def test_log_deprecation(self, mock_get_ctx, *_):
@@ -36,8 +36,8 @@ class TestDeprecation(unittest.TestCase):
             'foo', 'bar', 'baz')
         mock_ctx.logger.error.assert_called_with(expected)
 
-    @mock.patch('cloudify_common_sdk.deprecation.deprecated_node_types')
-    @mock.patch('cloudify_common_sdk.deprecation.log_deprecation')
+    @mock.patch('nativeedge_common_sdk.deprecation.deprecated_node_types')
+    @mock.patch('nativeedge_common_sdk.deprecation.log_deprecation')
     def test_check_deprecated_node_type(
             self, mock_log, mock_deprecated, mock_get_ctx, *__):
         mock_deprecated.get.return_value = 'bar'
@@ -52,8 +52,8 @@ class TestDeprecation(unittest.TestCase):
         mock_log.assert_called_with('foo', 'bar')
 
     @mock.patch(
-        'cloudify_common_sdk.deprecation.deprecated_relationship_types')
-    @mock.patch('cloudify_common_sdk.deprecation.log_deprecation')
+        'nativeedge_common_sdk.deprecation.deprecated_relationship_types')
+    @mock.patch('nativeedge_common_sdk.deprecation.log_deprecation')
     def test_check_deprecated_relationship(
             self, mock_log, mock_deprecated, mock_get_ctx, *__):
         mock_deprecated.get.return_value = 'bar'
@@ -81,9 +81,9 @@ class TestDeprecation(unittest.TestCase):
         mock_log.assert_called_with('foo', 'bar', 'relationship')
 
     @mock.patch(
-        'cloudify_common_sdk.deprecation.check_deprecated_node_type')
+        'nativeedge_common_sdk.deprecation.check_deprecated_node_type')
     @mock.patch(
-        'cloudify_common_sdk.deprecation.check_deprecated_relationship')
+        'nativeedge_common_sdk.deprecation.check_deprecated_relationship')
     def test_decorator(self, mock_a, mock_b, *_):
 
         @deprecation_warning

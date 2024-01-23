@@ -17,10 +17,16 @@ import os
 import mock
 import unittest
 
-from cloudify.state import current_ctx
-from cloudify.mocks import MockCloudifyContext
-from cloudify.constants import NODE_INSTANCE
-from cloudify.exceptions import NonRecoverableError
+try:
+    from nativeedge.state import current_ctx
+    from nativeedge.mocks import MockNativeEdgeContext
+    from nativeedge.constants import NODE_INSTANCE
+    from nativeedge.exceptions import NonRecoverableError
+except ImportError:
+    from cloudify.state import current_ctx
+    from cloudify.mocks import MockCloudifyContext as MockNativeEdgeContext
+    from cloudify.constants import NODE_INSTANCE
+    from cloudify.exceptions import NonRecoverableError
 
 from .. import utils
 from ..exceptions import NonRecoverableError as SDKNonRecoverableError
@@ -39,7 +45,7 @@ class TestUtils(unittest.TestCase):
                  test_properties=None,
                  test_runtime_properties=None,
                  tenant_name='default_tenant'):
-        ctx = MockCloudifyContext(
+        ctx = MockNativeEdgeContext(
             node_id="test_id",
             node_name="test_name",
             deployment_id='test_deployment',

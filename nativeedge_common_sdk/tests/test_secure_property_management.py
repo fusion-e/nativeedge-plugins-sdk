@@ -24,7 +24,7 @@ from .. import secure_property_management
 
 class SecurePropertyTests(unittest.TestCase):
 
-    @mock.patch('cloudify_common_sdk.utils.get_rest_client')
+    @mock.patch('nativeedge_common_sdk.utils.get_rest_client')
     def test_resolve_props(self, mock_client):
         secrets_mock = mock.Mock()
         get_mock = mock.Mock()
@@ -72,7 +72,7 @@ class SecurePropertyTests(unittest.TestCase):
         node_instances.get.return_value = mock_node_instance
         new_client.node_instances = node_instances
 
-        with mock.patch('cloudify_common_sdk.utils.get_rest_client',
+        with mock.patch('nativeedge_common_sdk.utils.get_rest_client',
                         return_value=new_client):
             result = secure_property_management.get_stored_property(
                 mock_ctx, 'resource_config', target=True)

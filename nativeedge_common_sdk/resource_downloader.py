@@ -21,7 +21,7 @@ import tempfile
 import tarfile
 import mimetypes
 
-from cloudify_common_sdk.exceptions import NonRecoverableError
+from nativeedge_common_sdk.exceptions import NonRecoverableError
 
 TAR_FILE_EXTENSTIONS = ('tar', 'gz', 'bz2', 'tgz', 'tbz')
 

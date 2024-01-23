@@ -18,8 +18,12 @@ import time
 import psutil
 import subprocess
 
-from cloudify import ctx as ctx_from_import
-from cloudify import exceptions as cfy_exc
+try:
+    from nativeedge import ctx as ctx_from_import
+    from nativeedge import exceptions as cfy_exc
+except ImportError:
+    from cloudify import ctx as ctx_from_import
+    from cloudify import exceptions as cfy_exc
 from script_runner.tasks import (
     start_ctx_proxy,
     ProcessException,

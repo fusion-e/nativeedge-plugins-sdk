@@ -18,7 +18,7 @@
 import os
 import unittest
 
-import cloudify_common_sdk.ovf as ovf
+import nativeedge_common_sdk.ovf as ovf
 
 # constants
 CENTOS_SINGLE_CPU = [{
