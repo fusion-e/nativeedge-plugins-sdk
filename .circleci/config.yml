@@ -23,99 +23,39 @@ checkout:
         git checkout -qf FETCH_HEAD
       fi
 
-
 executors:
 
   py36:
     docker:
       - image: circleci/python:3.6
 
-commands:
-  release_plugin:
-    steps:
-      - run:
-          name: "Pull Submodules"
-          command: |
-            git submodule init
-            git submodule update --remote --recursive
-      - run:
-          name: Set Python
-          command: |
-            if ! pyenv -v COMMAND &> /dev/null
-            then
-                echo "pyenv could not be found"
-                exit
-            else
-                pyenv global 3.6.5
-            fi
-      - run:
-          name: Install virtualenv
-          command: pip install --user virtualenv
-      - run:
-          name: Init virtualenv
-          command: virtualenv env
-      - run:
-          name: install tox
-          command: pip install --user pygithub pyyaml==3.10
-      - run:
-          name: upgrade setuptools
-          command: pip install --upgrade setuptools
-      - run:
-          name: install local project
-          command: pip install https://github.com/cloudify-incubator/cloudify-ecosystem-test/archive/latest.zip
-      - attach_workspace:
-          at: workspace
-      - run: ecosystem-tests package-release --name cloudify-utilities-plugins-sdk
-
-  release_sdk_to_pypi:
-    steps:
-      - checkout
-      - run:
-          name: install local project
-          command: pip install https://github.com/cloudify-incubator/cloudify-ecosystem-test/archive/latest.zip
-      - attach_workspace:
-          at: workspace
-      - run:
-          name: "Trigger upload to pypi job"
-          command: |
-           curl $JENKINS_URL \
-           --user $JENKINS_USER:$JENKINS_TOKEN \
-           --data BRANCH=main \
-           --data GITHUB_PROJECT_URL=$GH_REPO
-      - run:
-          name: "Make sure the Pypi Job was successful"
-          command: ecosystem-test pypi-release --name cloudify-utilities-plugins-sdk
+  unittesting_docker:
+    machine:
+      image: ubuntu-2004:202201-02
 
 jobs:
 
-  release_sdk_to_pypi:
-    executor: py36
+  unittesting:
+    executor: unittesting_docker
     steps:
-      - release_sdk_to_pypi
+      - checkout
+      - attach_workspace:
+          at: workspace
+      - run: |
+          git clone https://github.com/EarthmanT/dockerfiles.git
+          docker build -t unittesting dockerfiles/unittesting/
+          docker run -e GH_TOKEN=$GITHUB_TOKEN -v $PWD/:/project unittesting
 
 workflows:
   version: 2
   tests:
     jobs:
       - node/check_py3_compat_job
-      - node/unittests_job:
+      - unittesting:
           context: 
             - slack-secrets
           <<: *unittest-post-steps
-      - releaseorb/release:
-          filters:
-            branches:
-              only: /main/
-          requires:
-            - node/unittests_job
-      - release_sdk_to_pypi:
-          context:
-            - cloudify-utilities-plugins-sdk
-          filters:
-            branches:
-              only: /main/
-          requires:
-            - node/unittests_job
+
   nightly:
     triggers:
     - schedule:
@@ -126,7 +66,7 @@ workflows:
               - main
     jobs:
       - node/check_py3_compat_job
-      - node/unittests_job:
+      - unittesting:
           context: 
             - slack-secrets
           <<: *unittest-post-steps

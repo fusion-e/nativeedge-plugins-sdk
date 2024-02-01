@@ -1,29 +1,25 @@
-########
-# Copyright (c) 2024 Dell, Inc. All rights reserved
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#        http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# Copyright © 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 import os
 import mock
 import unittest
 
-from cloudify.state import current_ctx
-from cloudify.mocks import MockCloudifyContext
-from cloudify.constants import NODE_INSTANCE
-from cloudify.exceptions import NonRecoverableError
-
-from .. import utils
-from ..exceptions import NonRecoverableError as SDKNonRecoverableError
+from nativeedge_common_sdk import utils
+from nativeedge_common_sdk.exceptions import (
+    NonRecoverableError as SDKNonRecoverableError
+)
+try:
+    from nativeedge.state import current_ctx
+    from nativeedge import exceptions as ne_exc
+    from nativeedge.constants import NODE_INSTANCE
+    from nativeedge.mocks import \
+        MockNativeEdgeContext
+except ImportError:
+    from cloudify.state import current_ctx
+    from cloudify import exceptions as ne_exc
+    from cloudify.constants import NODE_INSTANCE
+    from cloudify.mocks import MockCloudifyContext as \
+        MockNativeEdgeContext
 
 
 class TestUtils(unittest.TestCase):
@@ -39,7 +35,7 @@ class TestUtils(unittest.TestCase):
                  test_properties=None,
                  test_runtime_properties=None,
                  tenant_name='default_tenant'):
-        ctx = MockCloudifyContext(
+        ctx = MockNativeEdgeContext(
             node_id="test_id",
             node_name="test_name",
             deployment_id='test_deployment',
@@ -51,10 +47,11 @@ class TestUtils(unittest.TestCase):
         current_ctx.set(ctx)
         return ctx
 
-    @mock.patch('cloudify_common_sdk.utils.get_deployment', return_value=None)
+    @mock.patch('nativeedge_common_sdk.utils.get_deployment',
+                return_value=None)
     def test_deployment_dir(self, *_, **__):
         self.mock_ctx(tenant_name='test_tenant')
-        with mock.patch('cloudify_common_sdk.utils.os.path.isdir',
+        with mock.patch('nativeedge_common_sdk.utils.os.path.isdir',
                         return_value=True):
             self.assertEqual(utils.get_deployment_dir(
                 deployment_id='test_deployment'),
@@ -65,7 +62,7 @@ class TestUtils(unittest.TestCase):
                              'test_tenant',
                              'test_deployment'))
 
-        with mock.patch('cloudify_common_sdk.utils.os.path.isdir',
+        with mock.patch('nativeedge_common_sdk.utils.os.path.isdir',
                         return_value=False):
             with self.assertRaisesRegexp(SDKNonRecoverableError,
                                          'No deployment directory found!'):
@@ -161,7 +158,7 @@ class TestSkipCreativeOrDestructive(TestUtils):
         fn_kwargs = self.get_fn_kwargs(
             create_operation=False, delete_operation=True)
         fn_kwargs['_ctx'].instance.runtime_properties[
-            '__cloudify_tagged_external_resource'] = True
+            '__NE_TAGGED_EXTernal_resource'] = True
         self.assertTrue(
             utils.skip_creative_or_destructive_operation(**fn_kwargs))
 
@@ -176,7 +173,7 @@ class TestSkipCreativeOrDestructive(TestUtils):
             create_operation=False,
             delete_operation=True)
         fn_kwargs['_ctx'].instance.runtime_properties[
-            '__cloudify_tagged_external_resource'] = True
+            '__NE_TAGGED_EXTernal_resource'] = True
         with self.assertRaises(utils.ResourceDoesNotExist):
             utils.skip_creative_or_destructive_operation(**fn_kwargs)
 
@@ -229,7 +226,7 @@ class TestSkipCreativeOrDestructive(TestUtils):
             create_operation=False,
             delete_operation=True)
         fn_kwargs['_ctx'].instance.runtime_properties[
-            '__cloudify_tagged_external_resource'] = True
+            '__NE_TAGGED_EXTernal_resource'] = True
         self.assertTrue(
             utils.skip_creative_or_destructive_operation(**fn_kwargs))
 
@@ -316,17 +313,17 @@ class BatchUtilsTests(unittest.TestCase):
         ctx.get_node = mock.MagicMock(return_value=ctx.node)
         ctx.deployment.id = 'baz'
         ctx.blueprint.id = 'baz'
-
+        current_ctx.set(ctx)
         return ctx
 
-    @mock.patch('cloudify_common_sdk.utils.get_rest_client')
+    @mock.patch('nativeedge_common_sdk.utils.get_rest_client')
     def test_with_rest_client(self, _):
         @utils.with_rest_client
         def mock_function(**kwargs):
             return kwargs
         self.assertIn('rest_client', mock_function())
 
-    @mock.patch('cloudify_common_sdk.utils.get_rest_client')
+    @mock.patch('nativeedge_common_sdk.utils.get_rest_client')
     def test_get_node_instances_by_type(self, mock_client):
         result = utils.get_node_instances_by_type(
             node_type='foo', deployment_id='bar')
@@ -347,7 +344,7 @@ class BatchUtilsTests(unittest.TestCase):
         result = utils.desecretize_client_config(expected)
         assert expected == result
 
-    @mock.patch('cloudify_common_sdk.utils.get_rest_client')
+    @mock.patch('nativeedge_common_sdk.utils.get_rest_client')
     def test_resolve_intrinsic_functions(self, mock_client):
         expected = 'foo'
         result = utils.resolve_intrinsic_functions(expected)
@@ -366,13 +363,13 @@ class BatchUtilsTests(unittest.TestCase):
         utils.resolve_intrinsic_functions(secret)
         assert mock.call().secrets.get('bar') in mock_client.mock_calls
 
-    @mock.patch('cloudify_common_sdk.utils.get_rest_client')
+    @mock.patch('nativeedge_common_sdk.utils.get_rest_client')
     def test_get_secret(self, mock_client):
         prop = 'bar'
         utils.get_secret(secret_name=prop, path=None)
         assert mock.call().secrets.get('bar') in mock_client.mock_calls
 
-    @mock.patch('cloudify_common_sdk.utils.get_rest_client')
+    @mock.patch('nativeedge_common_sdk.utils.get_rest_client')
     def test_get_attribute(self, mock_client):
         deployment_id = 'mock'
         prop = ['some_node', 'bar']
@@ -385,7 +382,7 @@ class BatchUtilsTests(unittest.TestCase):
         assert mock.call().node_instances.list(node_id='some_node') \
             in mock_client.mock_calls
 
-    @mock.patch('cloudify_common_sdk.utils.get_rest_client')
+    @mock.patch('nativeedge_common_sdk.utils.get_rest_client')
     def test_get_sys(self, mock_client):
         deployment_id = 'mock'
         prop = ['deployment', 'owner']
@@ -397,7 +394,7 @@ class BatchUtilsTests(unittest.TestCase):
         assert mock.call().deployments.get(deployment_id) \
             in mock_client.mock_calls
 
-    @mock.patch('cloudify_common_sdk.utils.get_rest_client')
+    @mock.patch('nativeedge_common_sdk.utils.get_rest_client')
     def test_get_capability(self, mock_client):
         prop = ['mock', 'some_cap']
         utils.get_capability(
@@ -408,19 +405,19 @@ class BatchUtilsTests(unittest.TestCase):
         assert mock.call().deployments.get(prop[0]) \
             in mock_client.mock_calls
 
-    @mock.patch('cloudify_common_sdk.utils.get_rest_client')
+    @mock.patch('nativeedge_common_sdk.utils.get_rest_client')
     def test_get_label(self, mock_client):
         deployment_id = 'mock'
         prop = ['some_label']
-        with self.assertRaisesRegexp(NonRecoverableError,
-                                     'not found'):
+        with self.assertRaisesRegexp(
+                ne_exc.NonRecoverableError, 'not found'):
             utils.get_label(
                 label_key=prop[0],
                 label_val_index=None,
                 deployment_id=deployment_id
             )
 
-    @mock.patch('cloudify_common_sdk.utils.get_rest_client')
+    @mock.patch('nativeedge_common_sdk.utils.get_rest_client')
     def test_create_deployment(self, mock_client):
         prop = {
             'inputs': {'baz': 'taco'},
@@ -436,7 +433,7 @@ class BatchUtilsTests(unittest.TestCase):
             labels=[{'foo': 'bar'}]
         ) in mock_client.mock_calls
 
-    @mock.patch('cloudify_common_sdk.utils.get_rest_client')
+    @mock.patch('nativeedge_common_sdk.utils.get_rest_client')
     def test_get_deployment_labels(self, _):
         assert isinstance(utils.get_deployment_labels('foo'), dict)
         assert utils.get_deployment_label_by_name('foo', 'foo') is None
@@ -447,13 +444,13 @@ class BatchUtilsTests(unittest.TestCase):
         assert utils.convert_list_to_dict(my_list) == my_dict
         assert utils.convert_dict_to_list(my_dict) == [my_dict]
 
-    @mock.patch('cloudify_common_sdk.utils.get_rest_client')
+    @mock.patch('nativeedge_common_sdk.utils.get_rest_client')
     def test_get_site(self, mock_client):
         prop = 'bar'
         utils.get_site(site_name=prop)
         assert mock.call().sites.get(prop) in mock_client.mock_calls
 
-    @mock.patch('cloudify_common_sdk.utils.get_rest_client')
+    @mock.patch('nativeedge_common_sdk.utils.get_rest_client')
     def test_create_site(self, mock_client):
         prop = {
             'site_name': 'foo',
@@ -465,7 +462,7 @@ class BatchUtilsTests(unittest.TestCase):
             'bar,baz'
         ) in mock_client.mock_calls
 
-    @mock.patch('cloudify_common_sdk.utils.get_rest_client')
+    @mock.patch('nativeedge_common_sdk.utils.get_rest_client')
     def test_update_site(self, mock_client):
         prop = {
             'site_name': 'foo',
@@ -477,7 +474,7 @@ class BatchUtilsTests(unittest.TestCase):
             'bar,baz'
         ) in mock_client.mock_calls
 
-    @mock.patch('cloudify_common_sdk.utils.get_rest_client')
+    @mock.patch('nativeedge_common_sdk.utils.get_rest_client')
     def test_update_deployment_site(self, mock_client):
         prop = {
             'deployment_id': 'foo',
@@ -491,7 +488,7 @@ class BatchUtilsTests(unittest.TestCase):
             detach_site=True
         ) in mock_client.mock_calls
 
-    @mock.patch('cloudify_common_sdk.utils.get_rest_client')
+    @mock.patch('nativeedge_common_sdk.utils.get_rest_client')
     def test_assign_site(self, mock_client):
         self.get_mock_ctx()
         prop = {
@@ -507,8 +504,8 @@ class BatchUtilsTests(unittest.TestCase):
             detach_site=True
         ) in mock_client.mock_calls
 
-    @mock.patch('cloudify_common_sdk.utils.get_rest_client')
-    def test_get_cloudify_version(self, mock_client):
+    @mock.patch('nativeedge_common_sdk.utils.get_rest_client')
+    def test_get_ne_version(self, mock_client):
 
         result1 = "6.1.0"
         result2 = "v6.1.0"
@@ -517,19 +514,19 @@ class BatchUtilsTests(unittest.TestCase):
         result5 = "Cloudify version 5.2.8"
 
         mock_client().manager.get_version.return_value = {'version': result1}
-        self.assertEqual("6.1.0", utils.get_cloudify_version())
+        self.assertEqual("6.1.0", utils.get_ne_version())
 
         mock_client().manager.get_version.return_value = {'version': result2}
-        self.assertEqual("6.1.0", utils.get_cloudify_version())
+        self.assertEqual("6.1.0", utils.get_ne_version())
 
         mock_client().manager.get_version.return_value = {'version': result3}
-        self.assertEqual("6.2.0", utils.get_cloudify_version())
+        self.assertEqual("6.2.0", utils.get_ne_version())
 
         mock_client().manager.get_version.return_value = {'version': result4}
-        self.assertEqual("5.2.8", utils.get_cloudify_version())
+        self.assertEqual("5.2.8", utils.get_ne_version())
 
         mock_client().manager.get_version.return_value = {'version': result5}
-        self.assertEqual("5.2.8", utils.get_cloudify_version())
+        self.assertEqual("5.2.8", utils.get_ne_version())
 
     def test_is_bigger_and_equal_version(self):
 
@@ -541,7 +538,7 @@ class BatchUtilsTests(unittest.TestCase):
         self.assertFalse(utils.v1_gteq_v2("5.2.8", "6.1.0"))
         self.assertFalse(utils.v1_gteq_v2("1.0.0", "6.1.0"))
 
-    @mock.patch('cloudify_common_sdk.utils.ctx_from_import')
+    @mock.patch('nativeedge_common_sdk.utils.ctx_from_import')
     def test_get_client_config(self, mock_ctx_from_import):
 
         mock_plugin_properties = {

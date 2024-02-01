@@ -1,17 +1,4 @@
-########
-# Copyright (c) 2024 Dell, Inc. All rights reserved
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#        http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# Copyright © 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 import mock
 import unittest
@@ -19,12 +6,12 @@ from datetime import datetime
 
 try:
     from cloudify.state import current_ctx
-    from cloudify.mocks import MockCloudifyContext
+    from cloudify.mocks import MockCloudifyContext as MockCTX
 except ImportError:
     from nativeedge.state import current_ctx
-    from nativeedge.mocks import MockNativeEdgeContext
+    from nativeedge.mocks import MockNativeEdgeContext as MockCTX
 
-from cloudify_aws_sdk import client
+from nativeedge_aws_sdk import client
 from botocore.exceptions import UnknownServiceError
 
 
@@ -37,7 +24,7 @@ class TestClient(unittest.TestCase):
 
         test_properties = test_properties or {}
 
-        ctx = MockCloudifyContext(
+        ctx = MockCTX(
             node_id="test_id",
             node_name="test_name",
             deployment_id='test_deployment',
@@ -99,7 +86,7 @@ class TestClient(unittest.TestCase):
         ecrconn = client.ECRConnection()
         self.assertIsNotNone(ecrconn.client)
 
-    @mock.patch('cloudify_aws_sdk.client.boto3')
+    @mock.patch('nativeedge_aws_sdk.client.boto3')
     def test_get_authorization_token(self, mocko3):
         now = datetime.now()
         resp = {
