@@ -1,29 +1,10 @@
-########
-# Copyright (c) 2024 Dell, Inc. All rights reserved
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#        http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# Copyright © 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 import sys
 import time
 import psutil
 import subprocess
 
-try:
-    from nativeedge import ctx as ctx_from_import
-    from nativeedge import exceptions as cfy_exc
-except ImportError:
-    from cloudify import ctx as ctx_from_import
-    from cloudify import exceptions as cfy_exc
 from script_runner.tasks import (
     start_ctx_proxy,
     ProcessException,
@@ -34,8 +15,15 @@ from script_runner.tasks import (
     ILLEGAL_CTX_OPERATION_ERROR,
     UNSUPPORTED_SCRIPT_FEATURE_ERROR
 )
-from .filters import obfuscate_passwords
-
+from nativeedge_common_sdk.filters import obfuscate_passwords
+try:
+    from nativeedge import (
+        ctx as ctx_from_import,
+        exceptions as ne_exc
+    )
+except ImportError:
+    from cloudify import ctx as ctx_from_import
+    from cloudify import exceptions as ne_exc
 try:
     from cloudify.proxy.client import ScriptException
 except ImportError:
@@ -160,7 +148,7 @@ class GeneralExecutor(object):
 
     def check_exception(self):
         if isinstance(self.ctx._return_value, RuntimeError):
-            raise cfy_exc.NonRecoverableError(str(self.ctx._return_value))
+            raise ne_exc.NonRecoverableError(str(self.ctx._return_value))
         elif self.return_code != 0:
             if not (self.ctx.is_script_exception_defined and isinstance(
                     self.ctx._return_value, ScriptException)):
@@ -317,7 +305,7 @@ def process_execution(script_func, script_path, ctx=None, process=None):
         if script_result.retry:
             return script_result
         else:
-            raise cfy_exc.NonRecoverableError(str(script_result))
+            raise ne_exc.NonRecoverableError(str(script_result))
     else:
         return actual_result
 
