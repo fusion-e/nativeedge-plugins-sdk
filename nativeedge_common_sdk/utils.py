@@ -1,19 +1,4 @@
-########
-# Copyright (c) 2024 Dell, Inc. All rights reserved
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#        http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-# Standard imports
+# Copyright © 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 import os
 import re
@@ -25,33 +10,44 @@ from copy import copy, deepcopy
 from packaging import version
 from distutils.util import strtobool
 
-from ._compat import PY2, text_type
-from .constants import MASKED_ENV_VARS
-from .processes import process_execution, general_executor
-from .exceptions import NonRecoverableError as SDKNonRecoverableError
+from nativeedge_common_sdk._compat import PY2, text_type
+from nativeedge_common_sdk.constants import MASKED_ENV_VARS
+from nativeedge_common_sdk.processes import (
+    process_execution,
+    general_executor
+)
 
 try:
-    from nativeedge import exceptions as cfy_exc
     from nativeedge.utils import get_tenant_name
-    from nativeedge import ctx as ctx_from_import
+    from nativeedge import (
+        ctx as ctx_from_import,
+        exceptions as ne_lint
+    )
     from nativeedge.manager import get_rest_client
     from nativeedge.exceptions import NonRecoverableError
     from nativeedge.workflows import ctx as wtx_from_import
+    from nativeedge_common_sdk.exceptions import (
+        NonRecoverableError as SDKNonRecoverableError
+    )
     from nativeedge_rest_client.exceptions import (
         NativeEdgeClientError,
         DeploymentEnvironmentCreationPendingError,
         DeploymentEnvironmentCreationInProgressError)
 except ImportError:
-    from cloudify import exceptions as cfy_exc
+    from cloudify import exceptions as ne_lint
     from cloudify.utils import get_tenant_name
     from cloudify import ctx as ctx_from_import
     from cloudify.manager import get_rest_client
     from cloudify.exceptions import NonRecoverableError
     from cloudify.workflows import ctx as wtx_from_import
+    from cloudify_common_sdk.exceptions import (
+        NonRecoverableError as SDKNonRecoverableError
+    )
     from cloudify_rest_client.exceptions import (
         CloudifyClientError as NativeEdgeClientError,
         DeploymentEnvironmentCreationPendingError,
-        DeploymentEnvironmentCreationInProgressError)
+        DeploymentEnvironmentCreationInProgressError
+    )
 
 try:
     from cloudify.constants import RELATIONSHIP_INSTANCE, NODE_INSTANCE
@@ -59,8 +55,8 @@ except ImportError:
     NODE_INSTANCE = 'node-instance'
     RELATIONSHIP_INSTANCE = 'relationship-instance'
 
-# TODO: Add for NE
-CLOUDIFY_TAGGED_EXT = '__cloudify_tagged_external_resource'
+
+NE_TAGGED_EXT = '__NE_TAGGED_EXTernal_resource'
 
 
 def get_ctx_instance(_ctx=None, target=False, source=False):
@@ -202,7 +198,7 @@ def get_deployments_from_group(group, rest_client):
         except NativeEdgeClientError as e:
             attempts += 1
             if attempts > 15:
-                raise cfy_exc.NonRecoverableError(
+                raise ne_lint.NonRecoverableError(
                     'Maximum attempts waiting '
                     'for deployment group {group}" {e}.'.format(
                         group=group, e=e))
@@ -298,7 +294,7 @@ def install_deployments(group_id, rest_client):
                 DeploymentEnvironmentCreationInProgressError) as e:
             attempts += 1
             if attempts > 15:
-                raise cfy_exc.NonRecoverableError(
+                raise ne_lint.NonRecoverableError(
                     'Maximum attempts waiting '
                     'for deployment group {group}" {e}.'.format(
                         group=group_id, e=e))
@@ -324,7 +320,7 @@ def install_deployment(deployment_id, rest_client):
                 DeploymentEnvironmentCreationInProgressError) as e:
             attempts += 1
             if attempts > 15:
-                raise cfy_exc.NonRecoverableError(
+                raise ne_lint.NonRecoverableError(
                     'Maximum attempts waiting '
                     'for deployment {deployment_id}" {e}.'.format(
                         deployment_id=deployment_id, e=e))
@@ -1269,11 +1265,11 @@ def is_skip_on_delete(use_existing,
     """
 
     if delete_operation and \
-            CLOUDIFY_TAGGED_EXT in _ctx_instance.runtime_properties:
-        _ctx_instance.runtime_properties.pop(CLOUDIFY_TAGGED_EXT, None)
+            NE_TAGGED_EXT in _ctx_instance.runtime_properties:
+        _ctx_instance.runtime_properties.pop(NE_TAGGED_EXT, None)
         return True
     if create_operation and use_existing:
-        _ctx_instance.runtime_properties[CLOUDIFY_TAGGED_EXT] = True
+        _ctx_instance.runtime_properties[NE_TAGGED_EXT] = True
     return False
 
 
@@ -1339,7 +1335,7 @@ def skip_creative_or_destructive_operation(
     # Should we use existing resources?
     use_existing = is_use_existing(exists, expected, use_anyway)
     if create_operation and use_existing:
-        _ctx_instance.runtime_properties[CLOUDIFY_TAGGED_EXT] = True
+        _ctx_instance.runtime_properties[NE_TAGGED_EXT] = True
     # Can we modify existing resources?
     may_modify = is_may_modify(
         exists,
@@ -1385,7 +1381,7 @@ def skip_creative_or_destructive_operation(
     if special_condition:
         ctx_from_import.logger.debug(
             'The {resource_type} resource {resource_id}, has a special '
-            'condition and Fusion is authorized to modify it.'.format(
+            'condition and NativeEdge is authorized to modify it.'.format(
                 resource_type=resource_type, resource_id=resource_id))
         return False
     elif expected and not exists and skip_on_delete:
@@ -1394,27 +1390,27 @@ def skip_creative_or_destructive_operation(
     elif create_operation and should_create:
         ctx_from_import.logger.debug(
             'The {resource_type} resource {resource_id} does not exist, '
-            'and Fusion should create it.'.format(
+            'and NativeEdge should create it.'.format(
                 resource_type=resource_type, resource_id=resource_id))
         return False
     elif delete_operation and not skip_on_delete:
         ctx_from_import.logger.debug(
             'The {resource_type} resource {resource_id} does exist, '
-            'and Fusion should delete it.'.format(
+            'and NativeEdge should delete it.'.format(
                 resource_type=resource_type, resource_id=resource_id))
         return False
     # If a resource is existing and we can't modify.
     elif (use_existing and not may_modify) or skip_on_delete:
         ctx_from_import.logger.debug(
             'The {resource_type} resource {resource_id} exists as expected, '
-            'but Fusion may not modify or delete it.'.format(
+            'but NativeEdge may not modify or delete it.'.format(
                 resource_type=resource_type, resource_id=resource_id))
         return True
     # If we are allowed to modify existing resources.
     elif use_existing and may_modify:
         ctx_from_import.logger.debug(
             'The {resource_type} resource {resource_id} exists, and'
-            'Fusion is authorized to modify it.'.format(
+            'NativeEdge is authorized to modify it.'.format(
                 resource_type=resource_type, resource_id=resource_id))
         return False
     # If the resource doesn't exist, and it's expected to exist and we can't
@@ -1429,19 +1425,19 @@ def skip_creative_or_destructive_operation(
             not create_anyway and not create_operation:
         ctx_from_import.logger.warning(
             'The {resource_type} resource {resource_id} does not exist, '
-            'but Fusion is not authorized to create it or it is not a '
+            'but NativeEdge is not authorized to create it or it is not a '
             'create operation.'.format(
                 resource_type=resource_type, resource_id=resource_id))
         return True
     # Some other bug in our logic and we want to look into the condition.
-    raise cfy_exc.NonRecoverableError(
+    raise ne_lint.NonRecoverableError(
         'Arrived at an inexplicable condition. Report for bug resolution.\n'
         'Node properties: {} \n'
         'Exists: {} '.format(_ctx_node.properties, exists)
     )
 
 
-class ExistingResourceInUse(cfy_exc.NonRecoverableError):
+class ExistingResourceInUse(ne_lint.NonRecoverableError):
     def __init__(self, resource_type, resource_id, *args, **kwargs):
         msg = 'Cannot create/update {resource_type} resource {resource_id}. ' \
               'Not a create operation and not a special condition.'.format(
@@ -1450,7 +1446,7 @@ class ExistingResourceInUse(cfy_exc.NonRecoverableError):
             super().__init__(msg, *args, **kwargs)
 
 
-class ResourceDoesNotExist(cfy_exc.NonRecoverableError):
+class ResourceDoesNotExist(ne_lint.NonRecoverableError):
     def __init__(self,
                  resource_type,
                  resource_id,
@@ -1469,12 +1465,12 @@ class ResourceDoesNotExist(cfy_exc.NonRecoverableError):
 
 
 @with_rest_client
-def get_fusion_version(rest_client):
+def get_ne_version(rest_client):
     version = rest_client.manager.get_version()['version']
-    fusion_version = re.findall('(\\d+.\\d+.\\d+)', version)[0]
-    ctx_from_import.logger.debug('fusion_version: {}'
-                                 .format(fusion_version))
-    return fusion_version
+    ne_version = re.findall('(\\d+.\\d+.\\d+)', version)[0]
+    ctx_from_import.logger.debug('ne_version: {}'
+                                 .format(ne_version))
+    return ne_version
 
 
 def v1_gteq_v2(v1, v2):

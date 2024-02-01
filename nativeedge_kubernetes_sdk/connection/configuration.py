@@ -1,17 +1,4 @@
-# Copyright (c) 2024 Dell, Inc. All rights reserved
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#        http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
+# Copyright © 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 import os
 import yaml
@@ -19,10 +6,7 @@ import tempfile
 from shutil import copyfile
 from kubernetes.client import Configuration
 
-from ..exceptions import (
-    CloudifyKubernetesSDKException,
-    NativeEdgeKubernetesSDKException
-)
+from ..exceptions import NativeEdgeKubernetesSDKException
 
 
 class KubernetesConfiguration(object):
@@ -38,7 +22,7 @@ class KubernetesConfiguration(object):
     def get_kubeconfig(self):
         kubeconf_file = self._get_kubeconfig()
         if not kubeconf_file:
-            raise CloudifyKubernetesSDKException(
+            raise NativeEdgeKubernetesSDKException(
                 'Cannot initialize kubeconfig with {variant} configuration'
                 ' and {props} properties'.format(
                     variant=self.__class__.__name__,
@@ -178,7 +162,7 @@ class KubeConfigConfigurationVariants(KubernetesConfiguration):
                 )
 
                 return config_candidate
-            except CloudifyKubernetesSDKException:
+            except NativeEdgeKubernetesSDKException:
                 self.logger.debug(
                     'Configuration option {variant} cannot be used'.format(
                         variant=variant.__name__)

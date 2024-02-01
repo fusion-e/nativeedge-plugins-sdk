@@ -1,31 +1,22 @@
-########
-# Copyright (c) 2024 Dell, Inc. All rights reserved
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#        http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# Copyright © 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 import time
 import unittest
 import subprocess
 from tempfile import NamedTemporaryFile
 
+from nativeedge_common_sdk.processes import (
+    general_executor,
+    handle_max_sleep,
+)
+
 try:
     from nativeedge.state import current_ctx
     from nativeedge.mocks import MockNativeEdgeContext
 except ImportError:
     from cloudify.state import current_ctx
-    from cloudify.mocks import MockCloudifyContext as MockNativeEdgeContext
-
-from ..processes import handle_max_sleep, general_executor
+    from cloudify.mocks import MockCloudifyContext \
+        as MockNativeEdgeContext
 
 many_children = """#!/bin/bash
 fpfunction(){
