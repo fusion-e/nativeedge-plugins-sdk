@@ -1,13 +1,7 @@
 mock
-nose
-coverage
-testtools
-nose-cov
-pylint
+nose2
 flake8
-requests-mock
+pytest
 xmltodict
 nose-exclude
-# for fake netconf server only
-PyCrypto
-pytest
+requests-mock

@@ -1,21 +1,8 @@
-########
-# Copyright (c) 2024 Dell, Inc. All rights reserved
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#        http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# Copyright © 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 import mock
 import unittest
-from cloudify_common_sdk.deprecation import (
+from nativeedge_common_sdk.deprecation import (
     log_deprecation,
     deprecation_warning,
     check_deprecated_node_type,
@@ -36,8 +23,8 @@ class TestDeprecation(unittest.TestCase):
             'foo', 'bar', 'baz')
         mock_ctx.logger.error.assert_called_with(expected)
 
-    @mock.patch('cloudify_common_sdk.deprecation.deprecated_node_types')
-    @mock.patch('cloudify_common_sdk.deprecation.log_deprecation')
+    @mock.patch('nativeedge_common_sdk.deprecation.deprecated_node_types')
+    @mock.patch('nativeedge_common_sdk.deprecation.log_deprecation')
     def test_check_deprecated_node_type(
             self, mock_log, mock_deprecated, mock_get_ctx, *__):
         mock_deprecated.get.return_value = 'bar'
@@ -52,8 +39,8 @@ class TestDeprecation(unittest.TestCase):
         mock_log.assert_called_with('foo', 'bar')
 
     @mock.patch(
-        'cloudify_common_sdk.deprecation.deprecated_relationship_types')
-    @mock.patch('cloudify_common_sdk.deprecation.log_deprecation')
+        'nativeedge_common_sdk.deprecation.deprecated_relationship_types')
+    @mock.patch('nativeedge_common_sdk.deprecation.log_deprecation')
     def test_check_deprecated_relationship(
             self, mock_log, mock_deprecated, mock_get_ctx, *__):
         mock_deprecated.get.return_value = 'bar'
@@ -81,9 +68,9 @@ class TestDeprecation(unittest.TestCase):
         mock_log.assert_called_with('foo', 'bar', 'relationship')
 
     @mock.patch(
-        'cloudify_common_sdk.deprecation.check_deprecated_node_type')
+        'nativeedge_common_sdk.deprecation.check_deprecated_node_type')
     @mock.patch(
-        'cloudify_common_sdk.deprecation.check_deprecated_relationship')
+        'nativeedge_common_sdk.deprecation.check_deprecated_relationship')
     def test_decorator(self, mock_a, mock_b, *_):
 
         @deprecation_warning

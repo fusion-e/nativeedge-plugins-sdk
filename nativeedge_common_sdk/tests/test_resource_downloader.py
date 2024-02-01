@@ -1,37 +1,22 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-########
-# Copyright (c) 2024 Dell, Inc. All rights reserved
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#        http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# Copyright © 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 import os
 import mock
 import unittest
 
-import cloudify_common_sdk.resource_downloader as resource_downloader
+import nativeedge_common_sdk.resource_downloader as resource_downloader
 
 FILE_WITH_TYPE_URL = \
-    "https://github.com/cloudify-incubator/cloudify-utilities-plugins-sdk/"\
+    "https://github.com/fusion-e/nativeedge-plugins-sdk/"\
     "archive/0.0.17.zip"
 
 FILE_WITH_NO_TYPE_URL = \
-    "https://codeload.github.com/cloudify-incubator/"\
-    "cloudify-utilities-plugins-sdk/zip/master"
+    "https://codeload.github.com/fusion-e/"\
+    "nativeedge-plugins-sdk/zip/main"
 
 FILE_WITH_TF_GIT = \
-    "git::https://github.com/cloudify-incubator/"\
-    "cloudify-utilities-plugins-sdk.git"
+    "git::https://github.com/fusion-e/"\
+    "nativeedge-plugins-sdk.git"
 
 FILE_WITH_TF_GIT_TAG = FILE_WITH_TF_GIT + "?ref=0.0.17"
 
