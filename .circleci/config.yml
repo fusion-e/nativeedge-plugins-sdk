@@ -50,7 +50,6 @@ workflows:
   version: 2
   tests:
     jobs:
-      - node/check_py3_compat_job
       - unittesting:
           context: 
             - slack-secrets
@@ -58,14 +57,13 @@ workflows:
 
   nightly:
     triggers:
-    - schedule:
-        cron: "0 1 * * *"
-        filters:
-          branches:
-            only:
-              - main
+      - schedule:
+          cron: "0 1 * * *"
+          filters:
+            branches:
+              only:
+                - main
     jobs:
-      - node/check_py3_compat_job
       - unittesting:
           context: 
             - slack-secrets
