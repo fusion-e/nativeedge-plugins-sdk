@@ -212,8 +212,8 @@ def test_download_archive():
     )
     current_ctx.set(ctx)
 
-    source = 'https://github.com/cloudify-incubator' \
-             '/cloudify-utilities-plugins-sdk/archive/refs/heads/master.zip'
+    source = 'https://github.com/fusion-e/nativeedge-plugins-sdk/' \
+             'archive/refs/heads/main.zip'
     tool = cli_tool_base.CliTool(*args, **kwargs)
     tool.tool_name = 'test_download_archive'
     test_node_inst_dir = mkdtemp()
