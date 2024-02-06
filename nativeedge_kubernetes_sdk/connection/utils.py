@@ -3,11 +3,11 @@
 import os
 from tempfile import NamedTemporaryFile
 
-from nativeedge_kubernetes_sdk.configuration import \
-    KubeConfigConfigurationVariants
-from nativeedge_kubernetes_sdk.authentication import \
-    KubernetesApiAuthenticationVariants
 from nativeedge_common_sdk.utils import get_ctx_instance
+from nativeedge_kubernetes_sdk.connection.configuration import \
+    KubeConfigConfigurationVariants
+from nativeedge_kubernetes_sdk.connection.authentication import \
+    KubernetesApiAuthenticationVariants
 
 try:
     from nativeedge import ctx as ctx_from_import
@@ -25,7 +25,12 @@ API_OPTIONS = 'api_options'
 CONFIGURATION = 'configuration'
 AUTHENTICATION = 'authentication'
 TOKEN_KEY = 'k8s-service-account-token'
-CERT_KEYS = ['ssl_ca_cert', 'cert_file', 'key_file', 'ca_file']
+CERT_KEYS = [
+    'ca_file',
+    'key_file',
+    'cert_file',
+    'ssl_ca_cert',
+]
 
 
 def create_tempfiles_for_certs_and_keys(config):
