@@ -6,7 +6,8 @@ import tempfile
 from shutil import copyfile
 from kubernetes.client import Configuration
 
-from ..exceptions import NativeEdgeKubernetesSDKException
+from nativeedge_kubernetes_sdk.exceptions import \
+    NativeEdgeKubernetesSDKException
 
 
 class KubernetesConfiguration(object):
