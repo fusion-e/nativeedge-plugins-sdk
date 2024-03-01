@@ -158,7 +158,7 @@ class TestSkipCreativeOrDestructive(TestUtils):
         fn_kwargs = self.get_fn_kwargs(
             create_operation=False, delete_operation=True)
         fn_kwargs['_ctx'].instance.runtime_properties[
-            '__NE_TAGGED_EXTernal_resource'] = True
+            '__ne_tagged_external_resource'] = True
         self.assertTrue(
             utils.skip_creative_or_destructive_operation(**fn_kwargs))
 
@@ -173,7 +173,7 @@ class TestSkipCreativeOrDestructive(TestUtils):
             create_operation=False,
             delete_operation=True)
         fn_kwargs['_ctx'].instance.runtime_properties[
-            '__NE_TAGGED_EXTernal_resource'] = True
+            '__ne_tagged_external_resource'] = True
         with self.assertRaises(utils.ResourceDoesNotExist):
             utils.skip_creative_or_destructive_operation(**fn_kwargs)
 
@@ -226,7 +226,7 @@ class TestSkipCreativeOrDestructive(TestUtils):
             create_operation=False,
             delete_operation=True)
         fn_kwargs['_ctx'].instance.runtime_properties[
-            '__NE_TAGGED_EXTernal_resource'] = True
+            '__ne_tagged_external_resource'] = True
         self.assertTrue(
             utils.skip_creative_or_destructive_operation(**fn_kwargs))
 
