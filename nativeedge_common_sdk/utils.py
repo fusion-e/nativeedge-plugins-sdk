@@ -56,7 +56,7 @@ except ImportError:
     RELATIONSHIP_INSTANCE = 'relationship-instance'
 
 
-NE_TAGGED_EXT = '__NE_TAGGED_EXTernal_resource'
+NE_TAGGED_EXT = '__ne_tagged_external_resource'
 
 
 def get_ctx_instance(_ctx=None, target=False, source=False):
