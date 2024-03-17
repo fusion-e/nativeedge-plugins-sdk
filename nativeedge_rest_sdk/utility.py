@@ -220,7 +220,8 @@ def _process_response(response, call, store_props):
     logger.debug(
         'Call: {}'.format(shorted_text(obfuscate_passwords(call))))
     logger.debug('Store props: {}'.format(shorted_text(store_props)))
-    logger.debug('Store headers: {}'.format(shorted_text(response.headers)))
+    logger.debug('Store headers: {}'.format(shorted_text(obfuscate_passwords(
+        response.headers))))
     translation_version = call.get('translation_format', 'auto')
 
     # process headers
