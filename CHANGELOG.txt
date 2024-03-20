@@ -1,4 +1,5 @@
 releases:
+  v0.0.134: update dependencies in order to fix security issue.
   v0.0.133: Fix security issue.
   v0.0.132: Fix issue.
   v0.0.131: Rebranding phase 1 - to rename packages and rename imports.
