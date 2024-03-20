@@ -3,7 +3,10 @@
 import os
 from tempfile import NamedTemporaryFile
 
-from nativeedge_common_sdk.utils import get_ctx_instance
+from nativeedge_common_sdk.utils import (
+    get_ctx_instance,
+    get_node_instance_dir
+)
 from nativeedge_kubernetes_sdk.connection.configuration import \
     KubeConfigConfigurationVariants
 from nativeedge_kubernetes_sdk.connection.authentication import \
@@ -25,11 +28,12 @@ API_OPTIONS = 'api_options'
 CONFIGURATION = 'configuration'
 AUTHENTICATION = 'authentication'
 TOKEN_KEY = 'k8s-service-account-token'
+SSL_CA_CERT = 'ssl_ca_cert'
 CERT_KEYS = [
     'ca_file',
     'key_file',
     'cert_file',
-    'ssl_ca_cert',
+    SSL_CA_CERT,
 ]
 
 
@@ -97,6 +101,7 @@ def get_kubeconfig_file(client_config, logger, ctx_download_resource):
 def get_ssl_ca_file(client_config, ca_from_shared_cluster=None):
     configuration_property = client_config.get(CONFIGURATION, {})
     value = ca_from_shared_cluster
+
     for key in CERT_KEYS:
         if value:
             break
@@ -105,10 +110,11 @@ def get_ssl_ca_file(client_config, ca_from_shared_cluster=None):
         value = configuration_property.get(key)
 
     if value and check_if_resource_inside_blueprint_folder(value):
-        f = NamedTemporaryFile(delete=False)
+        f = NamedTemporaryFile(dir=get_node_instance_dir(), delete=False)
         f.close()
         ctx_from_import.download_resource(value, target_path=f.name)
-        ctx_from_import.logger.info('using CA file:{file}'.format(file=f.name))
+        ctx_from_import.logger.info(
+            'using CA file: {file}'.format(file=f.name))
         return f.name
 
     elif value and os.path.isfile(value):
@@ -118,10 +124,29 @@ def get_ssl_ca_file(client_config, ca_from_shared_cluster=None):
 
     elif value and not os.path.isfile(value):
         # It means we have the ca as a string in the blueprint
-        f = NamedTemporaryFile('w', suffix='__cfy.helm.k8s__', delete=False)
+        f = NamedTemporaryFile(
+            'w',
+            suffix='__cfy.helm.k8s__',
+            dir=get_node_instance_dir(),
+            delete=False)
         f.write(value)
         f.close()
         ctx_from_import.logger.info('using CA content from the blueprint.')
+        return f.name
+
+    if not value and SSL_CA_CERT in configuration_property.get(
+            API_OPTIONS, {}):
+        value = configuration_property.get(API_OPTIONS, {}).get(SSL_CA_CERT)
+        ctx_from_import.logger.info(f'value3: {value}')
+        f = NamedTemporaryFile(
+            'w',
+            suffix='__cfy.helm.k8s__',
+            dir=get_node_instance_dir(),
+            delete=False)
+        f.write(value)
+        f.close()
+        ctx_from_import.logger.info(
+            f'using CA content from the blueprint: {f.name}')
         return f.name
 
     ctx_from_import.logger.info('CA file not found.')
