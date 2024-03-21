@@ -1750,7 +1750,9 @@ def dict_override(right=None, left=None):
     right = right or {}
     left = left or {}
     for k, v in left.items():
-        if v:
+        if v is not None and isinstance(v, bool):
+            right[k] = v
+        elif v:
             right[k] = v
     return right
 
