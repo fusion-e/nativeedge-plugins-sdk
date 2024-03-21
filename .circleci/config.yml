@@ -1,5 +1,9 @@
 version: 2.1
 
+job-post-steps: &job-post-steps
+  post-steps:
+   - slack/notify_failed
+
 unittest-post-steps: &unittest-post-steps
   post-steps:
     - store_test_results:
@@ -10,8 +14,7 @@ unittest-post-steps: &unittest-post-steps
     - slack/notify_failed
 
 orbs:
-  node: cloudify/public-unittest-orb@volatile
-  releaseorb: cloudify/release-orb@volatile
+  ne: plugins/nativeedge-plugins-orb@0.0.14
   slack: cloudify/notify-slack@2
 
 checkout:
@@ -23,48 +26,31 @@ checkout:
         git checkout -qf FETCH_HEAD
       fi
 
-executors:
-
-  py36:
-    docker:
-      - image: circleci/python:3.6
-
-  unittesting_docker:
-    machine:
-      image: ubuntu-2004:202201-02
-
-jobs:
-
-  unittesting:
-    executor: unittesting_docker
-    steps:
-      - checkout
-      - attach_workspace:
-          at: workspace
-      - run: |
-          git clone https://github.com/EarthmanT/dockerfiles.git
-          docker build -t unittesting dockerfiles/unittesting/
-          docker run -e GH_TOKEN=$GITHUB_TOKEN -v $PWD/:/project unittesting
-
 workflows:
-  version: 2
+  version: 2.1
   tests:
     jobs:
-      - unittesting:
+      - ne/unittests_job:
           context: 
-            - slack-secrets
+            - plugins-inputs
           <<: *unittest-post-steps
+      - ne/release:
+          filters:
+            branches:
+              only: main
+          requires:
+            - ne/unittests_job
 
   nightly:
     triggers:
-      - schedule:
-          cron: "0 1 * * *"
-          filters:
-            branches:
-              only:
-                - main
+    - schedule:
+        cron: "0 1 * * 0,2,4,6"
+        filters:
+          branches:
+            only:
+              - main
     jobs:
-      - unittesting:
+      - ne/unittests_job:
           context: 
-            - slack-secrets
+            - plugins-inputs
           <<: *unittest-post-steps
