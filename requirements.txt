@@ -4,18 +4,18 @@
 #
 #    pip-compile --no-emit-index-url --output-file=requirements.txt requirements.in setup.py
 #
--e file:///home/circleci/fusion-agent
-    # via
-    #   -r requirements.in
-    #   fusion-mgmtworker
--e file:///home/circleci/fusion-common
-    # via
-    #   -r requirements.in
-    #   fusion-agent
-    #   fusion-mgmtworker
-    #   nativeedge-plugins-sdk (setup.py)
--e file:///home/circleci/fusion-manager/mgmtworker
-    # via -r requirements.in
+# -e file:///home/circleci/fusion-agent
+#     # via
+#     #   -r requirements.in
+#     #   fusion-mgmtworker
+# -e file:///home/circleci/fusion-common
+#     # via
+#     #   -r requirements.in
+#     #   fusion-agent
+#     #   fusion-mgmtworker
+#     #   nativeedge-plugins-sdk (setup.py)
+# -e file:///home/circleci/fusion-manager/mgmtworker
+#     # via -r requirements.in
 adal==1.2.7
     # via msrestazure
 aiohttp==3.9.3
