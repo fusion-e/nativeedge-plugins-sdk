@@ -137,7 +137,6 @@ def get_ssl_ca_file(client_config, ca_from_shared_cluster=None):
     if not value and SSL_CA_CERT in configuration_property.get(
             API_OPTIONS, {}):
         value = configuration_property.get(API_OPTIONS, {}).get(SSL_CA_CERT)
-        ctx_from_import.logger.info(f'value3: {value}')
         f = NamedTemporaryFile(
             'w',
             suffix='__cfy.helm.k8s__',
