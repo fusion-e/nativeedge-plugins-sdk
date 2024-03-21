@@ -30,7 +30,7 @@ attrs==23.2.0
     # via aiohttp
 azure-common==1.1.28
     # via azure-mgmt-containerservice
-azure-core==1.29.7
+azure-core==1.30.1
     # via
     #   azure-identity
     #   azure-mgmt-core
@@ -45,24 +45,24 @@ bcrypt==4.1.2
     # via paramiko
 billiard==4.2.0
     # via celery
-boto3==1.34.31
+boto3==1.34.67
     # via nativeedge-plugins-sdk (setup.py)
-botocore==1.34.31
+botocore==1.34.67
     # via
     #   boto3
     #   s3transfer
 bottle==0.12.25
     # via fusion-common
-cachetools==5.3.2
+cachetools==5.3.3
     # via google-auth
 celery==5.3.6
     # via fusion-agent
-certifi==2023.11.17
+certifi==2024.2.2
     # via
     #   kubernetes
     #   msrest
     #   requests
-cffi==1.14.6
+cffi==1.16.0
     # via
     #   cryptography
     #   fusion-agent
@@ -83,7 +83,7 @@ click-plugins==1.1.1
     # via celery
 click-repl==0.3.0
     # via celery
-cryptography==42.0.2
+cryptography==42.0.5
     # via
     #   -r requirements.in
     #   adal
@@ -108,9 +108,9 @@ gitdb==4.0.11
     # via
     #   gitpython
     #   nativeedge-plugins-sdk (setup.py)
-gitpython==3.1.41
+gitpython==3.1.42
     # via nativeedge-plugins-sdk (setup.py)
-google-auth==2.27.0
+google-auth==2.29.0
     # via
     #   kubernetes
     #   nativeedge-plugins-sdk (setup.py)
@@ -135,9 +135,9 @@ kombu==5.3.5
     # via celery
 kubernetes==29.0.0
     # via nativeedge-plugins-sdk (setup.py)
-markupsafe==2.1.4
+markupsafe==2.1.5
     # via jinja2
-msal==1.26.0
+msal==1.28.0
     # via
     #   azure-identity
     #   msal-extensions
@@ -149,17 +149,19 @@ msrest==0.7.1
     #   msrestazure
 msrestazure==0.6.4
     # via nativeedge-plugins-sdk (setup.py)
-multidict==6.0.4
+multidict==6.0.5
     # via
     #   aiohttp
     #   yarl
+nats-py==2.7.2
+    # via fusion-common
 networkx==3.2.1
     # via fusion-common
 oauthlib==3.2.2
     # via
     #   kubernetes
     #   requests-oauthlib
-packaging==23.2
+packaging==24.0
     # via
     #   fusion-agent
     #   fusion-mgmtworker
@@ -173,7 +175,7 @@ pathlib2==2.3.7.post1
     # via fabric
 pika==1.3.2
     # via fusion-common
-pkginfo==1.9.6
+pkginfo==1.10.0
     # via wagon
 ply==3.11
     # via pysmi
@@ -217,7 +219,7 @@ pysnmp==4.4.12
     # via fusion-common
 pyspnego==0.10.2
     # via requests-ntlm
-python-dateutil==2.8.2
+python-dateutil==2.9.0.post0
     # via
     #   adal
     #   botocore
@@ -226,14 +228,12 @@ python-dateutil==2.8.2
     #   kubernetes
 python-gssapi==0.6.4
     # via fusion-agent
-pytz==2023.4
+pytz==2024.1
     # via
     #   fusion-common
     #   fusion-mgmtworker
 pywinrm[kerberos]==0.4.3
-    # via
-    #   fusion-agent
-    #   pywinrm
+    # via fusion-agent
 pyyaml==6.0.1
     # via
     #   fusion-common
@@ -255,7 +255,7 @@ requests==2.31.0
     #   requests-toolbelt
 requests-ntlm==1.2.0
     # via pywinrm
-requests-oauthlib==1.3.1
+requests-oauthlib==1.4.0
     # via
     #   kubernetes
     #   msrest
@@ -265,7 +265,7 @@ retrying==1.3.4
     # via fusion-mgmtworker
 rsa==4.9
     # via google-auth
-s3transfer==0.10.0
+s3transfer==0.10.1
     # via boto3
 six==1.16.0
     # via
@@ -280,11 +280,11 @@ six==1.16.0
     #   retrying
 smmap==5.0.1
     # via gitdb
-typing-extensions==4.9.0
+typing-extensions==4.10.0
     # via azure-core
-tzdata==2023.4
+tzdata==2024.1
     # via celery
-urllib3==2.0.7
+urllib3==2.2.1
     # via
     #   botocore
     #   fusion-common
@@ -301,7 +301,7 @@ wcwidth==0.2.13
     # via prompt-toolkit
 websocket-client==1.7.0
     # via kubernetes
-wheel==0.42.0
+wheel==0.43.0
     # via wagon
 xmltodict==0.13.0
     # via
