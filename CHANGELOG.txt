@@ -1,4 +1,5 @@
 releases:
+  v0.0.135: fix dictoverride logic to handle boolean objects.
   v0.0.134: update dependencies in order to fix security issue.
   v0.0.133: Fix security issue.
   v0.0.132: Fix issue.
