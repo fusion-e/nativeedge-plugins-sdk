@@ -1,0 +1,20 @@
+---
+project_exclusion_list:
+  exclusion_folders:
+    - .drp
+    - .github
+    - jenkins
+    - nativeedge_aws_sdk/tests
+    - nativeedge_common_sdk/tests
+    - nativeedge_kubernetes_sdk/tests
+    - nativeedge_rest_sdk/tests
+    - nativeedge_terminal_sdk/tests
+  exclusion_file_paths:
+    - Makefile
+    - dev-requirements.txt
+    - .gitignore
+    - CHANGELOG.txt
+    - README.md
+    - tox.ini
+    - requirements.in
+    - cloudify_cloudinit/README.md
