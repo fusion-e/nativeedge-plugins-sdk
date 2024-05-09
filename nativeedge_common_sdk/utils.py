@@ -131,7 +131,12 @@ def get_blueprint_dir(blueprint_id=None):
                                  'blueprints',
                                  get_tenant_name(),
                                  blueprint_id)
-
+    ctx_from_import.logger.error(f'We have {blueprint_dir}.')
+    try:
+        for file in os.walk(os.path.dirname(blueprint_dir)):
+            ctx_from_import.logger.error(f'Walked file: {file}')
+    except Exception:
+        pass
     if os.path.isdir(blueprint_dir):
         return blueprint_dir
     else:
@@ -144,6 +149,8 @@ def get_blueprint_dir(blueprint_id=None):
             blueprint_dir = ctx_from_import.download_directory('.')
         except exc.HttpException:
             blueprint_dir = ctx_from_import.download_directory(None)
+        except exc.HttpException:
+            blueprint_dir = ctx_from_import.download_directory('/')
         ctx_from_import._context['deployment_id'] = dep_id
         if blueprint_dir and os.path.isdir(blueprint_dir):
             return blueprint_dir
