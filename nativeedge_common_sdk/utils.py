@@ -126,6 +126,7 @@ def get_blueprint_dir(blueprint_id=None):
     :return: Return path to blueprint directory.
     :rtype: str
     """
+    ctx_from_import.logger.info(get_deployment_dir())
     blueprint_dir = os.path.join('/opt', 'manager',
                                  'resources',
                                  'blueprints',
