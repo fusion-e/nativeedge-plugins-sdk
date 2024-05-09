@@ -4,18 +4,6 @@
 #
 #    pip-compile --no-emit-index-url --output-file=requirements.txt requirements.in setup.py
 #
-# -e file:///home/circleci/fusion-agent
-#     # via
-#     #   -r requirements.in
-#     #   fusion-mgmtworker
-# -e file:///home/circleci/fusion-common
-#     # via
-#     #   -r requirements.in
-#     #   fusion-agent
-#     #   fusion-mgmtworker
-#     #   nativeedge-plugins-sdk (setup.py)
-# -e file:///home/circleci/fusion-manager/mgmtworker
-#     # via -r requirements.in
 adal==1.2.7
     # via msrestazure
 aiohttp==3.9.5
@@ -35,19 +23,19 @@ azure-core==1.30.1
     #   azure-identity
     #   azure-mgmt-core
     #   msrest
-azure-identity==1.15.0
+azure-identity==1.16.0
     # via nativeedge-plugins-sdk (setup.py)
 azure-mgmt-containerservice==17.0.0
     # via nativeedge-plugins-sdk (setup.py)
 azure-mgmt-core==1.4.0
     # via azure-mgmt-containerservice
-bcrypt==4.1.2
+bcrypt==4.1.3
     # via paramiko
 billiard==4.2.0
     # via celery
-boto3==1.34.67
+boto3==1.34.101
     # via nativeedge-plugins-sdk (setup.py)
-botocore==1.34.67
+botocore==1.34.101
     # via
     #   boto3
     #   s3transfer
@@ -55,7 +43,7 @@ bottle==0.12.25
     # via fusion-common
 cachetools==5.3.3
     # via google-auth
-celery==5.3.6
+celery==5.4.0
     # via fusion-agent
 certifi==2024.2.2
     # via
@@ -77,13 +65,13 @@ click==8.1.7
     #   click-plugins
     #   click-repl
     #   fusion-agent
-click-didyoumean==0.3.0
+click-didyoumean==0.3.1
     # via celery
 click-plugins==1.1.1
     # via celery
 click-repl==0.3.0
     # via celery
-cryptography==42.0.5
+cryptography==42.0.7
     # via
     #   -r requirements.in
     #   adal
@@ -108,13 +96,13 @@ gitdb==4.0.11
     # via
     #   gitpython
     #   nativeedge-plugins-sdk (setup.py)
-gitpython==3.1.42
+gitpython==3.1.43
     # via nativeedge-plugins-sdk (setup.py)
 google-auth==2.29.0
     # via
     #   kubernetes
     #   nativeedge-plugins-sdk (setup.py)
-idna==3.6
+idna==3.7
     # via
     #   requests
     #   yarl
@@ -122,7 +110,7 @@ invoke==1.7.3
     # via fabric
 isodate==0.6.1
     # via msrest
-jinja2==3.1.3
+jinja2==3.1.4
     # via
     #   fusion-agent
     #   fusion-common
@@ -131,7 +119,7 @@ jmespath==1.0.1
     # via
     #   boto3
     #   botocore
-kombu==5.3.5
+kombu==5.3.7
     # via celery
 kubernetes==29.0.0
     # via nativeedge-plugins-sdk (setup.py)
@@ -155,7 +143,7 @@ multidict==6.0.5
     #   yarl
 nats-py==2.7.2
     # via fusion-common
-networkx==3.2.1
+networkx==3.3
     # via fusion-common
 oauthlib==3.2.2
     # via
@@ -189,17 +177,17 @@ psutil==5.9.8
     # via nativeedge-plugins-sdk (setup.py)
 psycopg2==2.9.9
     # via fusion-mgmtworker
-pyasn1==0.5.1
+pyasn1==0.6.0
     # via
     #   pyasn1-modules
     #   pysnmp
     #   python-gssapi
     #   rsa
-pyasn1-modules==0.3.0
+pyasn1-modules==0.4.0
     # via google-auth
 pycdlib==1.14.0
     # via nativeedge-plugins-sdk (setup.py)
-pycparser==2.21
+pycparser==2.22
     # via cffi
 pycryptodomex==3.20.0
     # via pysnmp
@@ -255,7 +243,7 @@ requests==2.31.0
     #   requests-toolbelt
 requests-ntlm==1.2.0
     # via pywinrm
-requests-oauthlib==1.4.0
+requests-oauthlib==2.0.0
     # via
     #   kubernetes
     #   msrest
@@ -280,7 +268,7 @@ six==1.16.0
     #   retrying
 smmap==5.0.1
     # via gitdb
-typing-extensions==4.10.0
+typing-extensions==4.11.0
     # via azure-core
 tzdata==2024.1
     # via celery
@@ -299,7 +287,7 @@ wagon==1.0.1
     # via fusion-common
 wcwidth==0.2.13
     # via prompt-toolkit
-websocket-client==1.7.0
+websocket-client==1.8.0
     # via kubernetes
 wheel==0.43.0
     # via wagon
