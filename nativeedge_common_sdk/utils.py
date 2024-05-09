@@ -138,10 +138,10 @@ def get_blueprint_dir(blueprint_id=None):
             get_tenant_name(),
             blueprint_id
         )
-
+    ctx_from_import.logger.error(f'What we have: {os.listdir('/opt/mgmtworker/')}')
     ctx_from_import.logger.error(f'We have {blueprint_dir}. {os.path.isdir(blueprint_dir)}')
-    ctx_from_import.logger.error(f'2We have {updated_blueprint_dir}. {os.path.isdir(updated_blueprint_dir)')
-    ctx_from_import.logger.error(f'3 We have {os.path.dirname(os.path.dirname(blueprint_dir))} {os.path.isdir({os.path.dirname(os.path.dirname(blueprint_dir))})')
+    ctx_from_import.logger.error(f'2We have {updated_blueprint_dir}. {os.path.isdir(updated_blueprint_dir)}')
+    ctx_from_import.logger.error(f'3 We have {os.path.dirname(os.path.dirname(blueprint_dir))} {os.path.isdir(os.path.dirname(os.path.dirname(blueprint_dir)))+)')
 
     try:
         for file in os.walk(os.path.dirname(blueprint_dir)):
