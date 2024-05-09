@@ -131,14 +131,30 @@ def get_blueprint_dir(blueprint_id=None):
                                  'blueprints',
                                  get_tenant_name(),
                                  blueprint_id)
+
+    updated_blueprint_dir = os.path.join(
+            'blueprints',
+            get_tenant_name(),
+            blueprint_id
+        )
+
     ctx_from_import.logger.error(f'We have {blueprint_dir}.')
+    ctx_from_import.logger.error(f'2We have {updated_blueprint_dir}.')
     try:
         for file in os.walk(os.path.dirname(blueprint_dir)):
             ctx_from_import.logger.error(f'Walked file: {file}')
     except Exception:
         pass
+    try:
+        for file in os.walk(os.path.dirname(updated_blueprint_dir)):
+            ctx_from_import.logger.error(f'BWalked file: {file}')
+    except Exception:
+        pass
+    
     if os.path.isdir(blueprint_dir):
         return blueprint_dir
+    elif os.path.isdir(updated_blueprint_dir):
+        return updated_blueprint_dir
     else:
         # temp remove of deployment_id from the context so download_directory
         # would skip the deployment directory content
@@ -149,7 +165,7 @@ def get_blueprint_dir(blueprint_id=None):
             blueprint_dir = ctx_from_import.download_directory('.')
         except exc.HttpException:
             blueprint_dir = ctx_from_import.download_directory(None)
-        except exc.HttpException:
+        except TypeError:
             blueprint_dir = ctx_from_import.download_directory('/')
         ctx_from_import._context['deployment_id'] = dep_id
         if blueprint_dir and os.path.isdir(blueprint_dir):
