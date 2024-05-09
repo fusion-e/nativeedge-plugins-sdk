@@ -128,7 +128,7 @@ def get_blueprint_dir(blueprint_id=None):
     """
     depdir = get_deployment_dir(ctx_from_import.deployment.id)
     ctx_from_import.logger.info(depdir)
-    ctx_from_import.logger.info(f"Parent dir contents: {os.listdir(os.path.dirname(depdir))}")
+    ctx_from_import.logger.info(f"Parent dir contents: {'/opt/manager/resources/'}")
     blueprint_dir = os.path.join('/opt', 'manager',
                                  'resources',
                                  'blueprints',
