@@ -161,12 +161,11 @@ def get_blueprint_dir(blueprint_id=None):
         dep_id = ctx_from_import._context['deployment_id']
         ctx_from_import._context['blueprint_id'] = blueprint_id
         ctx_from_import._context['deployment_id'] = None
-        try:
-            blueprint_dir = ctx_from_import.download_directory('.')
-        except exc.HttpException:
-            blueprint_dir = ctx_from_import.download_directory(None)
-        except TypeError:
-            blueprint_dir = ctx_from_import.download_directory('/')
+        for option in ['.', None, '/', '']:
+            try:
+                blueprint_dir = ctx_from_import.download_directory(option)
+            except (TypeError, exc.HttpException):
+                ctx_from_import.logger.error(f'Failed: {option}')
         ctx_from_import._context['deployment_id'] = dep_id
         if blueprint_dir and os.path.isdir(blueprint_dir):
             return blueprint_dir
