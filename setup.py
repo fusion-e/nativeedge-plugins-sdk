@@ -22,7 +22,7 @@ install_requires = [
     'psutil',
     'xmltodict',   # rest
     "pycdlib",  # cdrom image
-    "Jinja2>=2.7.2",  # terminal
+    "Jinja2>=3.1.4",  # terminal
     'azure-identity',
     'paramiko>=2.7.1',  # terminal
     'kubernetes==29.0.0',

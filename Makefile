@@ -63,3 +63,9 @@ run_tests:
 
 clrf:
 	@find . \( -path ./.tox -prune -o -path ./.git -prune \) -o -type f -exec dos2unix {} \;
+
+wheels:
+	@echo "Creating wheels..."
+	@pip wheel ${HOME}/${FUSION_COMMON}/ -w /workspace/build/ --find-links /workspace/build
+	@pip wheel ${HOME}/${FUSION_AGENT}/ -w /workspace/build/ --find-links /workspace/build
+	@pip wheel ${HOME}/${FUSION_MANAGER}/mgmtworker -w /workspace/build/ --find-links /workspace/build
