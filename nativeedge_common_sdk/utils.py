@@ -126,7 +126,7 @@ def get_blueprint_dir(blueprint_id=None):
     :return: Return path to blueprint directory.
     :rtype: str
     """
-    ctx_from_import.logger.info(get_deployment_dir())
+    ctx_from_import.logger.info(get_deployment_dir(ctx_from_import.deployment.id))
     blueprint_dir = os.path.join('/opt', 'manager',
                                  'resources',
                                  'blueprints',
@@ -138,28 +138,28 @@ def get_blueprint_dir(blueprint_id=None):
             get_tenant_name(),
             blueprint_id
         )
-    ctx_from_import.logger.error(f'What we have: {os.listdir('/opt/mgmtworker/')}')
-    ctx_from_import.logger.error(f'We have {blueprint_dir}. {os.path.isdir(blueprint_dir)}')
-    ctx_from_import.logger.error(f'2We have {updated_blueprint_dir}. {os.path.isdir(updated_blueprint_dir)}')
-    ctx_from_import.logger.error(f'3 We have {os.path.dirname(os.path.dirname(blueprint_dir))} {os.path.isdir(os.path.dirname(os.path.dirname(blueprint_dir)))+)')
+    ctx_from_import.logger.error(f"What we have: {os.listdir('/opt/mgmtworker/')}")
+    ctx_from_import.logger.error(f"We have {blueprint_dir}. {os.path.isdir(blueprint_dir)}")
+    ctx_from_import.logger.error(f"2We have {updated_blueprint_dir}. {os.path.isdir(updated_blueprint_dir)}")
+    ctx_from_import.logger.error(f"3 We have {os.path.dirname(os.path.dirname(blueprint_dir))} {os.path.isdir(os.path.dirname(os.path.dirname(blueprint_dir)))}")
 
     try:
         for file in os.walk(os.path.dirname(blueprint_dir)):
-            ctx_from_import.logger.error(f'Walked file: {file}')
+            ctx_from_import.logger.error(f"Walked file: {file}")
     except Exception as e:
-        ctx_from_import.logger.error(f'Exc: {e}')
+        ctx_from_import.logger.error(f"Exc: {e}")
 
     try:
         for file in os.walk(os.path.dirname(updated_blueprint_dir)):
-            ctx_from_import.logger.error(f'BWalked file: {file}')
+            ctx_from_import.logger.error(f"BWalked file: {file}")
     except Exception as e:
-        ctx_from_import.logger.error(f'2Exc: {e}')
+        ctx_from_import.logger.error(f"2Exc: {e}")
 
     try:
         for file in os.walk(os.path.dirname(os.path.dirname(blueprint_dir))):
-            ctx_from_import.logger.error(f'CWalked file: {file}')
+            ctx_from_import.logger.error(f"CWalked file: {file}")
     except Exception as e:
-        ctx_from_import.logger.error(f'3Exc: {e}')
+        ctx_from_import.logger.error(f"3Exc: {e}")
 
     if os.path.isdir(blueprint_dir):
         return blueprint_dir
@@ -175,7 +175,7 @@ def get_blueprint_dir(blueprint_id=None):
             try:
                 blueprint_dir = ctx_from_import.download_directory(option)
             except (TypeError, exc.HttpException):
-                ctx_from_import.logger.error(f'Failed: {option}')
+                ctx_from_import.logger.error(f"Failed: {option}")
         ctx_from_import._context['deployment_id'] = dep_id
         if blueprint_dir and os.path.isdir(blueprint_dir):
             return blueprint_dir
