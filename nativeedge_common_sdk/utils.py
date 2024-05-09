@@ -143,14 +143,19 @@ def get_blueprint_dir(blueprint_id=None):
     try:
         for file in os.walk(os.path.dirname(blueprint_dir)):
             ctx_from_import.logger.error(f'Walked file: {file}')
-    except Exception:
-        pass
+    except Exception as e:
+        ctx_from_import.logger.error(f'Exc: {e}')
     try:
         for file in os.walk(os.path.dirname(updated_blueprint_dir)):
             ctx_from_import.logger.error(f'BWalked file: {file}')
-    except Exception:
-        pass
-    
+    except Exception as e:
+        ctx_from_import.logger.error(f'2Exc: {e}')
+    try:
+        for file in os.walk(os.path.dirname(os.path.dirname(blueprint_dir))):
+            ctx_from_import.logger.error(f'CWalked file: {file}')
+    except Exception as e:
+        ctx_from_import.logger.error(f'3Exc: {e}')
+
     if os.path.isdir(blueprint_dir):
         return blueprint_dir
     elif os.path.isdir(updated_blueprint_dir):
