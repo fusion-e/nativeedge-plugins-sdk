@@ -21,7 +21,7 @@ try:
     from nativeedge.utils import get_tenant_name
     from nativeedge import (
         ctx as ctx_from_import,
-        exceptions as ne_lint
+        exceptions as exc
     )
     from nativeedge.manager import get_rest_client
     from nativeedge.exceptions import NonRecoverableError
@@ -34,7 +34,7 @@ try:
         DeploymentEnvironmentCreationPendingError,
         DeploymentEnvironmentCreationInProgressError)
 except ImportError:
-    from cloudify import exceptions as ne_lint
+    from cloudify import exceptions as exc
     from cloudify.utils import get_tenant_name
     from cloudify import ctx as ctx_from_import
     from cloudify.manager import get_rest_client
@@ -140,7 +140,10 @@ def get_blueprint_dir(blueprint_id=None):
         dep_id = ctx_from_import._context['deployment_id']
         ctx_from_import._context['blueprint_id'] = blueprint_id
         ctx_from_import._context['deployment_id'] = None
-        blueprint_dir = ctx_from_import.download_directory('.')
+        try:
+            blueprint_dir = ctx_from_import.download_directory('.')
+        except exc.HttpException:
+            blueprint_dir = ctx_from_import.download_directory(None)
         ctx_from_import._context['deployment_id'] = dep_id
         if blueprint_dir and os.path.isdir(blueprint_dir):
             return blueprint_dir
@@ -203,7 +206,7 @@ def get_deployments_from_group(group, rest_client):
         except NativeEdgeClientError as e:
             attempts += 1
             if attempts > 15:
-                raise ne_lint.NonRecoverableError(
+                raise exc.NonRecoverableError(
                     'Maximum attempts waiting '
                     'for deployment group {group}" {e}.'.format(
                         group=group, e=e))
@@ -299,7 +302,7 @@ def install_deployments(group_id, rest_client):
                 DeploymentEnvironmentCreationInProgressError) as e:
             attempts += 1
             if attempts > 15:
-                raise ne_lint.NonRecoverableError(
+                raise exc.NonRecoverableError(
                     'Maximum attempts waiting '
                     'for deployment group {group}" {e}.'.format(
                         group=group_id, e=e))
@@ -325,7 +328,7 @@ def install_deployment(deployment_id, rest_client):
                 DeploymentEnvironmentCreationInProgressError) as e:
             attempts += 1
             if attempts > 15:
-                raise ne_lint.NonRecoverableError(
+                raise exc.NonRecoverableError(
                     'Maximum attempts waiting '
                     'for deployment {deployment_id}" {e}.'.format(
                         deployment_id=deployment_id, e=e))
@@ -1435,14 +1438,14 @@ def skip_creative_or_destructive_operation(
                 resource_type=resource_type, resource_id=resource_id))
         return True
     # Some other bug in our logic and we want to look into the condition.
-    raise ne_lint.NonRecoverableError(
+    raise exc.NonRecoverableError(
         'Arrived at an inexplicable condition. Report for bug resolution.\n'
         'Node properties: {} \n'
         'Exists: {} '.format(_ctx_node.properties, exists)
     )
 
 
-class ExistingResourceInUse(ne_lint.NonRecoverableError):
+class ExistingResourceInUse(exc.NonRecoverableError):
     def __init__(self, resource_type, resource_id, *args, **kwargs):
         msg = 'Cannot create/update {resource_type} resource {resource_id}. ' \
               'Not a create operation and not a special condition.'.format(
@@ -1451,7 +1454,7 @@ class ExistingResourceInUse(ne_lint.NonRecoverableError):
             super().__init__(msg, *args, **kwargs)
 
 
-class ResourceDoesNotExist(ne_lint.NonRecoverableError):
+class ResourceDoesNotExist(exc.NonRecoverableError):
     def __init__(self,
                  resource_type,
                  resource_id,
