@@ -1,4 +1,8 @@
 releases:
+  v0.0.138: 
+  - Ticket: NE-29903
+    Developer: yaniv.kaplan
+    Description: blackduck.
   v0.0.137: fix get_blueprint_dir logic to execlude deployment_dir content.
   v0.0.136: added .drp folder for trufflehog exclusions.
   v0.0.135: fix dictoverride logic to handle boolean objects.
