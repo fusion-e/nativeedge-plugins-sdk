@@ -9,8 +9,10 @@ from time import sleep
 from copy import copy, deepcopy
 from packaging import version
 from distutils.util import strtobool
+from tempfile import mkdtemp
 
 from nativeedge_common_sdk._compat import PY2, text_type
+from nativeedge_common_sdk.resource_downloader import untar_archive
 from nativeedge_common_sdk.constants import MASKED_ENV_VARS
 from nativeedge_common_sdk.processes import (
     process_execution,
@@ -21,7 +23,7 @@ try:
     from nativeedge.utils import get_tenant_name
     from nativeedge import (
         ctx as ctx_from_import,
-        exceptions as ne_lint
+        exceptions as ne_exc
     )
     from nativeedge.manager import get_rest_client
     from nativeedge.exceptions import NonRecoverableError
@@ -34,7 +36,7 @@ try:
         DeploymentEnvironmentCreationPendingError,
         DeploymentEnvironmentCreationInProgressError)
 except ImportError:
-    from cloudify import exceptions as ne_lint
+    from cloudify import exceptions as ne_exc
     from cloudify.utils import get_tenant_name
     from cloudify import ctx as ctx_from_import
     from cloudify.manager import get_rest_client
@@ -140,8 +142,16 @@ def get_blueprint_dir(blueprint_id=None):
         dep_id = ctx_from_import._context['deployment_id']
         ctx_from_import._context['blueprint_id'] = blueprint_id
         ctx_from_import._context['deployment_id'] = None
-        blueprint_dir = ctx_from_import.download_directory('.')
-        ctx_from_import._context['deployment_id'] = dep_id
+        try:
+            blueprint_dir = ctx_from_import.download_directory('.')
+            ctx_from_import._context['deployment_id'] = dep_id
+        except ne_exc.HttpException:
+            ctx_from_import._context['deployment_id'] = dep_id
+            ctx_from_import.logger.error(
+                'Failed to download blueprint directory from endpoint. '
+                'Falling back to rest request.')
+            blueprint_dir = create_blueprint_dir_in_deployment_dir(
+                blueprint_id)
         if blueprint_dir and os.path.isdir(blueprint_dir):
             return blueprint_dir
         raise SDKNonRecoverableError("No blueprint directory found!")
@@ -158,6 +168,21 @@ def with_rest_client(func):
         kwargs['rest_client'] = get_rest_client()
         return func(*args, **kwargs)
     return wrapper_inner
+
+
+@with_rest_client
+def create_blueprint_dir_in_deployment_dir(blueprint_id, rest_client):
+    dirpath = mkdtemp(dir=get_node_instance_dir())
+    output_file = os.path.join(dirpath, 'blueprint.tar.gz')
+    blueprint_dir = os.path.join(
+        get_deployment_dir(ctx_from_import.deployment.id), 'blueprint')
+    mkdir_p(blueprint_dir)
+    target_file = rest_client.blueprints.download(blueprint_id, output_file)
+    tar_result = untar_archive(target_file)
+    copy_directory(tar_result, blueprint_dir)
+    remove_directory(output_file)
+    remove_directory(tar_result)
+    return blueprint_dir
 
 
 @with_rest_client
@@ -203,7 +228,7 @@ def get_deployments_from_group(group, rest_client):
         except NativeEdgeClientError as e:
             attempts += 1
             if attempts > 15:
-                raise ne_lint.NonRecoverableError(
+                raise ne_exc.NonRecoverableError(
                     'Maximum attempts waiting '
                     'for deployment group {group}" {e}.'.format(
                         group=group, e=e))
@@ -299,7 +324,7 @@ def install_deployments(group_id, rest_client):
                 DeploymentEnvironmentCreationInProgressError) as e:
             attempts += 1
             if attempts > 15:
-                raise ne_lint.NonRecoverableError(
+                raise ne_exc.NonRecoverableError(
                     'Maximum attempts waiting '
                     'for deployment group {group}" {e}.'.format(
                         group=group_id, e=e))
@@ -325,7 +350,7 @@ def install_deployment(deployment_id, rest_client):
                 DeploymentEnvironmentCreationInProgressError) as e:
             attempts += 1
             if attempts > 15:
-                raise ne_lint.NonRecoverableError(
+                raise ne_exc.NonRecoverableError(
                     'Maximum attempts waiting '
                     'for deployment {deployment_id}" {e}.'.format(
                         deployment_id=deployment_id, e=e))
@@ -1435,14 +1460,14 @@ def skip_creative_or_destructive_operation(
                 resource_type=resource_type, resource_id=resource_id))
         return True
     # Some other bug in our logic and we want to look into the condition.
-    raise ne_lint.NonRecoverableError(
+    raise ne_exc.NonRecoverableError(
         'Arrived at an inexplicable condition. Report for bug resolution.\n'
         'Node properties: {} \n'
         'Exists: {} '.format(_ctx_node.properties, exists)
     )
 
 
-class ExistingResourceInUse(ne_lint.NonRecoverableError):
+class ExistingResourceInUse(ne_exc.NonRecoverableError):
     def __init__(self, resource_type, resource_id, *args, **kwargs):
         msg = 'Cannot create/update {resource_type} resource {resource_id}. ' \
               'Not a create operation and not a special condition.'.format(
@@ -1451,7 +1476,7 @@ class ExistingResourceInUse(ne_lint.NonRecoverableError):
             super().__init__(msg, *args, **kwargs)
 
 
-class ResourceDoesNotExist(ne_lint.NonRecoverableError):
+class ResourceDoesNotExist(ne_exc.NonRecoverableError):
     def __init__(self,
                  resource_type,
                  resource_id,
@@ -1494,14 +1519,14 @@ def get_node_instance_dir(target=False, source=False, source_path=None):
     """
     instance = get_ctx_instance(target=target, source=source)
     folder = os.path.join(
-        get_deployment_dir(ctx_from_import.deployment.id),
+        get_deployment_dir(deployment_id=ctx_from_import.deployment.id),
         instance.id
     )
     if source_path:
         folder = os.path.join(folder, source_path)
     if not os.path.exists(folder):
         mkdir_p(folder)
-    ctx_from_import.logger.debug('Value deployment_dir is {loc}.'.format(
+    ctx_from_import.logger.debug('Value node_instance_dir is {loc}.'.format(
         loc=folder))
     return folder
 
