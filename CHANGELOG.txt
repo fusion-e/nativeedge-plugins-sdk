@@ -1,4 +1,8 @@
 releases:
+  v0.0.139:
+  - Ticket: NE-29645
+    Developer: adam.terramel
+    Description: If blueprint dir download is not available, download from rest service.
   v0.0.138: 
   - Ticket: NE-29903
     Developer: yaniv.kaplan
