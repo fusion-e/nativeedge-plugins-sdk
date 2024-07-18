@@ -1,4 +1,8 @@
 releases:
+  0.0.140:
+  - Ticket: NE-30006
+    Developer: yaniv.kaplan
+    Description: gitleaks allowlist added.
   v0.0.139:
   - Ticket: NE-29645
     Developer: adam.terramel
