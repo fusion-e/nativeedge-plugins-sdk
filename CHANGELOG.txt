@@ -1,4 +1,8 @@
 releases:
+  0.0.141:
+  - Ticket: NE-30007
+    Developer: yaniv.kaplan
+    Description: blackduck fixes - request, urlib3.
   0.0.140:
   - Ticket: NE-30006
     Developer: yaniv.kaplan
