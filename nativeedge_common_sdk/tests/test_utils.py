@@ -515,7 +515,7 @@ class BatchUtilsTests(unittest.TestCase):
         result6 = ".41.4.2.3"
         result7 = "98f.3.4.2"
         result8 = "ae1.32f.55.09"
-        result9 = "1.2.3.4"
+        result9 = "This is valid 1.2.3.4"
         result10 = "1.1.1.1."
         result11 = "1.2"
         result12 = "1..2.3"
