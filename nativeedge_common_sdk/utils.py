@@ -1497,7 +1497,7 @@ class ResourceDoesNotExist(ne_exc.NonRecoverableError):
 @with_rest_client
 def get_ne_version(rest_client):
     version = rest_client.manager.get_version()['version']
-    ne_version = re.findall('(\\d+.\\d+.\\d+)', version)[0]
+    ne_version = re.findall(r'\d+\.\d+\.\d+(?:\.\d+)?', version)[0]
     ctx_from_import.logger.debug('ne_version: {}'
                                  .format(ne_version))
     return ne_version
