@@ -514,11 +514,12 @@ class BatchUtilsTests(unittest.TestCase):
         result5 = "Cloudify version 5.2.8"
         result6 = ".41.4.2.3"
         result7 = "98f.3.4.2"
-        result8 = "ae1.32f.55.09"
-        result9 = "This is valid 1.2.3.4"
+        result8 = "Version 2.3.4.5 is stable"
+        result9 = "Release-6.7.8"
         result10 = "1.1.1.1."
         result11 = "1.2"
         result12 = "1..2.3"
+        result13 = "abc1.2.3.4xyz"
 
         mock_client().manager.get_version.return_value = {'version': result1}
         self.assertEqual("6.1.0", utils.get_ne_version())
@@ -542,10 +543,10 @@ class BatchUtilsTests(unittest.TestCase):
         self.assertEqual(None, utils.get_ne_version())
 
         mock_client().manager.get_version.return_value = {'version': result8}
-        self.assertEqual(None, utils.get_ne_version())
+        self.assertEqual("2.3.4.5", utils.get_ne_version())
 
         mock_client().manager.get_version.return_value = {'version': result9}
-        self.assertEqual("1.2.3.4", utils.get_ne_version())
+        self.assertEqual(None, utils.get_ne_version())
 
         mock_client().manager.get_version.return_value = {'version': result10}
         self.assertEqual(None, utils.get_ne_version())
@@ -554,6 +555,9 @@ class BatchUtilsTests(unittest.TestCase):
         self.assertEqual(None, utils.get_ne_version())
 
         mock_client().manager.get_version.return_value = {'version': result12}
+        self.assertEqual(None, utils.get_ne_version())
+
+        mock_client().manager.get_version.return_value = {'version': result13}
         self.assertEqual(None, utils.get_ne_version())
 
     def test_is_bigger_and_equal_version(self):
