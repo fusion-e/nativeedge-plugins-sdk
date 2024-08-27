@@ -1,20 +1,24 @@
 releases:
+  0.0.142:
+  - ticket: NE-43426
+    developer: adam.terramel
+    description: blackduck fixes - request, urlib3.
   0.0.141:
-  - Ticket: NE-30007
-    Developer: yaniv.kaplan
-    Description: blackduck fixes - request, urlib3.
+  - ticket: NE-30007
+    developer: yaniv.kaplan
+    description: blackduck fixes - request, urlib3.
   0.0.140:
-  - Ticket: NE-30006
-    Developer: yaniv.kaplan
-    Description: gitleaks allowlist added.
+  - ticket: NE-30006
+    developer: yaniv.kaplan
+    description: gitleaks allowlist added.
   v0.0.139:
-  - Ticket: NE-29645
-    Developer: adam.terramel
-    Description: If blueprint dir download is not available, download from rest service.
-  v0.0.138: 
-  - Ticket: NE-29903
-    Developer: yaniv.kaplan
-    Description: blackduck.
+  - ticket: NE-29645
+    developer: adam.terramel
+    description: If blueprint dir download is not available, download from rest service.
+  v0.0.138:
+  - ticket: NE-29903
+    developer: yaniv.kaplan
+    description: blackduck.
   v0.0.137: fix get_blueprint_dir logic to execlude deployment_dir content.
   v0.0.136: added .drp folder for trufflehog exclusions.
   v0.0.135: fix dictoverride logic to handle boolean objects.
