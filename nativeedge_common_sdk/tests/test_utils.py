@@ -2,6 +2,10 @@
 
 import os
 import mock
+import shutil
+import tarfile
+import zipfile
+import tempfile
 import unittest
 
 from nativeedge_common_sdk import utils
@@ -594,3 +598,61 @@ class BatchUtilsTests(unittest.TestCase):
 
         assert utils.get_client_config(
             alternate_key='alternate_config') == expected_config
+
+    @mock.patch('nativeedge_common_sdk.utils.get_node_instance_dir')
+    @mock.patch('nativeedge_common_sdk.utils.get_deployment_dir')
+    @mock.patch('nativeedge_common_sdk.utils.get_rest_client')
+    @mock.patch('nativeedge_common_sdk.utils.ctx_from_import')
+    def test_create_blueprint_dir_in_deployment_dir(
+            self,
+            _,
+            mock_get_rest_client,
+            mock_get_deployment_dir,
+            mock_get_node_instance_dir):
+
+        # Create a file named "foo" and write "foo" in it.
+        samplefile = os.path.join(tempfile.mkdtemp(), 'foo')
+        with open(samplefile, 'w') as infile:
+            infile.write('foo')
+
+        # Create paths for the tar and zip.
+        tarfile_path = os.path.join(tempfile.mkdtemp(), 'tar')
+        zipfile_path = os.path.join(tempfile.mkdtemp(), 'zip')
+
+        # Create tar and zip archives.
+        sampletar = tarfile.open(tarfile_path, "w:gz")
+        sampletar.add(samplefile)
+        sampletar.close()
+        samplezip = zipfile.ZipFile(zipfile_path, "w", zipfile.ZIP_DEFLATED)
+        samplezip.write(samplefile)
+        samplezip.close()
+
+        # return those files in order.
+        mock_get_rest_client().blueprints.download.side_effect = [
+            tarfile_path,
+            zipfile_path
+        ]
+
+        deployment_dir = tempfile.mkdtemp()
+        mock_get_deployment_dir.return_value = deployment_dir
+        node_inst_dir = os.path.join(deployment_dir, 'bar')
+        import pathlib
+        pathlib.Path(node_inst_dir).mkdir(parents=True, exist_ok=True)
+        mock_get_node_instance_dir.return_value = node_inst_dir
+        expected_return_result = os.path.join(deployment_dir, 'blueprint')
+
+        for n in range(0, 2):
+            result = utils.create_blueprint_dir_in_deployment_dir('foo')
+            self.assertEqual(result, expected_return_result)
+            for name in os.listdir(result):
+                result_name = os.path.join(result, name)
+                if os.path.isdir(result_name):
+                    for sub_name in os.listdir(result_name):
+                        sub_result_name = os.path.join(result_name, sub_name)
+                        if sub_name == 'foo':
+                            with open(sub_result_name) as outfile:
+                                self.assertEqual(outfile.read(), 'foo')
+            shutil.rmtree(result)
+        os.remove(samplefile)
+        os.remove(tarfile_path)
+        os.remove(zipfile_path)
