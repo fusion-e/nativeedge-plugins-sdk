@@ -9,10 +9,12 @@ from time import sleep
 from copy import copy, deepcopy
 from packaging import version
 from distutils.util import strtobool
-from tempfile import mkdtemp
 
 from nativeedge_common_sdk._compat import PY2, text_type
-from nativeedge_common_sdk.resource_downloader import untar_archive
+from nativeedge_common_sdk.resource_downloader import (
+    untar_archive,
+    unzip_archive
+)
 from nativeedge_common_sdk.constants import MASKED_ENV_VARS
 from nativeedge_common_sdk.processes import (
     process_execution,
@@ -172,16 +174,16 @@ def with_rest_client(func):
 
 @with_rest_client
 def create_blueprint_dir_in_deployment_dir(blueprint_id, rest_client):
-    dirpath = mkdtemp(dir=get_node_instance_dir())
-    output_file = os.path.join(dirpath, 'blueprint.tar.gz')
+    target_file = rest_client.blueprints.download(blueprint_id)
+    try:
+        uncompressed_result = untar_archive(target_file)
+    except tarfile.ReadError:
+        uncompressed_result = unzip_archive(target_file)
     blueprint_dir = os.path.join(
         get_deployment_dir(ctx_from_import.deployment.id), 'blueprint')
     mkdir_p(blueprint_dir)
-    target_file = rest_client.blueprints.download(blueprint_id, output_file)
-    tar_result = untar_archive(target_file)
-    copy_directory(tar_result, blueprint_dir)
-    remove_directory(output_file)
-    remove_directory(tar_result)
+    copy_directory(uncompressed_result, blueprint_dir)
+    remove_directory(uncompressed_result)
     return blueprint_dir
 
 
