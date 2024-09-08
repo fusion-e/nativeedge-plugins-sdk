@@ -511,26 +511,28 @@ class BatchUtilsTests(unittest.TestCase):
     @mock.patch('nativeedge_common_sdk.utils.get_rest_client')
     def test_get_ne_version(self, mock_client):
 
-        result1 = "6.1.0"
-        result2 = "v6.1.0"
-        result3 = "6.2.0"
-        result4 = "5.2.8"
-        result5 = "Cloudify version 5.2.8"
+        test_cases = [
+            ("6.1.0", "6.1.0"),
+            ("v6.1.0", "6.1.0"),
+            ("6.2.0", "6.2.0"),
+            ("5.2.8", "5.2.8"),
+            ("Cloudify version 5.2.8", None),
+            (".41.4.2.3", None),
+            ("98f.3.4.2", None),
+            ("Version 2.3.4.5 is stable", None),
+            ("Release-6.7.8", None),
+            ("1.1.1.1.", None),
+            ("1.2", None),
+            ("1..2.3", None),
+            ("abc1.2.3.4xyz", None),
+            ("1.2.3.4", "1.2.3.4")
+        ]
 
-        mock_client().manager.get_version.return_value = {'version': result1}
-        self.assertEqual("6.1.0", utils.get_ne_version())
-
-        mock_client().manager.get_version.return_value = {'version': result2}
-        self.assertEqual("6.1.0", utils.get_ne_version())
-
-        mock_client().manager.get_version.return_value = {'version': result3}
-        self.assertEqual("6.2.0", utils.get_ne_version())
-
-        mock_client().manager.get_version.return_value = {'version': result4}
-        self.assertEqual("5.2.8", utils.get_ne_version())
-
-        mock_client().manager.get_version.return_value = {'version': result5}
-        self.assertEqual("5.2.8", utils.get_ne_version())
+        for version, expected in test_cases:
+            mock_client().manager.get_version.return_value = {
+                'version': version
+            }
+            self.assertEqual(expected, utils.get_ne_version())
 
     def test_is_bigger_and_equal_version(self):
 
