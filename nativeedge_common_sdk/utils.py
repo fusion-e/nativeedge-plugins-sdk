@@ -24,9 +24,10 @@ from nativeedge_common_sdk.processes import (
 try:
     from nativeedge.utils import get_tenant_name
     from nativeedge import (
-        ctx as ctx_from_import,
-        exceptions as ne_exc
+        exceptions as ne_exc,
+        ctx as ctx_from_import
     )
+    from nativeedge.state import NotInContext
     from nativeedge.manager import get_rest_client
     from nativeedge.exceptions import NonRecoverableError
     from nativeedge.workflows import ctx as wtx_from_import
@@ -759,6 +760,16 @@ def get_secret(secret_name=None, path=None, rest_client=None):
     return secret.value
 
 
+def get_deployment_id_from_ctx():
+    for ctx in [wtx_from_import, ctx_from_import]:
+        try:
+            return ctx.deployment.id
+        except NotInContext:
+            pass
+    raise NonRecoverableError(
+        'Failed to locate deployment ID in a Cloudify or Workflow Context.')
+
+
 @with_rest_client
 def get_input(input_name, path, rest_client):
     """ Get an input value for a deployment.
@@ -770,7 +781,7 @@ def get_input(input_name, path, rest_client):
     :rtype: Any JSON serializable type.
     """
     try:
-        deployment_id = wtx_from_import.deployment.id
+        deployment_id = get_deployment_id_from_ctx()
         deployment = rest_client.deployments.get(deployment_id)
         root = deployment.inputs.get(input_name)
         if not isinstance(root, text_type) and path:
