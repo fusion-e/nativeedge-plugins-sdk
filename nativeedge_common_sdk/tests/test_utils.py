@@ -374,6 +374,15 @@ class BatchUtilsTests(unittest.TestCase):
         assert mock.call().secrets.get('bar') in mock_client.mock_calls
 
     @mock.patch('nativeedge_common_sdk.utils.get_rest_client')
+    def test_get_input(self, mock_client):
+        prop = 'bar'
+        self.get_mock_ctx('zzz')
+        utils.get_input(input_name=prop, path=None)
+        for c in [mock.call().deployments.get('baz'),
+                  mock.call().deployments.get().inputs.get(prop)]:
+            c in mock_client.mock_calls
+
+    @mock.patch('nativeedge_common_sdk.utils.get_rest_client')
     def test_get_attribute(self, mock_client):
         deployment_id = 'mock'
         prop = ['some_node', 'bar']
