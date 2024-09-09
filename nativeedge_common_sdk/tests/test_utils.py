@@ -374,6 +374,15 @@ class BatchUtilsTests(unittest.TestCase):
         assert mock.call().secrets.get('bar') in mock_client.mock_calls
 
     @mock.patch('nativeedge_common_sdk.utils.get_rest_client')
+    def test_get_input(self, mock_client):
+        prop = 'bar'
+        self.get_mock_ctx('zzz')
+        utils.get_input(input_name=prop, path=None)
+        for c in [mock.call().deployments.get('baz'),
+                  mock.call().deployments.get().inputs.get(prop)]:
+            c in mock_client.mock_calls
+
+    @mock.patch('nativeedge_common_sdk.utils.get_rest_client')
     def test_get_attribute(self, mock_client):
         deployment_id = 'mock'
         prop = ['some_node', 'bar']
@@ -516,15 +525,15 @@ class BatchUtilsTests(unittest.TestCase):
             ("v6.1.0", "6.1.0"),
             ("6.2.0", "6.2.0"),
             ("5.2.8", "5.2.8"),
-            ("Cloudify version 5.2.8", None),
-            (".41.4.2.3", None),
-            ("98f.3.4.2", None),
-            ("Version 2.3.4.5 is stable", None),
-            ("Release-6.7.8", None),
-            ("1.1.1.1.", None),
-            ("1.2", None),
-            ("1..2.3", None),
-            ("abc1.2.3.4xyz", None),
+            ("Cloudify version 5.2.8", '2.0.0'),
+            (".41.4.2.3", '2.0.0'),
+            ("98f.3.4.2", '2.0.0'),
+            ("Version 2.3.4.5 is stable", '2.0.0'),
+            ("Release-6.7.8", '2.0.0'),
+            ("1.1.1.1.", '2.0.0'),
+            ("1.2", '2.0.0'),
+            ("1..2.3", '2.0.0'),
+            ("abc1.2.3.4xyz", '2.0.0'),
             ("1.2.3.4", "1.2.3.4")
         ]
 
