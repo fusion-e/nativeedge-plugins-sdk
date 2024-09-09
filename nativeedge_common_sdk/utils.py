@@ -767,7 +767,7 @@ def get_deployment_id_from_ctx():
         except NotInContext:
             pass
     raise NonRecoverableError(
-        'Failed to locate deployment ID in a Cloudify or Workflow Context.')
+        'Failed to locate deployment ID in a NativeEdge or Workflow Context.')
 
 
 @with_rest_client
@@ -1510,11 +1510,13 @@ class ResourceDoesNotExist(ne_exc.NonRecoverableError):
 @with_rest_client
 def get_ne_version(rest_client):
     version = rest_client.manager.get_version()['version']
-    match = re.search(r'^(?:v)?(\d+\.\d+\.\d+(?:\.\d+)?)$', version)
-    ne_version = match.group(1) if match else None
-    ctx_from_import.logger.debug('ne_version: {}'
-                                 .format(ne_version))
-    return ne_version
+    pattern = r'^(?:v)?(\d+\.\d+\.\d+(?:(\.\d+)|(\.[a-z]{0,4}\d+))?)$'
+    match = re.search(pattern, version)
+    if match:
+        ne_version = match.group(1) if match else None
+        ctx_from_import.logger.debug(f'ne_version: {ne_version}')
+        return ne_version
+    return '2.0.0'
 
 
 def v1_gteq_v2(v1, v2):
