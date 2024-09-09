@@ -1,4 +1,15 @@
 releases:
+  0.0.144:
+  - ticket: NE-36919
+    developer: adam.terramel
+    description: handle dev version in pattern for version getter.
+  0.0.143:
+  - ticket: NE-36919
+    developer: adam.terramel
+    description: Find deployment ID in ctx or wtx.
+  - ticket: NE-33378
+    developer: inbal.melamed
+    description: Search for versions until 4 numbers.
   0.0.142:
   - ticket: NE-43426
     developer: adam.terramel
