@@ -1,11 +1,15 @@
 import paramiko
 from paramiko import RSAKey, DSSKey, ECDSAKey, Ed25519Key
 import io
+try:
+    from nativeedge import ctx as ctx_from_import
+except ImportError:
+    from cloudify import ctx as ctx_from_import
 
 
 class key_manager:
 
-    def __init__(self):
+    def __init__(self, ctx=None, key_file_path=None, **_):
         """Initialize KeyManager to handle various types of private keys."""
         self.supported_key_types = {
             'RSA': RSAKey,
@@ -13,12 +17,39 @@ class key_manager:
             'ECDSA': ECDSAKey,
             'Ed25519': Ed25519Key
         }
+        self.ctx = ctx or ctx_from_import
+        self._key_file_path = key_file_path
+        self.key = self.load_private_key_from_file(key_file_path)
 
-    def load_private_key_from_file(self, file_path, password=None):
+    @property
+    def key(self):
+        return self.key
+
+    @key.setter
+    def key(self, key):
+        self.key = key
+
+    @property
+    def key_file_path(self):
+        return self._key_file_path
+
+    @key_file_path.setter
+    def key_file_path(self, key_file_path):
+        self._key_file_path = key_file_path
+
+    @property
+    def available_keys(self):
+        """Getter for available key types supported by the KeyManager."""
+        return list(self.supported_key_types.keys())
+
+    def load_private_key_from_file(self, file_path=None, password=None):
         """
         Automatically load a private key from the given file path.
         This method tries to detect the key type automatically.
         """
+        file_path = file_path or self._key_file_path
+        if file_path is None:
+            return None
         try:
             with open(file_path, 'r') as key_file:
                 key_data = key_file.read()
@@ -31,10 +62,14 @@ class key_manager:
                         key_data_stream,
                         password=password
                     )
-                    print(f"Successfully loaded {key_type} key.")
+                    self.ctx.logger.debug(
+                        f"Successfully loaded {key_type} key."
+                    )
                     return private_key
                 except paramiko.ssh_exception.SSHException as e:
-                    print(f"Failed to load {key_type} key: {e}")
+                    self.ctx.logger.debug(
+                        f"Failed to load {key_type} key: {e}"
+                    )
                     key_data_stream.seek(0)
                     continue
 
@@ -62,7 +97,7 @@ class key_manager:
                     key_data_stream,
                     password=password
                 )
-                print(f"Successfully loaded {key_type} key.")
+                self.ctx.logger.debug(f"Successfully loaded {key_type} key.")
                 return private_key
             except paramiko.ssh_exception.SSHException:
                 key_data_stream.seek(0)  # Reset stream position for next key
@@ -82,7 +117,7 @@ class key_manager:
         else:
             private_key.write_private_key(key_data_stream)
 
-        print(f"Dumped {self._get_key_type(private_key)} key.")
+        self.ctx.logger.debug(f"Dumped {self._get_key_type(private_key)} key.")
         return key_data_stream.getvalue()
 
     def _get_key_type(self, private_key):
@@ -113,15 +148,10 @@ if __name__ == "__main__":
     """
 
     key_manager_ = key_manager()
-    key_file_path = (
-        '/home/inbalmel/git/nativeedge-plugins-sdk/rsa_private_key_pkcs1.pem'
-    )
     # Load key (without specifying type)
     try:
-        loaded_key = key_manager_.load_private_key_from_file(key_file_path)
-        print("Private key loaded from file successfully.")
-        # loaded_key = key_manager.load_private_key(example_rsa_key_pem)
-        # print("Private key loaded successfully.")
+        loaded_key = key_manager.load_private_key(example_rsa_key_pem)
+        print("Private key loaded successfully.")
 
         # Dump key
         dumped_key = key_manager_.dump_private_key(loaded_key)
