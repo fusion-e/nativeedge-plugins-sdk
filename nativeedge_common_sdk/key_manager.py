@@ -7,7 +7,7 @@ except ImportError:
     from cloudify import ctx as ctx_from_import
 
 
-class key_manager:
+class KeyManager:
 
     def __init__(self, ctx=None, key_file_path=None, **_):
         """Initialize KeyManager to handle various types of private keys."""
@@ -19,15 +19,15 @@ class key_manager:
         }
         self.ctx = ctx or ctx_from_import
         self._key_file_path = key_file_path
-        self.key = self.load_private_key_from_file(key_file_path)
+        self._key = self.load_private_key_from_file(key_file_path)
 
     @property
     def key(self):
-        return self.key
+        return self._key
 
     @key.setter
     def key(self, key):
-        self.key = key
+        self._key = key
 
     @property
     def key_file_path(self):
@@ -126,36 +126,3 @@ class key_manager:
             if isinstance(private_key, key_class):
                 return key_type
         return None
-
-
-# Example usage:
-if __name__ == "__main__":
-    # Example RSA private key (PEM formatted), replace with actual key
-    example_rsa_key_pem = b"""-----BEGIN RSA PRIVATE KEY-----
-    MIICWwIBAAKBgG9L1DFdRViRvzhJEoXU/hb5xN3LW4B9DaGF5uzTIVoMBsiY6kEw
-    En+W2oLkIAgHc9QRm5YQQD3XLpnDgUk/lihBFHqYxGXk7+1D0VJk4RS3hqI3ECwh
-    /1Z3K++AjBU3h38jV/tTgfQQY+5HclkD78clWFkC6HX856noI/05z7khAgMBAAEC
-    gYAalC5Zl5+u9ieHZpQA2AvSKtXj7eOtPLAbqeGrHwSw/3xDPZl79eIFDF6ksZwg
-    rr7vn0DbxofA/PmJCRKADqpqIRsKfuMpqqX6gjUDEsaVBvxkR5Ci2Or6314Rdu/o
-    Y9m1Obpso417ItLu3nu6GEe8HApvoJCGqD1NfqtmPPBcTQJBANw7HXJjCv6JeCz5
-    ZceKejvk1TSnvPI1xsTXCuDHHNNyta1I9Cj9f9McWv5rWyG7cxe/QMrmml0kFS+g
-    Gw0EYY8CQQCBX116bVG16H3BWrmRjPoDfA+2i+v61+B+UWlsuuv/F8M9C3CaLuWW
-    PjU6GaU2n+JYLRBAxaDsZWtWq65Z5YJPAkEAhC9XNVkNOEn6v8PRuzr6swhekAQ9
-    /IMakvsfpFreimvHcALhydid6HCUjTCSumRwaEh6804GSPFnZfaLRfzjMQJAc+JI
-    iXGCz78BZkEuGAJ/sL9gE9Qh/P+CR6QFGzAUVNukNvoYUwPPA1WVuAVgyB1PUkyL
-    Unm0PAxcqbX+5ud+YQJAQz7M5iTZ+ut+tcbn40fLOqhAffa2DL/ZJWkOiovN+25m
-    XGBeIKAEKMqwQ/2y3I6QEV5RNNSR4jUqvEs3NVuUVQ==-----END RSA PRIVATE KEY-----
-    """
-
-    key_manager_ = key_manager()
-    # Load key (without specifying type)
-    try:
-        loaded_key = key_manager.load_private_key(example_rsa_key_pem)
-        print("Private key loaded successfully.")
-
-        # Dump key
-        dumped_key = key_manager_.dump_private_key(loaded_key)
-        print("Private key dumped successfully:")
-        print(dumped_key)
-    except Exception as e:
-        print(f"Error: {e}")
