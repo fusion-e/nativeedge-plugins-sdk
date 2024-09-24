@@ -102,7 +102,6 @@ class KeyManager:
             except paramiko.ssh_exception.SSHException:
                 key_data_stream.seek(0)  # Reset stream position for next key
                 continue
-
         raise ValueError("Unsupported key type or invalid key")
 
     def dump_private_key(self, private_key, password=None):
