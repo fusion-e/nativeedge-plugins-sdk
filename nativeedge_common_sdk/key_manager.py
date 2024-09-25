@@ -83,7 +83,6 @@ class KeyManager:
         except FileNotFoundError:
             raise FileNotFoundError(f"File not found: {file_path}")
         except Exception as e:
-            print(f"[from_file]FAIL: key- {key_type}")
             raise Exception(
                 f"An error occurred while loading the private key: {e}"
             )
