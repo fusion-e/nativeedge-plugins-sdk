@@ -895,34 +895,58 @@ MASKED_ENV_VARS = [
 
 EXAMPLE_RSA = (
     b"-----BEGIN RSA PRIVATE KEY-----\n"
-    b"MIICWwIBAAKBgG9L1DFdRViRvzhJEoXU/hb5xN3LW4B9DaGF5u\n"
-    b"zTIVoMBsiY6kEw\n"
-    b"En+W2oLkIAgHc9QRm5YQQD3XLpnDgUk/lihBFHqYxGXk7+1D0\n"
-    b"VJk4RS3hqI3ECwh\n"
-    b"/1Z3K++AjBU3h38jV/tTgfQQY+5HclkD78clWFkC6HX856noI\n"
-    b"/05z7khAgMBAAEC\n"
-    b"gYAalC5Zl5+u9ieHZpQA2AvSKtXj7eOtPLAbqeGrHwSw/3xDP\n"
-    b"Zl79eIFDF6ksZwg\n"
-    b"rr7vn0DbxofA/PmJCRKADqpqIRsKfuMpqqX6gjUDEsaVBvxkR\n"
-    b"5Ci2Or6314Rdu/o\n"
-    b"Y9m1Obpso417ItLu3nu6GEe8HApvoJCGqD1NfqtmPPBcTQJBA\n"
-    b"Nw7HXJjCv6JeCz5\n"
-    b"ZceKejvk1TSnvPI1xsTXCuDHHNNyta1I9Cj9f9McWv5rWyG7c\n"
-    b"xe/QMrmml0kFS+g\n"
-    b"Gw0EYY8CQQCBX116bVG16H3BWrmRjPoDfA+2i+v61+B+UWlsu\n"
-    b"uv/F8M9C3CaLuWW\n"
-    b"PjU6GaU2n+JYLRBAxaDsZWtWq65Z5YJPAkEAhC9XNVkNOEn6v\n"
-    b"8PRuzr6swhekAQ9\n"
-    b"/IMakvsfpFreimvHcALhydid6HCUjTCSumRwaEh6804GSPFnZ\n"
-    b"faLRfzjMQJAc+JI\n"
-    b"iXGCz78BZkEuGAJ/sL9gE9Qh/P+CR6QFGzAUVNukNvoYUwPPA\n"
-    b"1WVuAVgyB1PUkyL\n"
-    b"Unm0PAxcqbX+5ud+YQJAQz7M5iTZ+ut+tcbn40fLOqhAffa2D\n"
-    b"L/ZJWkOiovN+25m\n"
-    b"XGBeIKAEKMqwQ/2y3I6QEV5RNNSR4jUqvEs3NVuUVQ==\n"
+    b"MIICWwIBAAKBgG30ubfdUA28VGboBzV5A9GzUtDTu8mn1lhCY4YZ5LJVzEqeeEAj\n"
+    b"nE/M1Dlcc23Vwcq2EXRJlfOgSMPeJhlQoVfeL65sCTBTQAmfH8XIU0bRYcre0+VU\n"
+    b"quuTxBc07GbnGuYh2a3KlzcMIsT2EPuED5Eg5TG4VXYLj0hyA/UVb//pAgMBAAEC\n"
+    b"gYBdeMzoIJsNEiwtztFSA63bdjXQkC3zH1p3bPht51UixQ0F4fEXlS4sKFPA73aw\n"
+    b"yCYVzPDJikSO9pLk7tQ0cPa2Pi7P18BiTyej6D2PlWwaWZXsvXlBZjcsj3aBCYZl\n"
+    b"iXW6XizzVxJStQ/kaQyOSOLj0O9LFc1ccbBQqSdWpGQIgQJBAKx4TdXWqK+d9NCZ\n"
+    b"ToB4ICXsqvQrawvuyjr+KVlhikR5LtRZBB260D+COlnWJlB2C9Bf3fUOYaRFjl1r\n"
+    b"O1g2o08CQQCjNZ8ySAZ3CKEDAzHvzDozP93OQGCN4POWE1grNHqh6xKGOiYzhnvw\n"
+    b"fk+IJ3aOGT3oeW9iHh5CeAjHJGqTortHAkA/CdHZQRZy6hcbT42j40RM2E475MrB\n"
+    b"l8wO9+sBIme5U1nMf6TDgQ6wx9awE1f5vMvgo8mq0lDaDBpXBuSv/3h9AkEAiCCD\n"
+    b"ZabZbZMO6LpTflTy/if40ryzS+MiiDweP/sHheHRk48Qqc0ztsVDhKaVpbO8BRi0\n"
+    b"JDxGtN31RFRFaFpEpQJAOlmcsTw7dUfMV13EhK1DXD9SjPpm2Ia7QmDP5SeX4ZR2\n"
+    b"9T4XcmUdf+D4YuhBHVpSPxdJmFr1E5DsbP2XV8Aogw==\n"
     b"-----END RSA PRIVATE KEY-----\n"
-    )
+)
+
+
+EXAMPLE_DSA = (
+    b"-----BEGIN PRIVATE KEY-----\n"
+    b"MIIBWgIBADCCATMGByqGSM44BAEwggEmAoGBAIpxumBhQ92vxtwprs/L5lFnItFs\n"
+    b"Drdgy+ppTNQ9SFf93CCrO6Eot1rouVCWcyMnPDnIVvF69nLOjl1fXksz5zUt+usR\n"
+    b"REJS+qjJyWrKd79ipak32/OzAYVZ1AmwNxYq2iVHbk9/NYQoGxA25m5XitwbHayc\n"
+    b"wKz6aRrSoadHJe6XAh0Amy8/w0vJXjK5DhOmdnJfF+2PfMfyckHR34bkVwKBgDNm\n"
+    b"uo0rXNT1RO4Sw9W0JicQQ8sugN+imRjTCK/xnP/pj394rDVvzxswWF+aetGSsEkW\n"
+    b"2bdXa7GiwamL0gwTooF8om2sNZt8Z/WPOu1JFLNzvgd+HuDVZzsswqJL4zgawHxF\n"
+    b"wtxSXBEmrc6WGBoZXSfK7uzZgqUHSuu50gZBklxGBB4CHB+wPOjyNqnh5L+Zxpve\n"
+    b"7ykq1y0XQsphGCv6AUY=\n"
+    b"-----END PRIVATE KEY-----\n"
+)
+
+EXAMPLE_ECDSA = (
+    b"-----BEGIN EC PRIVATE KEY-----\n"
+    b"MHcCAQEEIBIi3ofDQE03dkLfEf8p/6JdjpL7oUmLwQzRyYJIAvnMoAoGCCqGSM49\n"
+    b"AwEHoUQDQgAEFl+ff6tpUGj5dTI85/LVlF11jhH0yXpKoYtluoYLZfR0Kuut0OU3\n"
+    b"cV6RdznkFwxr/+pE2fxMdhpkIMehSmLhLg==\n"
+    b"-----END EC PRIVATE KEY-----\n"
+)
+
+EXAMPLE_ED25519 = (
+    b"-----BEGIN OPENSSH PRIVATE KEY-----\n"
+    b"b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW\n"
+    b"QyNTUxOQAAACDjK0sVBT1R5EQhIGmMMeEBdVV6D4VMFymTspj+TQllOAAAAKC2sOk8trDp\n"
+    b"PAAAAAtzc2gtZWQyNTUxOQAAACDjK0sVBT1R5EQhIGmMMeEBdVV6D4VMFymTspj+TQllOA\n"
+    b"AAAEDTkg2/33zm0keVj+om1ImHV8oQ3mvT1OoxawTb48WkIeMrSxUFPVHkRCEgaYwx4QF1\n"
+    b"VXoPhUwXKZOymP5NCWU4AAAAFnlvdXJfZW1haWxAZXhhbXBsZS5jb20BAgMEBQYH\n"
+    b"-----END OPENSSH PRIVATE KEY-----\n"
+)
+
 
 SUPP_KEYS = {
-    'rsa_key': EXAMPLE_RSA
+    'rsa_key': EXAMPLE_RSA,
+    'dsa_key': EXAMPLE_DSA,
+    'ecdsa_key': EXAMPLE_ECDSA,
+    'ed25519_key': EXAMPLE_ED25519
 }

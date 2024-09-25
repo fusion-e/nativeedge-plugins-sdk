@@ -2,60 +2,119 @@ import unittest
 from unittest.mock import MagicMock, mock_open, patch
 from nativeedge_common_sdk.key_manager import KeyManager
 from nativeedge_common_sdk.constants import SUPP_KEYS
-from paramiko import RSAKey
+from paramiko import RSAKey, ECDSAKey, Ed25519Key, SSHException
 
 
 class TestKeyManager(unittest.TestCase):
+
+    KEY_TYPES = {
+        'rsa_key': RSAKey,
+        # 'dsa_key': DSSKey,
+        'ecdsa_key': ECDSAKey,
+        'ed25519_key': Ed25519Key
+    }
 
     def setUp(self):
         self.key_manager = KeyManager()
         self.key_manager.ctx = MagicMock()
         self.key_manager.ctx.logger = MagicMock()
+        self.key_manager.supported_key_mock = {
+            'mock_key_type': MagicMock()
+        }
 
     @patch("builtins.open", new_callable=mock_open, read_data="mock_key_data")
     def test_load_private_key_from_file(self, mock_file):
-        """Test loading the private key from file."""
+        """Main function that calls the individual test cases."""
 
-        # Mock case 1: File not found
+        # Mock file not found case
         mock_file.side_effect = FileNotFoundError
+        self.file_not_found()
+
+        mock_file.side_effect = None
+        self.valid_key_loaded_from_file()
+        self.invalid_key_from_file()
+
+    def file_not_found(self):
+        """Test handling of FileNotFoundError."""
         with self.assertRaises(FileNotFoundError):
             self.key_manager.load_private_key_from_file('invalid_path.pem')
 
-        mock_file.side_effect = None
+    @patch("paramiko.RSAKey.from_private_key")
+    def valid_key_loaded_from_file(self, mock_from_private_key):
+        """Test loading a key from file."""
 
-        # Case 2: Valid RSA key loaded
-        self.key_manager.supported_key_types['RSA'].from_private_key.\
-            return_value = "rsa_key"
-        private_key = self.key_manager.load_private_key_from_file(
-            'valid_rsa.pem'
-        )
-        self.assertEqual(private_key, "rsa_key")
-        self.key_manager.ctx.logger.debug.assert_called_with(
-            "Successfully loaded RSA key."
-        )
+        mock_private_key = MagicMock()
+        mock_from_private_key.return_value = mock_private_key
 
-    def test_load_private_key_RSA(self):
-        example_rsa_key_pem = SUPP_KEYS.get('rsa_key')
-        loaded_key = self.key_manager.load_private_key(
-            example_rsa_key_pem
+        loaded_key = self.key_manager.load_private_key_from_file(
+            'valid/path.pem'
         )
-        self.assertIsInstance(loaded_key, RSAKey)
+        self.assertEqual(loaded_key, mock_private_key)
+        self.key_manager.ctx.logger.debug.assert_called_once()
+
+    @patch("paramiko.RSAKey.from_private_key")
+    def invalid_key_from_file(self, mock_from_private_key):
+        """Test handling of an invalid key (SSHException)."""
+        mock_from_private_key.side_effect = SSHException
+
         with self.assertRaises(ValueError) as context:
-            loaded_key = self.key_manager.load_private_key(None)
+            self.key_manager.load_private_key_from_file('invalid_key.pem')
 
-        # Check the error message content
         self.assertEqual(
             str(context.exception),
             "Unsupported key type or invalid key"
         )
 
-    def test_dump_private_key(self):
-        """Test dumping the private key."""
+    def load_private_key_type(self, key, type):
+        """Helper function to test loading a private key."""
         loaded_key = self.key_manager.load_private_key(
-            self.example_rsa_key_pem
+            key
         )
+        self.assertIsInstance(loaded_key, type)
+        self.key_manager.ctx.logger.debug.assert_called_with(
+            f"Successfully loaded "
+            f"{self.key_manager._get_key_type(loaded_key)}."
+        )
+
+    def test_load_private_key_types(self):
+        """Test loading all key types from a var"""
+        for key_name, key_type in self.KEY_TYPES.items():
+            example_key = SUPP_KEYS.get(key_name)
+            print(f'ExampleKey=\n{example_key}')
+            self.load_private_key_type(example_key, key_type)
+
+        with self.assertRaises(ValueError) as context:
+            self.key_manager.load_private_key(None)
+
+        self.assertEqual(
+            str(context.exception),
+            "Unsupported key type or invalid key"
+        )
+
+    def dump_private_key_type(self, key, expected_type):
+        """Helper function to test dumping a private key."""
+
+        loaded_key = self.key_manager.load_private_key(key)
         dumped_key = self.key_manager.dump_private_key(loaded_key)
         self.assertIsNotNone(dumped_key)
+
+        self.key_manager.ctx.logger.debug.assert_called_with(
+            f'Dumped {self.key_manager._get_key_type(loaded_key)}.'
+        )
+
+    def test_dump_private_key_types(self):
+        """Test dumping all key types"""
+        for key_name, key_type in self.KEY_TYPES.items():
+            example_key = SUPP_KEYS.get(key_name)
+            self.dump_private_key_type(example_key, key_type)
+
+        with self.assertRaises(ValueError) as context:
+            self.key_manager.dump_private_key(None)
+
+        self.assertEqual(
+            str(context.exception),
+            "An error occurred while dumping the private key."
+        )
 
 
 if __name__ == '__main__':

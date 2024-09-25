@@ -1,5 +1,6 @@
 import paramiko
-from paramiko import RSAKey, DSSKey, ECDSAKey, Ed25519Key
+from paramiko import RSAKey, ECDSAKey, Ed25519Key
+# from constants import SUPP_KEYS
 import io
 try:
     from nativeedge import ctx as ctx_from_import
@@ -12,10 +13,10 @@ class KeyManager:
     def __init__(self, ctx=None, key_file_path=None, **_):
         """Initialize KeyManager to handle various types of private keys."""
         self.supported_key_types = {
-            'RSA': RSAKey,
-            'DSA': DSSKey,
-            'ECDSA': ECDSAKey,
-            'Ed25519': Ed25519Key
+            'RSAKey': RSAKey,
+            # 'DSSKey': DSSKey,
+            'ECDSAKey': ECDSAKey,
+            'Ed25519Key': Ed25519Key
         }
         self.ctx = ctx or ctx_from_import
         self._key_file_path = key_file_path
@@ -57,13 +58,14 @@ class KeyManager:
             key_data_stream = io.StringIO(key_data)
 
             for key_type, key_class in self.supported_key_types.items():
+                print(f'fromfile[key-type]:{key_type}')
                 try:
                     private_key = key_class.from_private_key(
                         key_data_stream,
                         password=password
                     )
                     self.ctx.logger.debug(
-                        f"Successfully loaded {key_type} key."
+                        f"Successfully loaded {key_type}."
                     )
                     return private_key
                 except paramiko.ssh_exception.SSHException as e:
@@ -97,7 +99,8 @@ class KeyManager:
                     key_data_stream,
                     password=password
                 )
-                self.ctx.logger.debug(f"Successfully loaded {key_type} key.")
+                print(f'Success: {key_type}')
+                self.ctx.logger.debug(f"Successfully loaded {key_type}.")
                 return private_key
             except paramiko.ssh_exception.SSHException:
                 key_data_stream.seek(0)  # Reset stream position for next key
@@ -111,13 +114,25 @@ class KeyManager:
         """
         key_data_stream = io.StringIO()
 
-        if password:
-            private_key.write_private_key(key_data_stream, password=password)
-        else:
-            private_key.write_private_key(key_data_stream)
+        try:
+            if password:
+                private_key.write_private_key(
+                    key_data_stream,
+                    password=password
+                )
+            else:
+                private_key.write_private_key(key_data_stream)
 
-        self.ctx.logger.debug(f"Dumped {self._get_key_type(private_key)} key.")
-        return key_data_stream.getvalue()
+            self.ctx.logger.debug(
+                f"Dumped {self._get_key_type(private_key)}."
+            )
+            return key_data_stream.getvalue()
+
+        except Exception as e:
+            self.ctx.logger.error(f"An unexpected error occurred: {e}")
+            raise Exception(
+                "An error occurred while dumping the private key."
+            ) from e
 
     def _get_key_type(self, private_key):
         """Determine the type of private key (RSA, DSA, ECDSA, Ed25519)."""
@@ -125,3 +140,21 @@ class KeyManager:
             if isinstance(private_key, key_class):
                 return key_type
         return None
+
+
+# if __name__ == '__main__':
+#     key_manager = KeyManager()
+#     try:
+#         key_manager.load_private_key(SUPP_KEYS.get('rsa_key'))
+#         key_manager.load_private_key_from_file('/home/inbalmel/git/nativeedge-plugins-sdk/dsa_private_key.pem')
+#         key_manager.load_private_key(SUPP_KEYS.get('dsa_key'))
+#         key_manager.load_private_key(SUPP_KEYS.get('ecdsa_key'))
+#         key_manager.load_private_key(SUPP_KEYS.get('ed25519_key'))
+#         print("Private key loaded successfully.")
+
+#         # # Dump key
+#         # dumped_key = key_manager.dump_private_key(loaded_key)
+#         # print("Private key dumped successfully:")
+#         # print(dumped_key)
+#     except Exception as e:
+#         print(f"Error: {e}")
