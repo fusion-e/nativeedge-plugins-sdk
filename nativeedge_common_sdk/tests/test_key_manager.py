@@ -2,16 +2,16 @@ import unittest
 from unittest.mock import MagicMock, mock_open, patch
 from nativeedge_common_sdk.key_manager import KeyManager
 from nativeedge_common_sdk.constants import SUPP_KEYS
-from paramiko import RSAKey, SSHException
+from paramiko import RSAKey, SSHException, DSSKey, ECDSAKey, Ed25519Key
 
 
 class TestKeyManager(unittest.TestCase):
 
     KEY_TYPES = {
         'rsa_key': RSAKey,
-        # 'dsa_key': DSSKey,
-        # 'ecdsa_key': ECDSAKey,
-        # 'ed25519_key': Ed25519Key
+        'dsa_key': DSSKey,
+        'ecdsa_key': ECDSAKey,
+        'ed25519_key': Ed25519Key
     }
 
     def setUp(self):
@@ -65,8 +65,10 @@ class TestKeyManager(unittest.TestCase):
         mock_from_private_key.assert_called_once()
         self.assertEqual(
             str(context.exception),
-            ("Exception: An error occurred while loading the\
-             private key: Unsupported key type or invalid key")
+            (
+                "An error occurred while loading the private key: "
+                "Unsupported key type or invalid key"
+            )
         )
 
     def load_private_key_type(self, key, type):

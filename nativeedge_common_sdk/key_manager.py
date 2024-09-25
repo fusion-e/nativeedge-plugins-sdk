@@ -1,6 +1,6 @@
 import paramiko
-from paramiko import RSAKey, ECDSAKey, Ed25519Key
-# from constants import SUPP_KEYS
+from paramiko import RSAKey, DSSKey, ECDSAKey, Ed25519Key
+from constants import SUPP_KEYS
 import io
 try:
     from nativeedge import ctx as ctx_from_import
@@ -14,9 +14,9 @@ class KeyManager:
         """Initialize KeyManager to handle various types of private keys."""
         self.supported_key_types = {
             'RSAKey': RSAKey,
-            # 'DSSKey': DSSKey,
-            # 'ECDSAKey': ECDSAKey,
-            # 'Ed25519Key': Ed25519Key
+            'DSSKey': DSSKey,
+            'ECDSAKey': ECDSAKey,
+            'Ed25519Key': Ed25519Key
         }
         self.ctx = ctx or ctx_from_import
         self._key_file_path = key_file_path
@@ -65,16 +65,16 @@ class KeyManager:
                         password=password
                     )
                     print(f'[from_file]private_key={private_key}')
-                    self.ctx.logger.debug(
-                        f"Successfully loaded {key_type}."
-                    )
+                    # self.ctx.logger.debug(
+                    #     f"Successfully loaded {key_type}."
+                    # )
                     print(f'[from_file]Success loading {key_type}')
                     return private_key
                 except paramiko.ssh_exception.SSHException as e:
                     print(f'SSHEXCEPTION {key_type}')
-                    self.ctx.logger.debug(
-                        f"Failed to load {key_type} key: {e}"
-                    )
+                    # self.ctx.logger.debug(
+                    #     f"Failed to load {key_type} key: {e}"
+                    # )
                     key_data_stream.seek(0)
                     continue
 
@@ -148,19 +148,19 @@ class KeyManager:
         return None
 
 
-# if __name__ == '__main__':
-#     key_manager = KeyManager()
-#     try:
-#         key_manager.load_private_key(SUPP_KEYS.get('rsa_key'))
-#         key_manager.load_private_key_from_file('/home/inbalmel/git/nativeedge-plugins-sdk/dsa_private_key.pem')
-#         key_manager.load_private_key(SUPP_KEYS.get('dsa_key'))
-#         key_manager.load_private_key(SUPP_KEYS.get('ecdsa_key'))
-#         key_manager.load_private_key(SUPP_KEYS.get('ed25519_key'))
-#         print("Private key loaded successfully.")
+if __name__ == '__main__':
+    key_manager = KeyManager()
+    try:
+        # key_manager.load_private_key(SUPP_KEYS.get('rsa_key'))
+        key_manager.load_private_key_from_file('/home/inbalmel/git/nativeedge-plugins-sdk/key.pem')
+        # key_manager.load_private_key(SUPP_KEYS.get('dsa_key'))
+        # key_manager.load_private_key(SUPP_KEYS.get('ecdsa_key'))
+        # key_manager.load_private_key(SUPP_KEYS.get('ed25519_key'))
+        print("Private key loaded successfully.")
 
-#         # # Dump key
-#         # dumped_key = key_manager.dump_private_key(loaded_key)
-#         # print("Private key dumped successfully:")
-#         # print(dumped_key)
-#     except Exception as e:
-#         print(f"Error: {e}")
+        # # Dump key
+        # dumped_key = key_manager.dump_private_key(loaded_key)
+        # print("Private key dumped successfully:")
+        # print(dumped_key)
+    except Exception as e:
+        print(f"Error: {e}")
