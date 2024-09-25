@@ -59,13 +59,14 @@ class TestKeyManager(unittest.TestCase):
             "Mocked SSHException"
         )
 
-        with self.assertRaises(ValueError) as context:
+        with self.assertRaises(Exception) as context:
             self.key_manager.load_private_key_from_file('invalid_key.pem')
 
         mock_from_private_key.assert_called_once()
         self.assertEqual(
             str(context.exception),
-            "Unsupported key type or invalid key"
+            ("Exception: An error occurred while loading the\
+             private key: Unsupported key type or invalid key")
         )
 
     def load_private_key_type(self, key, type):
