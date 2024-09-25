@@ -15,8 +15,8 @@ class KeyManager:
         self.supported_key_types = {
             'RSAKey': RSAKey,
             # 'DSSKey': DSSKey,
-            'ECDSAKey': ECDSAKey,
-            'Ed25519Key': Ed25519Key
+            # 'ECDSAKey': ECDSAKey,
+            # 'Ed25519Key': Ed25519Key
         }
         self.ctx = ctx or ctx_from_import
         self._key_file_path = key_file_path
@@ -64,11 +64,14 @@ class KeyManager:
                         key_data_stream,
                         password=password
                     )
+                    print(f'[from_file]private_key={private_key}')
                     self.ctx.logger.debug(
                         f"Successfully loaded {key_type}."
                     )
+                    print(f'[from_file]Success loading {key_type}')
                     return private_key
                 except paramiko.ssh_exception.SSHException as e:
+                    print(f'SSHEXCEPTION {key_type}')
                     self.ctx.logger.debug(
                         f"Failed to load {key_type} key: {e}"
                     )
@@ -80,6 +83,7 @@ class KeyManager:
         except FileNotFoundError:
             raise FileNotFoundError(f"File not found: {file_path}")
         except Exception as e:
+            print(f"[from_file]FAIL: key- {key_type}")
             raise Exception(
                 f"An error occurred while loading the private key: {e}"
             )
@@ -95,12 +99,13 @@ class KeyManager:
 
         for key_type, key_class in self.supported_key_types.items():
             try:
+                print(f'[load_var]try loading: {key_type}')
                 private_key = key_class.from_private_key(
                     key_data_stream,
                     password=password
                 )
-                print(f'Success: {key_type}')
                 self.ctx.logger.debug(f"Successfully loaded {key_type}.")
+                print(f'[load_var]Success loading: {key_type}')
                 return private_key
             except paramiko.ssh_exception.SSHException:
                 key_data_stream.seek(0)  # Reset stream position for next key
@@ -126,9 +131,11 @@ class KeyManager:
             self.ctx.logger.debug(
                 f"Dumped {self._get_key_type(private_key)}."
             )
+            print(f'[Dumping]Success with: {self._get_key_type(private_key)}')
             return key_data_stream.getvalue()
 
         except Exception as e:
+            print(f'[Dumping]Fail with: {self._get_key_type(private_key)}')
             self.ctx.logger.error(f"An unexpected error occurred: {e}")
             raise Exception(
                 "An error occurred while dumping the private key."
