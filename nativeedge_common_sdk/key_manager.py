@@ -158,7 +158,7 @@ class KeyManager:
                 # print(f'[Dumping]Fail with: {self._get_key_type(private_key)}')
                 self.ctx.logger.error(f"An unexpected error occurred: {e}")
                 raise Exception(
-                    f"An error occurred while dumping the private key: {e}."
+                    f"An error occurred while dumping the private key."
                 ) from e
 
     def _get_key_type(self, private_key):
