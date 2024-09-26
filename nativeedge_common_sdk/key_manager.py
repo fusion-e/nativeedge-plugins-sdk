@@ -14,7 +14,7 @@ class KeyManager:
         """Initialize KeyManager to handle various types of private keys."""
         self.supported_key_types = {
             'RSAKey': RSAKey,
-            'DSSKey': DSSKey,
+            # 'DSSKey': DSSKey,
             'ECDSAKey': ECDSAKey,
             'Ed25519Key': Ed25519Key
         }

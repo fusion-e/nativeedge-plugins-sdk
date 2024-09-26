@@ -9,7 +9,7 @@ class TestKeyManager(unittest.TestCase):
 
     KEY_TYPES = {
         'rsa_key': RSAKey,
-        'dsa_key': DSSKey,
+        # 'dsa_key': DSSKey,
         'ecdsa_key': ECDSAKey,
         'ed25519_key': Ed25519Key
     }
