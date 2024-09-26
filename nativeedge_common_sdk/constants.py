@@ -948,5 +948,5 @@ SUPP_KEYS = {
     'rsa_key': EXAMPLE_RSA,
     # 'dsa_key': EXAMPLE_DSA,
     'ecdsa_key': EXAMPLE_ECDSA,
-    'ed25519_key': EXAMPLE_ED25519
+    # 'ed25519_key': EXAMPLE_ED25519
 }

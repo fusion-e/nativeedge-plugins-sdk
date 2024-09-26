@@ -12,7 +12,7 @@ class TestKeyManager(unittest.TestCase):
         'rsa_key': RSAKey,
         # 'dsa_key': DSSKey,
         'ecdsa_key': ECDSAKey,
-        'ed25519_key': Ed25519PrivateKey
+        # 'ed25519_key': Ed25519PrivateKey
     }
 
     def setUp(self):
