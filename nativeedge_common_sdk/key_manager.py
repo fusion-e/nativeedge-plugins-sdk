@@ -1,6 +1,6 @@
 import paramiko
 from paramiko import RSAKey, DSSKey, ECDSAKey, Ed25519Key
-from constants import SUPP_KEYS
+# from constants import SUPP_KEYS
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 import io
