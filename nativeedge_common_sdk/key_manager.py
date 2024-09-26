@@ -1,6 +1,8 @@
 import paramiko
-from paramiko import RSAKey, DSSKey, ECDSAKey, Ed25519Key
-from nativeedge_common_sdk.constants import SUPP_KEYS
+from paramiko import RSAKey, DSSKey, ECDSAKey
+# from nativeedge_common_sdk.constants import SUPP_KEYS
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 import io
 try:
     from nativeedge import ctx as ctx_from_import
@@ -16,7 +18,7 @@ class KeyManager:
             'RSAKey': RSAKey,
             # 'DSSKey': DSSKey,
             'ECDSAKey': ECDSAKey,
-            'Ed25519Key': Ed25519Key
+            'Ed25519Key': Ed25519PrivateKey
         }
         self.ctx = ctx or ctx_from_import
         self._key_file_path = key_file_path
@@ -65,16 +67,16 @@ class KeyManager:
                         password=password
                     )
                     print(f'[from_file]private_key={private_key}')
-                    # self.ctx.logger.debug(
-                    #     f"Successfully loaded {key_type}."
-                    # )
+                    self.ctx.logger.debug(
+                        f"Successfully loaded {key_type}."
+                    )
                     print(f'[from_file]Success loading {key_type}')
                     return private_key
                 except paramiko.ssh_exception.SSHException as e:
                     print(f'SSHEXCEPTION {key_type}')
-                    # self.ctx.logger.debug(
-                    #     f"Failed to load {key_type} key: {e}"
-                    # )
+                    self.ctx.logger.debug(
+                        f"Failed to load {key_type} key: {e}"
+                    )
                     key_data_stream.seek(0)
                     continue
 
@@ -116,29 +118,33 @@ class KeyManager:
         Dump the private key into PEM format,
         optionally encrypted with a password.
         """
-        key_data_stream = io.StringIO()
+        if isinstance(private_key, Ed25519PrivateKey):
+            # Use the cryptography library for Ed25519
+            return self.dump_ed25519_private_key(private_key, password)
+        else:
 
-        try:
-            if password:
-                private_key.write_private_key(
-                    key_data_stream,
-                    password=password
+            key_data_stream = io.StringIO()
+            try:
+                if password:
+                    private_key.write_private_key(
+                        key_data_stream,
+                        password=password
+                    )
+                else:
+                    private_key.write_private_key(key_data_stream)
+
+                self.ctx.logger.debug(
+                    f"Dumped {self._get_key_type(private_key)}."
                 )
-            else:
-                private_key.write_private_key(key_data_stream)
+                print(f'[Dumping]Success with: {self._get_key_type(private_key)}')
+                return key_data_stream.getvalue()
 
-            self.ctx.logger.debug(
-                f"Dumped {self._get_key_type(private_key)}."
-            )
-            print(f'[Dumping]Success with: {self._get_key_type(private_key)}')
-            return key_data_stream.getvalue()
-
-        except Exception as e:
-            print(f'[Dumping]Fail with: {self._get_key_type(private_key)}')
-            self.ctx.logger.error(f"An unexpected error occurred: {e}")
-            raise Exception(
-                "An error occurred while dumping the private key."
-            ) from e
+            except Exception as e:
+                print(f'[Dumping]Fail with: {self._get_key_type(private_key)}')
+                self.ctx.logger.error(f"An unexpected error occurred: {e}")
+                raise Exception(
+                    "An error occurred while dumping the private key."
+                ) from e
 
     def _get_key_type(self, private_key):
         """Determine the type of private key (RSA, DSA, ECDSA, Ed25519)."""
@@ -146,6 +152,19 @@ class KeyManager:
             if isinstance(private_key, key_class):
                 return key_type
         return None
+
+    def dump_ed25519_private_key(private_key, password=None):
+        if password:
+            encryption = serialization.BestAvailableEncryption(password.encode())
+        else:
+            encryption = serialization.NoEncryption()
+
+        pem = private_key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=encryption
+        )
+        return pem.decode('utf-8')
 
 
 if __name__ == '__main__':

@@ -2,7 +2,8 @@ import unittest
 from unittest.mock import MagicMock, mock_open, patch
 from nativeedge_common_sdk.key_manager import KeyManager
 from nativeedge_common_sdk.constants import SUPP_KEYS
-from paramiko import RSAKey, SSHException, DSSKey, ECDSAKey, Ed25519Key
+from paramiko import RSAKey, SSHException, DSSKey, ECDSAKey
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 
 class TestKeyManager(unittest.TestCase):
@@ -11,7 +12,7 @@ class TestKeyManager(unittest.TestCase):
         'rsa_key': RSAKey,
         # 'dsa_key': DSSKey,
         'ecdsa_key': ECDSAKey,
-        'ed25519_key': Ed25519Key
+        'ed25519_key': Ed25519PrivateKey
     }
 
     def setUp(self):
