@@ -2,17 +2,14 @@ import unittest
 from unittest.mock import MagicMock, mock_open, patch
 from nativeedge_common_sdk.key_manager import KeyManager
 from nativeedge_common_sdk.constants import SUPP_KEYS
-from paramiko import RSAKey, SSHException, DSSKey, ECDSAKey
-from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+from paramiko import RSAKey, SSHException, ECDSAKey
 
 
 class TestKeyManager(unittest.TestCase):
 
     KEY_TYPES = {
         'rsa_key': RSAKey,
-        # 'dsa_key': DSSKey,
-        'ecdsa_key': ECDSAKey,
-        # 'ed25519_key': Ed25519PrivateKey
+        'ecdsa_key': ECDSAKey
     }
 
     def setUp(self):
@@ -97,7 +94,7 @@ class TestKeyManager(unittest.TestCase):
             "Unsupported key type or invalid key"
         )
 
-    def dump_private_key_type(self, key, expected_type):
+    def dump_private_key_type(self, key):
         """Helper function to test dumping a private key."""
 
         loaded_key = self.key_manager.load_private_key(key)
@@ -112,7 +109,7 @@ class TestKeyManager(unittest.TestCase):
         """Test dumping all key types"""
         for key_name, key_type in self.KEY_TYPES.items():
             example_key = SUPP_KEYS.get(key_name)
-            self.dump_private_key_type(example_key, key_type)
+            self.dump_private_key_type(example_key)
 
         with self.assertRaises(Exception) as context:
             self.key_manager.dump_private_key(None)
