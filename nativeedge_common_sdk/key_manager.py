@@ -56,7 +56,6 @@ class KeyManager:
             key_data_stream = io.StringIO(key_data)
 
             for key_type, key_class in self.supported_key_types.items():
-                print(f'fromfile[key-type]:{key_type}')
                 try:
                     private_key = key_class.from_private_key(
                         key_data_stream,
@@ -132,7 +131,7 @@ class KeyManager:
             ) from e
 
     def _get_key_type(self, private_key):
-        """Determine the type of private key (RSA, DSA, ECDSA, Ed25519)."""
+        """Determine the type of private key (RSA, ECDSA)."""
         for key_type, key_class in self.supported_key_types.items():
             if isinstance(private_key, key_class):
                 return key_type

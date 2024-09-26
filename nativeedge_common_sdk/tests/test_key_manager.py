@@ -20,6 +20,34 @@ class TestKeyManager(unittest.TestCase):
             'mock_key_type': MagicMock()
         }
 
+    def test_load_private_key_types(self):
+        """Test loading all key types from a var"""
+        for key_name, key_type in self.KEY_TYPES.items():
+            example_key = SUPP_KEYS.get(key_name)
+            self.load_private_key_type(example_key, key_type)
+
+        with self.assertRaises(ValueError) as context:
+            self.key_manager.load_private_key(None)
+
+        self.assertEqual(
+            str(context.exception),
+            "Unsupported key type or invalid key"
+        )
+
+    def test_dump_private_key_types(self):
+        """Test dumping all key types"""
+        for key_name, key_type in self.KEY_TYPES.items():
+            example_key = SUPP_KEYS.get(key_name)
+            self.dump_private_key_type(example_key)
+
+        with self.assertRaises(Exception) as context:
+            self.key_manager.dump_private_key(None)
+
+        self.assertEqual(
+            str(context.exception),
+            "An error occurred while dumping the private key."
+        )
+
     @patch("builtins.open", new_callable=mock_open, read_data="mock_key_data")
     def test_load_private_key_from_file(self, mock_file):
         """Main function that calls the individual test cases."""
@@ -80,20 +108,6 @@ class TestKeyManager(unittest.TestCase):
             f"{self.key_manager._get_key_type(loaded_key)}."
         )
 
-    def test_load_private_key_types(self):
-        """Test loading all key types from a var"""
-        for key_name, key_type in self.KEY_TYPES.items():
-            example_key = SUPP_KEYS.get(key_name)
-            self.load_private_key_type(example_key, key_type)
-
-        with self.assertRaises(ValueError) as context:
-            self.key_manager.load_private_key(None)
-
-        self.assertEqual(
-            str(context.exception),
-            "Unsupported key type or invalid key"
-        )
-
     def dump_private_key_type(self, key):
         """Helper function to test dumping a private key."""
 
@@ -103,20 +117,6 @@ class TestKeyManager(unittest.TestCase):
 
         self.key_manager.ctx.logger.debug.assert_called_with(
             f'Dumped {self.key_manager._get_key_type(loaded_key)}.'
-        )
-
-    def test_dump_private_key_types(self):
-        """Test dumping all key types"""
-        for key_name, key_type in self.KEY_TYPES.items():
-            example_key = SUPP_KEYS.get(key_name)
-            self.dump_private_key_type(example_key)
-
-        with self.assertRaises(Exception) as context:
-            self.key_manager.dump_private_key(None)
-
-        self.assertEqual(
-            str(context.exception),
-            "An error occurred while dumping the private key."
         )
 
 
