@@ -1,6 +1,6 @@
 import paramiko
 from paramiko import RSAKey, DSSKey, ECDSAKey, Ed25519Key
-from constants import SUPP_KEYS
+from nativeedge_common_sdk.constants import SUPP_KEYS
 import io
 try:
     from nativeedge import ctx as ctx_from_import
