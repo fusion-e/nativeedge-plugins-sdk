@@ -1,8 +1,5 @@
 import paramiko
-from paramiko import RSAKey, DSSKey, ECDSAKey, Ed25519Key
-# from constants import SUPP_KEYS
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+from paramiko import RSAKey, ECDSAKey
 import io
 try:
     from nativeedge import ctx as ctx_from_import
@@ -11,14 +8,13 @@ except ImportError:
 
 
 class KeyManager:
+    """Initialize KeyManager to handle RSA and
+       ECDSA private key types only."""
 
     def __init__(self, ctx=None, key_file_path=None, **_):
-        """Initialize KeyManager to handle various types of private keys."""
         self.supported_key_types = {
             'RSAKey': RSAKey,
-            # 'DSSKey': DSSKey,
-            'ECDSAKey': ECDSAKey,
-            # 'Ed25519Key': Ed25519Key
+            'ECDSAKey': ECDSAKey
         }
         self.ctx = ctx or ctx_from_import
         self._key_file_path = key_file_path
@@ -66,14 +62,11 @@ class KeyManager:
                         key_data_stream,
                         password=password
                     )
-                    # print(f'[from_file]private_key={private_key}')
                     self.ctx.logger.debug(
                         f"Successfully loaded {key_type}."
                     )
-                    # print(f'[from_file]Success loading {key_type}')
                     return private_key
                 except paramiko.ssh_exception.SSHException as e:
-                    # print(f'SSHEXCEPTION {key_type}')
                     self.ctx.logger.debug(
                         f"Failed to load {key_type} key: {e}"
                     )
@@ -100,10 +93,6 @@ class KeyManager:
 
         for key_type, key_class in self.supported_key_types.items():
             try:
-                # if key_type == 'Ed25519Key':
-                #     private_key = self.load_ed25519_key(key_data, password)
-                # else:
-                # Handle Paramiko key types like RSA, DSA, ECDSA
                 private_key = key_class.from_private_key(
                     key_data_stream,
                     password=password
@@ -111,55 +100,36 @@ class KeyManager:
                 self.ctx.logger.debug(f"Successfully loaded {key_type}.")
                 return private_key
             except (paramiko.ssh_exception.SSHException, ValueError):
-                # print(f'Error: {e}')
-                key_data_stream.seek(0)  # Reset stream position for the next key
+                key_data_stream.seek(0)  # Reset stream position
                 continue
 
         raise ValueError("Unsupported key type or invalid key")
-
-    # def load_ed25519_key(self, pem_data, password=None):
-    #     try:
-    #         private_key = serialization.load_pem_private_key(
-    #             pem_data.encode() if isinstance(pem_data, str) else pem_data,
-    #             password=password
-    #         )
-    #         return private_key
-    #     except Exception as e:
-    #         print(f"Error loading key: {e}")
-    #         return None
 
     def dump_private_key(self, private_key, password=None):
         """
         Dump the private key into PEM format,
         optionally encrypted with a password.
         """
-        if isinstance(private_key, Ed25519PrivateKey):
-            # Use the cryptography library for Ed25519
-            return self.dump_ed25519_private_key(private_key, password)
-        else:
-
-            key_data_stream = io.StringIO()
-            try:
-                if password:
-                    private_key.write_private_key(
-                        key_data_stream,
-                        password=password
-                    )
-                else:
-                    private_key.write_private_key(key_data_stream)
-
-                self.ctx.logger.debug(
-                    f"Dumped {self._get_key_type(private_key)}."
+        key_data_stream = io.StringIO()
+        try:
+            if password:
+                private_key.write_private_key(
+                    key_data_stream,
+                    password=password
                 )
-                # print(f'[Dumping]Success with: {self._get_key_type(private_key)}')
-                return key_data_stream.getvalue()
+            else:
+                private_key.write_private_key(key_data_stream)
 
-            except Exception as e:
-                # print(f'[Dumping]Fail with: {self._get_key_type(private_key)}')
-                self.ctx.logger.error(f"An unexpected error occurred: {e}")
-                raise Exception(
-                    f"An error occurred while dumping the private key."
-                ) from e
+            self.ctx.logger.debug(
+                f"Dumped {self._get_key_type(private_key)}."
+            )
+            return key_data_stream.getvalue()
+
+        except Exception as e:
+            self.ctx.logger.error(f"An unexpected error occurred: {e}")
+            raise Exception(
+                "An error occurred while dumping the private key."
+            ) from e
 
     def _get_key_type(self, private_key):
         """Determine the type of private key (RSA, DSA, ECDSA, Ed25519)."""
@@ -167,49 +137,3 @@ class KeyManager:
             if isinstance(private_key, key_class):
                 return key_type
         return None
-
-    # def dump_ed25519_private_key(self, private_key, password=None):
-
-    #     # if not isinstance(private_key, Ed25519Key):
-    #     #     raise ValueError("The provided key is not an Ed25519 private key.")
-
-    #     if password and isinstance(password, str):
-    #         password = password.encode()
-
-    #     print(password)
-    #     if password:
-    #         encryption = serialization.BestAvailableEncryption(password)
-    #     else:
-    #         encryption = serialization.NoEncryption()
-
-    #     pem = private_key.private_bytes(
-    #         encoding=serialization.Encoding.PEM,
-    #         format=serialization.PrivateFormat.PKCS8,
-    #         encryption_algorithm=encryption
-    #     )
-    #     return pem.decode('utf-8')
-
-
-# if __name__ == '__main__':
-#     key_manager = KeyManager()
-#     try:
-#         rsaPK = key_manager.load_private_key(SUPP_KEYS.get('rsa_key'))
-#         # key_manager.load_private_key_from_file('/home/inbalmel/git/nativeedge-plugins-sdk/key.pem')
-#         # key_manager.dump_private_key(SUPP_KEYS.get('ed25519_key'))
-#         # Ed25519PrivateKey_ = key_manager.load_private_key(SUPP_KEYS.get('ed25519_key'))
-#         # key_manager.dump_ed25519_private_key(Ed25519PrivateKey_)
-#         # key_manager.load_private_key(SUPP_KEYS.get('dsa_key'))
-#         ecdsaPK = key_manager.load_private_key(SUPP_KEYS.get('ecdsa_key'))
-#         dumpedEcdsa = key_manager.dump_private_key(ecdsaPK)
-#         print(dumpedEcdsa)
-#         dumpedrsa = key_manager.dump_private_key(rsaPK)
-#         print(dumpedrsa)
-#         # key_manager.load_private_key(SUPP_KEYS.get('ed25519_key'))
-#         print("Private key loaded successfully.")
-
-#         # # Dump key
-#         # dumped_key = key_manager.dump_private_key(loaded_key)
-#         # print("Private key dumped successfully:")
-#         # print(dumped_key)
-#     except Exception as e:
-#         print(f"Error: {e}")

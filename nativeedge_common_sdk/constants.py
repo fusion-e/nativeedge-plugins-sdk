@@ -911,20 +911,6 @@ EXAMPLE_RSA = (
     b"-----END RSA PRIVATE KEY-----\n"
 )
 
-
-EXAMPLE_DSA = (
-    b"-----BEGIN PRIVATE KEY-----\n"
-    b"MIIBWgIBADCCATMGByqGSM44BAEwggEmAoGBAIpxumBhQ92vxtwprs/L5lFnItFs\n"
-    b"Drdgy+ppTNQ9SFf93CCrO6Eot1rouVCWcyMnPDnIVvF69nLOjl1fXksz5zUt+usR\n"
-    b"REJS+qjJyWrKd79ipak32/OzAYVZ1AmwNxYq2iVHbk9/NYQoGxA25m5XitwbHayc\n"
-    b"wKz6aRrSoadHJe6XAh0Amy8/w0vJXjK5DhOmdnJfF+2PfMfyckHR34bkVwKBgDNm\n"
-    b"uo0rXNT1RO4Sw9W0JicQQ8sugN+imRjTCK/xnP/pj394rDVvzxswWF+aetGSsEkW\n"
-    b"2bdXa7GiwamL0gwTooF8om2sNZt8Z/WPOu1JFLNzvgd+HuDVZzsswqJL4zgawHxF\n"
-    b"wtxSXBEmrc6WGBoZXSfK7uzZgqUHSuu50gZBklxGBB4CHB+wPOjyNqnh5L+Zxpve\n"
-    b"7ykq1y0XQsphGCv6AUY=\n"
-    b"-----END PRIVATE KEY-----\n"
-)
-
 EXAMPLE_ECDSA = (
     b"-----BEGIN EC PRIVATE KEY-----\n"
     b"MHcCAQEEIBIi3ofDQE03dkLfEf8p/6JdjpL7oUmLwQzRyYJIAvnMoAoGCCqGSM49\n"
@@ -933,20 +919,18 @@ EXAMPLE_ECDSA = (
     b"-----END EC PRIVATE KEY-----\n"
 )
 
-EXAMPLE_ED25519 = (
-    b"-----BEGIN OPENSSH PRIVATE KEY-----\n"
-    b"b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW\n"
-    b"QyNTUxOQAAACDjK0sVBT1R5EQhIGmMMeEBdVV6D4VMFymTspj+TQllOAAAAKC2sOk8trDp\n"
-    b"PAAAAAtzc2gtZWQyNTUxOQAAACDjK0sVBT1R5EQhIGmMMeEBdVV6D4VMFymTspj+TQllOA\n"
-    b"AAAEDTkg2/33zm0keVj+om1ImHV8oQ3mvT1OoxawTb48WkIeMrSxUFPVHkRCEgaYwx4QF1\n"
-    b"VXoPhUwXKZOymP5NCWU4AAAAFnlvdXJfZW1haWxAZXhhbXBsZS5jb20BAgMEBQYH\n"
-    b"-----END OPENSSH PRIVATE KEY-----\n"
-)
+# EXAMPLE_ED25519 = (
+#     b"-----BEGIN OPENSSH PRIVATE KEY-----\n"
+#     b"b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW\n"
+#     b"QyNTUxOQAAACDjK0sVBT1R5EQhIGmMMeEBdVV6D4VMFymTspj+TQllOAAAAKC2sOk8trDp\n"
+#     b"PAAAAAtzc2gtZWQyNTUxOQAAACDjK0sVBT1R5EQhIGmMMeEBdVV6D4VMFymTspj+TQllOA\n"
+#     b"AAAEDTkg2/33zm0keVj+om1ImHV8oQ3mvT1OoxawTb48WkIeMrSxUFPVHkRCEgaYwx4QF1\n"
+#     b"VXoPhUwXKZOymP5NCWU4AAAAFnlvdXJfZW1haWxAZXhhbXBsZS5jb20BAgMEBQYH\n"
+#     b"-----END OPENSSH PRIVATE KEY-----\n"
+# )
 
 
 SUPP_KEYS = {
     'rsa_key': EXAMPLE_RSA,
-    # 'dsa_key': EXAMPLE_DSA,
-    'ecdsa_key': EXAMPLE_ECDSA,
-    # 'ed25519_key': EXAMPLE_ED25519
+    'ecdsa_key': EXAMPLE_ECDSA
 }
