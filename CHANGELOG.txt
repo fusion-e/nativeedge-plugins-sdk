@@ -1,4 +1,8 @@
 releases:
+  0.0.145:
+  - ticket: NE-33321
+    developer: inbal.melamed
+    description: Private keys validation.
   0.0.144:
   - ticket: NE-36919
     developer: adam.terramel
