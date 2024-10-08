@@ -17,7 +17,7 @@ adal==1.2.7
     # via msrestazure
 aiohappyeyeballs==2.3.5
     # via aiohttp
-aiohttp==3.10.3
+aiohttp==3.10.5
     # via fusion-common
 aiosignal==1.3.1
     # via aiohttp
