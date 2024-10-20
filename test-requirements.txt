@@ -2,6 +2,7 @@ mock
 nose2
 flake8
 pytest
+nose2-cov
 xmltodict
 nose-exclude
 requests-mock

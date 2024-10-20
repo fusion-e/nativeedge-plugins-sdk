@@ -1,0 +1,11 @@
+[run]
+omit =
+  setup.py
+  *__*
+  */tests/*
+  nativeedge_aws_sdk/**
+  nativeedge_terminal_sdk/**
+  nativeedge_kubernetes_sdk/**
+
+[report]
+show_missing = true
