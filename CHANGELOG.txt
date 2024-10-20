@@ -1,43 +1,47 @@
 releases:
+  0.0.146:
+  - ticket: ne-47736
+    developer: adam.terramel
+    description: ensure that we do not download to existing file in get blueprint dir.
   0.0.145:
-  - ticket: NE-33321
+  - ticket: ne-33321
     developer: inbal.melamed
-    description: Private keys validation.
+    description: private keys validation.
   0.0.144:
-  - ticket: NE-36919
+  - ticket: ne-36919
     developer: adam.terramel
     description: handle dev version in pattern for version getter.
   0.0.143:
-  - ticket: NE-36919
+  - ticket: ne-36919
     developer: adam.terramel
-    description: Find deployment ID in ctx or wtx.
-  - ticket: NE-33378
+    description: find deployment id in ctx or wtx.
+  - ticket: ne-33378
     developer: inbal.melamed
-    description: Search for versions until 4 numbers.
+    description: search for versions until 4 numbers.
   0.0.142:
-  - ticket: NE-43426
+  - ticket: ne-43426
     developer: adam.terramel
     description: blackduck fixes - request, urlib3.
   0.0.141:
-  - ticket: NE-30007
+  - ticket: ne-30007
     developer: yaniv.kaplan
     description: blackduck fixes - request, urlib3.
   0.0.140:
-  - ticket: NE-30006
+  - ticket: ne-30006
     developer: yaniv.kaplan
     description: gitleaks allowlist added.
   v0.0.139:
-  - ticket: NE-29645
+  - ticket: ne-29645
     developer: adam.terramel
-    description: If blueprint dir download is not available, download from rest service.
+    description: if blueprint dir download is not available, download from rest service.
   v0.0.138:
-  - ticket: NE-29903
+  - ticket: ne-29903
     developer: yaniv.kaplan
     description: blackduck.
   v0.0.137: fix get_blueprint_dir logic to execlude deployment_dir content.
   v0.0.136: added .drp folder for trufflehog exclusions.
   v0.0.135: fix dictoverride logic to handle boolean objects.
   v0.0.134: update dependencies in order to fix security issue.
-  v0.0.133: Fix security issue.
-  v0.0.132: Fix issue.
-  v0.0.131: Rebranding phase 1 - to rename packages and rename imports.
+  v0.0.133: fix security issue.
+  v0.0.132: fix issue.
+  v0.0.131: rebranding phase 1 - to rename packages and rename imports.
