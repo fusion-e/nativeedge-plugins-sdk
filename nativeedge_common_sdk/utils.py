@@ -3,12 +3,14 @@
 import os
 import re
 import json
+import pathlib
 import tarfile
 import zipfile
 from time import sleep
 from copy import copy, deepcopy
 from packaging import version
 from distutils.util import strtobool
+from tempfile import NamedTemporaryFile
 
 from nativeedge_common_sdk._compat import PY2, text_type
 from nativeedge_common_sdk.resource_downloader import (
@@ -175,17 +177,36 @@ def with_rest_client(func):
 
 @with_rest_client
 def create_blueprint_dir_in_deployment_dir(blueprint_id, rest_client):
-    target_file = rest_client.blueprints.download(blueprint_id)
+    deployment_dir = get_deployment_dir(ctx_from_import.deployment.id)
+    blueprint_dir = os.path.join(deployment_dir, 'blueprint')
+    mkdir_p(blueprint_dir)
+    output_file_obj = NamedTemporaryFile(dir=deployment_dir, delete=False)
+    output_file = pathlib.Path(output_file_obj.name)
+    delete_path(output_file)
+    output_file.touch()
+    target_file = rest_client.blueprints.download(
+        blueprint_id,
+        output_file=output_file.as_posix()
+    )
     try:
         uncompressed_result = untar_archive(target_file)
     except tarfile.ReadError:
         uncompressed_result = unzip_archive(target_file)
-    blueprint_dir = os.path.join(
-        get_deployment_dir(ctx_from_import.deployment.id), 'blueprint')
-    mkdir_p(blueprint_dir)
     copy_directory(uncompressed_result, blueprint_dir)
     remove_directory(uncompressed_result)
+    delete_path(output_file)
     return blueprint_dir
+
+
+def delete_path(p):
+    if not isinstance(p, pathlib.Path):
+        return
+    elif not p.exists():
+        return
+    try:
+        p.unlink()
+    except OSError:
+        pass
 
 
 @with_rest_client
@@ -1524,7 +1545,6 @@ def v1_gteq_v2(v1, v2):
 
 
 def mkdir_p(path):
-    import pathlib
     pathlib.Path(path).mkdir(parents=True, exist_ok=True)
 
 

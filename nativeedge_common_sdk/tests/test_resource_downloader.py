@@ -20,7 +20,7 @@ FILE_WITH_TF_GIT = \
 
 FILE_WITH_TF_GIT_TAG = FILE_WITH_TF_GIT + "?ref=0.0.17"
 
-os.system('sudo chmod -R /tmp 0770')
+# os.system('sudo chmod -R /tmp 0770')
 
 
 class TestResourceDownloader(unittest.TestCase):
