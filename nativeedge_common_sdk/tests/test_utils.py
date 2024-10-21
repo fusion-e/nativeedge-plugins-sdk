@@ -3,6 +3,7 @@
 import os
 import mock
 import shutil
+import pathlib
 import tarfile
 import zipfile
 import tempfile
@@ -610,6 +611,7 @@ class BatchUtilsTests(unittest.TestCase):
         assert utils.get_client_config(
             alternate_key='alternate_config') == expected_config
 
+    @mock.patch('tempfile.NamedTemporaryFile')
     @mock.patch('nativeedge_common_sdk.utils.get_node_instance_dir')
     @mock.patch('nativeedge_common_sdk.utils.get_deployment_dir')
     @mock.patch('nativeedge_common_sdk.utils.get_rest_client')
@@ -619,8 +621,10 @@ class BatchUtilsTests(unittest.TestCase):
             _,
             mock_get_rest_client,
             mock_get_deployment_dir,
-            mock_get_node_instance_dir):
+            mock_get_node_instance_dir,
+            mock_tempfile):
 
+        mock_tempfile.name = 'foo'
         # Create a file named "foo" and write "foo" in it.
         samplefile = os.path.join(tempfile.mkdtemp(), 'foo')
         with open(samplefile, 'w') as infile:
@@ -647,7 +651,6 @@ class BatchUtilsTests(unittest.TestCase):
         deployment_dir = tempfile.mkdtemp()
         mock_get_deployment_dir.return_value = deployment_dir
         node_inst_dir = os.path.join(deployment_dir, 'bar')
-        import pathlib
         pathlib.Path(node_inst_dir).mkdir(parents=True, exist_ok=True)
         mock_get_node_instance_dir.return_value = node_inst_dir
         expected_return_result = os.path.join(deployment_dir, 'blueprint')
@@ -667,3 +670,8 @@ class BatchUtilsTests(unittest.TestCase):
         os.remove(samplefile)
         os.remove(tarfile_path)
         os.remove(zipfile_path)
+        outfile = pathlib.Path(deployment_dir, 'foo').as_posix()
+        mock_get_rest_client().blueprints.download.assert_has_calls = [
+            mock.call('foo', outfile=outfile),
+            mock.call('foo', outfile=outfile)
+        ]
