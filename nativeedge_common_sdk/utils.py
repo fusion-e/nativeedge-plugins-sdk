@@ -182,8 +182,9 @@ def create_blueprint_dir_in_deployment_dir(blueprint_id, rest_client):
     mkdir_p(blueprint_dir)
     output_file_obj = NamedTemporaryFile(dir=deployment_dir, delete=False)
     output_file = pathlib.Path(output_file_obj.name)
+    if not output_file.parent.exists():
+        mkdir_p(output_file.parent.as_posix())
     delete_path(output_file)
-    output_file.touch()
     target_file = rest_client.blueprints.download(
         blueprint_id,
         output_file=output_file.as_posix()

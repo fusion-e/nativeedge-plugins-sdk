@@ -1,4 +1,8 @@
 releases:
+  0.0.147:
+  - ticket: ne-47736
+    developer: adam.terramel
+    description: Remove touch of blueprint dir file bc it causes original issue in another way.
   0.0.146:
   - ticket: ne-47736
     developer: adam.terramel
