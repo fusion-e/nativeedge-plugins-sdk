@@ -1,4 +1,8 @@
 releases:
+  0.0.148:
+  - ticket: ne-49679
+    developer: adam.terramel
+    description: Log file sizes.
   0.0.147:
   - ticket: ne-47736
     developer: adam.terramel

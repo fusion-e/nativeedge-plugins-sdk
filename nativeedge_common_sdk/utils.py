@@ -196,6 +196,10 @@ def create_blueprint_dir_in_deployment_dir(blueprint_id, rest_client):
     copy_directory(uncompressed_result, blueprint_dir)
     remove_directory(uncompressed_result)
     delete_path(output_file)
+    for f in pathlib.Path(blueprint_dir).glob('**/*'):
+        if f.is_file():
+            ctx_from_import.logger.debug(
+                f'The file: {f.as_posix()} is {f.stat().st_size} size.')
     return blueprint_dir
 
 
