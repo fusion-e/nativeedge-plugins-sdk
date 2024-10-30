@@ -19,12 +19,15 @@ try:
     from nativeedge.constants import NODE_INSTANCE
     from nativeedge.mocks import \
         MockNativeEdgeContext
+    from nativeedge_rest_client.exceptions import NativeEdgeClientError
 except ImportError:
     from cloudify.state import current_ctx
     from cloudify import exceptions as ne_exc
     from cloudify.constants import NODE_INSTANCE
     from cloudify.mocks import MockCloudifyContext as \
         MockNativeEdgeContext
+    from cloudify_rest_client.exceptions import CloudifyClientError \
+        as NativeEdgeClientError
 
 
 class TestUtils(unittest.TestCase):
@@ -51,6 +54,24 @@ class TestUtils(unittest.TestCase):
         )
         current_ctx.set(ctx)
         return ctx
+
+    @mock.patch('nativeedge_common_sdk.utils.get_rest_client')
+    def test_create_secret(self, mock_get_rest_client):
+        mock_get_rest_client().secrets.create.side_effect = [
+            NativeEdgeClientError('foo'),
+            {'foo': 'bar'}
+        ]
+        create_kwargs = {'foo': 'bar'}
+        result = utils.create_secret(create_kwargs)
+        self.assertTrue(isinstance(result, NativeEdgeClientError))
+        result = utils.create_secret(create_kwargs)
+        self.assertEqual(result, {'foo': 'bar'})
+        mock_get_rest_client().secrets.create.assert_has_calls(
+            [
+                mock.call(**create_kwargs),
+                mock.call(**create_kwargs)
+            ]
+        )
 
     @mock.patch('nativeedge_common_sdk.utils.get_deployment',
                 return_value=None)
