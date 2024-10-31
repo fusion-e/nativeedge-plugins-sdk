@@ -740,6 +740,14 @@ def find_path(result, path, dict_obj, key, value, i=None):
 
 
 @with_rest_client
+def create_secret(create_kwargs, rest_client=None):
+    try:
+        return rest_client.secrets.create(**create_kwargs)
+    except NativeEdgeClientError as error:
+        return error
+
+
+@with_rest_client
 def get_secret(secret_name=None, path=None, rest_client=None):
     """ Get an secret's value.
     :param secret_name: A secret name.

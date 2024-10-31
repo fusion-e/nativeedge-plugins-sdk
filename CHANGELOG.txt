@@ -1,4 +1,8 @@
 releases:
+  0.0.149:
+  - ticket: ne-51109
+    developer: adam.terramel
+    description: Add secret create.
   0.0.148:
   - ticket: ne-49679
     developer: adam.terramel
