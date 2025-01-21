@@ -20,14 +20,13 @@ def get_version():
 install_requires = [
     'boto3',
     'psutil',
-    'xmltodict',   # rest
+    'xmltodict',  # rest
     "pycdlib",  # cdrom image
     "Jinja2>=3.1.4",  # terminal
     'azure-identity',
     'paramiko>=2.7.1',  # terminal
-    'kubernetes==29.0.0',
+    'kubernetes==31.0.0',
     'msrestazure==0.6.4',
-    'requests>=2.7.0,<3.0.0',
     'azure-mgmt-containerservice==17.0.0'
 ]
 
