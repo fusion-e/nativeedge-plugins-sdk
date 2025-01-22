@@ -1,4 +1,8 @@
 releases:
+  0.0.150:
+  - ticket: ne-56651
+    developer: yaniv.kaplan
+    description: clean requirments file.
   0.0.149:
   - ticket: ne-51109
     developer: adam.terramel
