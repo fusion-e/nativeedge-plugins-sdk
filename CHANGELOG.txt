@@ -1,4 +1,11 @@
 releases:
+  0.0.150:
+  - ticket: ne-56651
+    developer: yaniv.kaplan
+    description: clean requirments file.
+  - ticket: dspe-2892
+    developer: adam.terramel
+    description: Desecretize the client config.
   0.0.149:
   - ticket: ne-51109
     developer: adam.terramel

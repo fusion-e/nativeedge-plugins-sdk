@@ -25,21 +25,28 @@ class SecurePropertyTests(unittest.TestCase):
         get_mock = mock.Mock()
         secrets_mock.get = get_mock
         mock_client.secrets = secrets_mock
+        deployment_mock = mock.Mock()
+        deployment_mock.capabilities = {
+            'capability_name': {
+                'value': 'capability_value'
+            }
+        }
+        mock_client().deployments.get.return_value = deployment_mock
         secret = {'get_secret': 'bar'}
         prop = {
             'variables': {
                 'foo': secret,
             },
             'resource_config': {
-                'source': {'get_capability': ['bar', 'baz']},
+                'source': {'get_capability': ['bar', 'capability_name']},
             }
         }
         result = secure_property_management.resolve_props(prop, 'taco')
         assert isinstance(result['variables']['foo'], utils.CommonSDKSecret)
         value = result['variables']['foo'].secret  # noqa
         assert call().secrets.get('bar') in mock_client.mock_calls
-        assert call().deployments.get().capabilities.get(
-            'baz') in mock_client.mock_calls
+        assert deployment_mock.capabilities.get(
+            'capability_name') in mock_client.mock_calls
 
     def test_get_stored_property_rel_target(self):
         # Create the mock ctx.
