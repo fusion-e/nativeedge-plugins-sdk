@@ -405,8 +405,15 @@ def desecretize_client_config(config):
     :return: The resolved property value from intrinsic function.
     :rtype: Any JSON serializable value.
     """
-    for key, value in config.items():
-        config[key] = resolve_intrinsic_functions(value)
+    for key, value in list(config.items()):
+        resolved = resolve_intrinsic_functions(value)
+        if isinstance(resolved, dict):
+            for res_key, res_value in list(resolved.items()):
+                if isinstance(value, CommonSDKSecret):
+                    resolved[res_key] = res_value.secret
+        elif isinstance(resolved, CommonSDKSecret):
+            resolved = res_value.secret
+        config[key] = resolved
     return config
 
 
@@ -758,6 +765,9 @@ def get_secret(secret_name=None, path=None, rest_client=None):
     :rtype: str
     """
     secret = rest_client.secrets.get(secret_name)
+    if not secret.value:
+        ctx_from_import.logger.debug(
+            f'Unable to access a value for the secret {secret_name}.')
     # in case we have hidden value [jump through hoops to get the value]
     # reason for that , if the belongs to another user and the user
     # executing the worklow is not an admin rest will return empty value,
@@ -913,6 +923,13 @@ def get_capability(target_dep_id, capability, path, rest_client):
         if '404' in str(e):
             raise NonRecoverableError(
                 'deployment [{0}] not found'.format(target_dep_id))
+    if capability not in deployment.capabilities:
+        available = ', '.join(deployment.capabilities.keys())
+        raise NonRecoverableError(
+            f'The deployment {target_dep_id} does not have the requested '
+            f'capability "{capability}". '
+            f'Available capabilities are {available}.'
+        )
     root = deployment.capabilities.get(capability).get('value')
     if not isinstance(root, text_type) and path:
         nested_val = evaluate_path(root, path)

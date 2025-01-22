@@ -431,14 +431,21 @@ class BatchUtilsTests(unittest.TestCase):
 
     @mock.patch('nativeedge_common_sdk.utils.get_rest_client')
     def test_get_capability(self, mock_client):
-        prop = ['mock', 'some_cap']
+        mock_deployment = mock.Mock()
+        mock_deployment.capabilities = {
+            'capability_name': {
+                'value': 'capability_value'
+            }
+        }
+        mock_client().deployments.get.return_value = mock_deployment
+        prop = ['deployment_id', 'capability_name']
         utils.get_capability(
             target_dep_id=prop[0],
             capability=prop[1],
             path=None
         )
-        assert mock.call().deployments.get(prop[0]) \
-            in mock_client.mock_calls
+        assert mock.call().deployments.get(
+            prop[0]) in mock_client.mock_calls
 
     @mock.patch('nativeedge_common_sdk.utils.get_rest_client')
     def test_get_label(self, mock_client):
