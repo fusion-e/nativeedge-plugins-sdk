@@ -1,4 +1,14 @@
 releases:
+  0.0.151:
+  - ticket: ne01d-183
+    developer: adam.terramel
+    description: Put the nativeedge kubernetes connection util in common.
+  - ticket: ne01d-214
+    developer: adam.terramel
+    description: Kubernetes client proxy settings.
+  - ticket: ne01d-182
+    developer: adam.terramel
+    description: Add "Job" type to kubernetes validate resource status.
   0.0.150:
   - ticket: ne-56651
     developer: yaniv.kaplan

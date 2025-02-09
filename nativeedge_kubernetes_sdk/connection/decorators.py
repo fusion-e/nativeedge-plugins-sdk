@@ -6,9 +6,12 @@ from kubernetes import client, config
 from nativeedge_common_sdk.utils import uses_debug_node
 from nativeedge_kubernetes_sdk.connection.utils import (
     get_host,
+    get_verify_ssl,
     get_auth_token,
     get_ssl_ca_file,
+    get_proxy_settings,
     get_kubeconfig_file,
+    set_client_config_defaults,
     get_connection_details_from_shared_cluster,
 )
 
@@ -50,17 +53,29 @@ def setup_configuration(**kwargs):
     if ca_file:
         configuration.ssl_ca_cert = ca_file
         configuration.verify_ssl = kwargs.get('verify_ssl', True)
+
+    proxy_url = kwargs.get('proxy')
+    if proxy_url:
+        ctx_from_import.logger.debug(f'Setting proxy_url: {proxy_url}')
+        configuration.proxy = proxy_url
+        proxy_headers = kwargs.get('proxy_headers')
+        if proxy_headers:
+            configuration.proxy_headers = proxy_headers
+        no_proxy = kwargs.get('no_proxy')
+        if no_proxy:
+            configuration.no_proxy = no_proxy
+
     return client.ApiClient(configuration)
 
 
 def with_connection_details(fn):
     def wrapper(**kwargs):
         ctx = kwargs.get('ctx', ctx_from_import)
-        config_key = kwargs.get('config_key', 'client_config')
-        client_config = ctx.node.properties.get(config_key)
-        # TODO: Logic when to use stored property
+        client_config = set_client_config_defaults(
+            kwargs.get('client_config'))
         shared_cluster = get_connection_details_from_shared_cluster()
         token = get_auth_token(client_config, shared_cluster.get('api_key'))
+        verify_ssl = get_verify_ssl(client_config)
         host = get_host(client_config, shared_cluster.get('host'))
         kubeconfig = get_kubeconfig_file(
             client_config,
@@ -74,8 +89,12 @@ def with_connection_details(fn):
                 'ca_file': ca_file,
                 'token': token,
                 'host': host,
+                'verify_ssl': verify_ssl
             }
         )
+        proxy_settings = get_proxy_settings(client_config)
+        if proxy_settings:
+            kwargs.update(proxy_settings)
         try:
             return fn(**kwargs)
         except Exception as e:

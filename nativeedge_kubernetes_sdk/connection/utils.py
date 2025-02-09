@@ -4,8 +4,10 @@ import os
 from tempfile import NamedTemporaryFile
 
 from nativeedge_common_sdk.utils import (
+    mkdir_p,
     get_ctx_instance,
-    get_node_instance_dir
+    get_node_instance_dir,
+    desecretize_client_config
 )
 from nativeedge_kubernetes_sdk.connection.configuration import \
     KubeConfigConfigurationVariants
@@ -14,10 +16,16 @@ from nativeedge_kubernetes_sdk.connection.authentication import \
 
 try:
     from nativeedge import ctx as ctx_from_import
-    from nativeedge.exceptions import HttpException
+    from nativeedge.exceptions import (
+        HttpException,
+        NonRecoverableError
+    )
 except ImportError:
     from cloudify import ctx as ctx_from_import
-    from cloudify.exceptions import HttpException
+    from cloudify.exceptions import (
+        HttpException,
+        NonRecoverableError
+    )
 
 
 HOST = 'host'
@@ -26,6 +34,7 @@ API_KEY = 'api_key'
 CERT_KEY = 'k8s-cacert'
 API_OPTIONS = 'api_options'
 CONFIGURATION = 'configuration'
+PROXY_SETTINGS = 'proxy_settings'
 AUTHENTICATION = 'authentication'
 TOKEN_KEY = 'k8s-service-account-token'
 SSL_CA_CERT = 'ssl_ca_cert'
@@ -107,23 +116,9 @@ def get_ssl_ca_file(client_config, ca_from_shared_cluster=None):
             break
         if key == 'key_file':
             continue
-        value = configuration_property.get(key)
+        value = configuration_property.get(API_OPTIONS, {}).get(key)
 
-    if value and check_if_resource_inside_blueprint_folder(value):
-        f = NamedTemporaryFile(dir=get_node_instance_dir(), delete=False)
-        f.close()
-        ctx_from_import.download_resource(value, target_path=f.name)
-        ctx_from_import.logger.info(
-            'using CA file: {file}'.format(file=f.name))
-        return f.name
-
-    elif value and os.path.isfile(value):
-        ctx_from_import.logger.info('using CA file located at: {path}'.format(
-            path=value))
-        return value
-
-    elif value and not os.path.isfile(value):
-        # It means we have the ca as a string in the blueprint
+    if value and len(value.encode('utf-8')) > 1024:
         f = NamedTemporaryFile(
             'w',
             suffix='__cfy.helm.k8s__',
@@ -131,7 +126,22 @@ def get_ssl_ca_file(client_config, ca_from_shared_cluster=None):
             delete=False)
         f.write(value)
         f.close()
-        ctx_from_import.logger.info('using CA content from the blueprint.')
+        ctx_from_import.logger.info('Using CA content from client config...')
+        return f.name
+
+    elif value and os.path.isfile(value):
+        ctx_from_import.logger.info('Using CA file from path: {path}'.format(
+            path=value))
+        return value
+
+    elif value:
+        ctx_from_import.logger.info(
+            f'Attempting to download {value} from blueprint package...')
+        f = NamedTemporaryFile(dir=get_node_instance_dir(), delete=False)
+        f.close()
+        ctx_from_import.download_resource(value, target_path=f.name)
+        ctx_from_import.logger.info(
+            'Using CA file: {file}'.format(file=f.name))
         return f.name
 
     if not value and SSL_CA_CERT in configuration_property.get(
@@ -145,7 +155,7 @@ def get_ssl_ca_file(client_config, ca_from_shared_cluster=None):
         f.write(value)
         f.close()
         ctx_from_import.logger.info(
-            f'using CA content from the blueprint: {f.name}')
+            f'Using CA content from the blueprint: {f.name}')
         return f.name
 
     ctx_from_import.logger.info('CA file not found.')
@@ -185,3 +195,95 @@ def get_auth_token(client_config, token_from_shared_cluster):
 def get_host(client_config, host_from_shared_cluster):
     host = client_config.get(CONFIGURATION, {}).get(API_OPTIONS, {}).get(HOST)
     return host or host_from_shared_cluster
+
+
+def get_verify_ssl(client_config):
+    return client_config.get(
+        CONFIGURATION, {}).get(API_OPTIONS, {}).get('verify_ssl')
+
+
+def get_proxy_settings(client_config):
+    return client_config.get(
+        CONFIGURATION, {}).get(PROXY_SETTINGS, {})
+
+
+def create_file_in_task_id_temp(content):
+    dep_dir = get_node_instance_dir()
+    task_id_dir = os.path.join(dep_dir, ctx_from_import.task_id)
+    if not os.path.exists(task_id_dir):
+        mkdir_p(task_id_dir)
+    f = NamedTemporaryFile(delete=False, dir=task_id_dir)
+    f.write(str.encode(content))
+    f.close()
+    return f.name
+
+
+def get_nex(config):
+    """Get n(ative) e(dge) x(connection)."""
+    missing = []
+    nex = {}
+
+    def assign_nex_param(name, value, should_be_file=False):
+        """Assign n(ative) e(dge) x(connection) param(eter)."""
+        if not value:
+            missing.append(name)
+        if should_be_file and not is_file(value):
+            return create_file_in_task_id_temp(value)
+        return value
+
+    host = config.pop('host', None)
+    if isinstance(host, str) and not host.startswith('http'):
+        host = f'https://{host}'
+    port = config.pop('port', 6443)
+    ssl_ca_cert = config.pop('ssl_ca_cert', None)
+    key_file = config.pop('key_file', None)
+    cert_file = config.pop('cert_file', None)
+    token = config.pop('token', None)
+    verify_ssl = config.pop('verify_ssl', 'bearer token' if token else 'tls')
+    if any([host, ssl_ca_cert, key_file, cert_file, token]):
+        nex['host'] = f'{assign_nex_param("host", host)}:' \
+                      f'{assign_nex_param("port", port) or 6443}'
+        if ssl_ca_cert:
+            nex['ssl_ca_cert'] = assign_nex_param(
+                'ssl_ca_cert', ssl_ca_cert, True)
+        if verify_ssl.lower() == 'tls':
+            nex['key_file'] = assign_nex_param('key_file', key_file, True)
+            nex['cert_file'] = assign_nex_param('cert_file', cert_file, True)
+            nex['verify_ssl'] = True
+        elif verify_ssl.lower() == 'token':
+            nex['api_key'] = assign_nex_param('token', token)
+            nex['verify_ssl'] = False
+        if missing:
+            raise NonRecoverableError(
+                'The NativeEdge connection is incomplete. '
+                'The following parameters were not provided: '
+                f'[{", ".join(missing)}]'
+            )
+    return nex
+
+
+def set_client_config_defaults(default_config=None, _ctx=None):
+    _ctx = _ctx or ctx_from_import
+    default_config = default_config or {}
+    client_config = desecretize_client_config(
+        _ctx.node.properties.get('client_config', default_config))
+    client_config.setdefault('configuration', {})
+    client_config.setdefault('authentication', {})
+    default_api_options = get_nex(client_config)
+    if default_api_options and client_config['configuration'].get(
+            'api_options'):
+        raise NonRecoverableError(
+            'The configuration.api_options parameter '
+            'and the NativeEdge connection parameters'
+            ' are mutually exclusive.')
+    elif default_api_options:
+        client_config['configuration']['api_options'] = default_api_options
+    return client_config
+
+
+def is_file(content):
+    try:
+        open(content, 'r')
+        return True
+    finally:
+        return False
