@@ -1,4 +1,8 @@
 releases:
+  0.0.151:
+  - ticket: ne01d-183
+    developer: adam.terramel
+    description: Put the nativeedge kubernetes connection util in common.
   0.0.150:
   - ticket: ne-56651
     developer: yaniv.kaplan
