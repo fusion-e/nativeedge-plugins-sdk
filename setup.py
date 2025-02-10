@@ -17,6 +17,7 @@ def get_version():
         var = outfile.read()
         return re.search(r'\d+.\d+.\d+', var).group()
 
+
 install_requires = [
     'boto3',
     'psutil',
