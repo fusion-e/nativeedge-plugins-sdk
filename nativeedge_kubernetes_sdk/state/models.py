@@ -54,18 +54,17 @@ class KubernetesResourceStatus(object):
 class KubernetesJobStatus(KubernetesResourceStatus):
 
     def is_resource_ready(self):
-        conditions = self.status.get("conditions")
         failed = self.status.get('failed') or 0
         active = self.status.get('active') or 0
         if failed > 0:
             raise NonRecoverableError(
-                f'Job failed: {conditions}')
+                f'Job failed: {self.status}')
         elif active > 0:
             raise OperationRetry(
-                f'Waiting for jobs: {conditions}')
+                f'Waiting for jobs: {self.status}')
         else:
             ctx.logger.debug(
-                f'Jobs succeeded: {conditions}')
+                f'Jobs succeeded: {self.status}')
             return True
 
 
