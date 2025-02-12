@@ -91,8 +91,8 @@ class KubernetesServiceStatus(KubernetesResourceStatus):
     def status(self):
         spec = self._response.get('spec', {})
         service_type = spec.get('type', '').lower()
-        if service_type == 'loadbalancer':
-            status = self._status.get('status', {})
+        if service_type == ['loadbalancer', 'ingress']:
+            status = self._response.get('status', {})
             return status.get('load_balancer', {}).get('ingress', False)
         return True
 
@@ -119,7 +119,7 @@ class KubernetesPersistentVolumeClaimStatus(KubernetesResourceStatus):
 
     @property
     def status(self):
-        return self._status['status']['phase']
+        return self._status['phase']
 
     def is_resource_ready(self):
         if self.status in ['Pending', 'Available', 'Bound']:
@@ -136,7 +136,7 @@ class KubernetesPersistentVolumeStatus(KubernetesResourceStatus):
         return self._status['phase']
 
     def is_resource_ready(self):
-        if self.status['phase'] in ['Bound', 'Available']:
+        if self.status in ['Bound', 'Available']:
             ctx.logger.debug(self.status_message)
         else:
             raise OperationRetry(self.status_message)
