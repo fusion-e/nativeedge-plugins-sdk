@@ -34,6 +34,7 @@ API_KEY = 'api_key'
 CERT_KEY = 'k8s-cacert'
 API_OPTIONS = 'api_options'
 CONFIGURATION = 'configuration'
+PROXY_SETTINGS = 'proxy_settings'
 AUTHENTICATION = 'authentication'
 TOKEN_KEY = 'k8s-service-account-token'
 SSL_CA_CERT = 'ssl_ca_cert'
@@ -201,6 +202,11 @@ def get_verify_ssl(client_config):
         CONFIGURATION, {}).get(API_OPTIONS, {}).get('verify_ssl')
 
 
+def get_proxy_settings(client_config):
+    return client_config.get(
+        CONFIGURATION, {}).get(PROXY_SETTINGS, {})
+
+
 def create_file_in_task_id_temp(content):
     dep_dir = get_node_instance_dir()
     task_id_dir = os.path.join(dep_dir, ctx_from_import.task_id)
@@ -256,10 +262,11 @@ def get_nex(config):
     return nex
 
 
-def set_client_config_defaults(default_config=None):
+def set_client_config_defaults(default_config=None, _ctx=None):
+    _ctx = _ctx or ctx_from_import
     default_config = default_config or {}
     client_config = desecretize_client_config(
-        ctx_from_import.node.properties.get('client_config', default_config))
+        _ctx.node.properties.get('client_config', default_config))
     client_config.setdefault('configuration', {})
     client_config.setdefault('authentication', {})
     default_api_options = get_nex(client_config)

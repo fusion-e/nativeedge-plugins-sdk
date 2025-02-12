@@ -9,6 +9,7 @@ from nativeedge_kubernetes_sdk.connection.utils import (
     get_verify_ssl,
     get_auth_token,
     get_ssl_ca_file,
+    get_proxy_settings,
     get_kubeconfig_file,
     set_client_config_defaults,
     get_connection_details_from_shared_cluster,
@@ -52,6 +53,18 @@ def setup_configuration(**kwargs):
     if ca_file:
         configuration.ssl_ca_cert = ca_file
         configuration.verify_ssl = kwargs.get('verify_ssl', True)
+
+    proxy_url = kwargs.get('proxy')
+    if proxy_url:
+        ctx_from_import.logger.debug(f'Setting proxy_url: {proxy_url}')
+        configuration.proxy = proxy_url
+        proxy_headers = kwargs.get('proxy_headers')
+        if proxy_headers:
+            configuration.proxy_headers = proxy_headers
+        no_proxy = kwargs.get('no_proxy')
+        if no_proxy:
+            configuration.no_proxy = no_proxy
+
     return client.ApiClient(configuration)
 
 
@@ -79,6 +92,9 @@ def with_connection_details(fn):
                 'verify_ssl': verify_ssl
             }
         )
+        proxy_settings = get_proxy_settings(client_config)
+        if proxy_settings:
+            kwargs.update(proxy_settings)
         try:
             return fn(**kwargs)
         except Exception as e:
