@@ -91,7 +91,7 @@ class KubernetesServiceStatus(KubernetesResourceStatus):
     def status(self):
         spec = self._response.get('spec', {})
         service_type = spec.get('type', '').lower()
-        if service_type == ['loadbalancer', 'ingress']:
+        if service_type in ['loadbalancer', 'ingress']:
             status = self._response.get('status', {})
             return status.get('load_balancer', {}).get('ingress', False)
         return True
