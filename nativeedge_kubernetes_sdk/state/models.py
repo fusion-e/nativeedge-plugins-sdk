@@ -17,13 +17,10 @@ except ImportError:
 class KubernetesResourceStatus(object):
 
     def __init__(self, status=None, response=None, validate_status=False):
-        self._status = {}
-        if status:
-            self._status = status
-        elif response:
-            self._response = response or {}
+        self._status = status or {}
+        self._response = response or {}
+        if self._response:
             self._status = self.assign_status()
-
         self.validate_status = validate_status
 
     def assign_status(self):
