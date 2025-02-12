@@ -1,4 +1,8 @@
 releases:
+  0.0.152:
+  - ticket: ne01d-182
+    developer: adam.terramel
+    description: Add "Job" type to kubernetes validate resource status.
   0.0.151:
   - ticket: ne01d-183
     developer: adam.terramel
