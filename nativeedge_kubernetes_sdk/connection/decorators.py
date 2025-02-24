@@ -6,6 +6,8 @@ from kubernetes import client, config
 from nativeedge_common_sdk.utils import uses_debug_node
 from nativeedge_kubernetes_sdk.connection.utils import (
     get_host,
+    get_key_file,
+    get_cert_file,
     get_verify_ssl,
     get_auth_token,
     get_ssl_ca_file,
@@ -83,13 +85,17 @@ def with_connection_details(fn):
             ctx.download_resource)
         ca_file = get_ssl_ca_file(
             client_config, shared_cluster.get('ssl_ca_cert'))
+        key_file = get_key_file(client_config)
+        cert_file = get_cert_file(client_config)
         kwargs.update(
             {
                 'kubeconfig': kubeconfig,
                 'ca_file': ca_file,
                 'token': token,
                 'host': host,
-                'verify_ssl': verify_ssl
+                'verify_ssl': verify_ssl,
+                'key_file': key_file,
+                'cert_file': cert_file
             }
         )
         proxy_settings = get_proxy_settings(client_config)

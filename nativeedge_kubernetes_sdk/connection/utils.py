@@ -202,6 +202,16 @@ def get_verify_ssl(client_config):
         CONFIGURATION, {}).get(API_OPTIONS, {}).get('verify_ssl')
 
 
+def get_cert_file(client_config):
+    return client_config.get(
+        CONFIGURATION, {}).get(API_OPTIONS, {}).get('cert_file')
+
+
+def get_key_file(client_config):
+    return client_config.get(
+        CONFIGURATION, {}).get(API_OPTIONS, {}).get('key_file')
+
+
 def get_proxy_settings(client_config):
     return client_config.get(
         CONFIGURATION, {}).get(PROXY_SETTINGS, {})
