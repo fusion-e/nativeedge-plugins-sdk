@@ -13,6 +13,7 @@ from nativeedge_kubernetes_sdk.connection.configuration import \
     KubeConfigConfigurationVariants
 from nativeedge_kubernetes_sdk.connection.authentication import \
     KubernetesApiAuthenticationVariants
+from nativeedge_kubernetes_sdk.connection.oxy import get_proxy_url
 
 try:
     from nativeedge import ctx as ctx_from_import
@@ -212,11 +213,6 @@ def get_key_file(client_config):
         CONFIGURATION, {}).get(API_OPTIONS, {}).get('key_file')
 
 
-def get_proxy_settings(client_config):
-    return client_config.get(
-        CONFIGURATION, {}).get(PROXY_SETTINGS, {})
-
-
 def create_file_in_task_id_temp(content):
     dep_dir = get_node_instance_dir()
     task_id_dir = os.path.join(dep_dir, ctx_from_import.task_id)
@@ -297,3 +293,28 @@ def is_file(content):
         return True
     finally:
         return False
+
+
+def get_proxy_settings(client_config):
+    d = client_config.get(
+        CONFIGURATION, {}).get(PROXY_SETTINGS, {})
+    proxy = d.get('proxy')
+    no_proxy = d.get('no_proxy', [])
+    target_ip = d.get('target_ip')
+    service_tag = d.get('service_tag')
+    if target_ip and not service_tag:
+        raise NonRecoverableError(
+            'Invalid proxy_settings, target_ip was provided, '
+            'but service_tag is missing.'
+        )
+    elif service_tag and not target_ip:
+        raise NonRecoverableError(
+            'Invalid proxy_settings, service_tag was provided, '
+            'but target_ip is missing.'
+        )
+    elif all([target_ip, service_tag]):
+        proxy = get_proxy_url(target_ip, service_tag)
+    return {
+        'proxy': proxy,
+        'no_proxy': no_proxy
+    }
