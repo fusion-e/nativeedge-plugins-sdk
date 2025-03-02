@@ -1,4 +1,11 @@
 releases:
+  0.0.153:
+  - ticket: NE01D-189
+    developer: adam.terramel
+    description: Verify checksums.
+  - ticket: DSPE-3297
+    developer: adam.terramel
+    description: Proxy discovery.
   0.0.152:
   - ticket: ne01d-182
     developer: adam.terramel

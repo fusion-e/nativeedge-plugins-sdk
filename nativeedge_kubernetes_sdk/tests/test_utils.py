@@ -40,10 +40,10 @@ class TestKubernetesConnectionUtils(TestCase):
         create_file_in_task_id_temp.side_effect = [
             'bar', 'baz', 'qux'
         ]
-        self.assertEquals(utils.get_nex({}), {})
+        self.assertEqual(utils.get_nex({}), {})
         with self.assertRaises(NonRecoverableError):
             utils.get_nex({'verify_ssl': 'foo', 'token': 'bar'})
-        self.assertEquals(
+        self.assertEqual(
             utils.get_nex(
                 {
                     'host': 'foo',

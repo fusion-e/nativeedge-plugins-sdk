@@ -475,13 +475,12 @@ def resolve_intrinsic_functions(prop, dep_id=None):
     :return: The resolved property value from intrinsic function.
     :rtype: Any JSON serializable value.
     """
-
     if isinstance(prop, str):
         try:
             tmp_prop = json.loads(prop)
             if isinstance(tmp_prop, dict) and 'get_secret' in tmp_prop:
                 prop = tmp_prop
-        except json.decoder.JSONDecodeError:
+        except Exception:
             pass
 
     if isinstance(prop, dict):
@@ -681,7 +680,7 @@ class CommonSDKSecret(IntrinsicFunction):
                 # json.loads because secrets are stored as strings :(
                 try:
                     secret_value = json.loads(secret_value)
-                except json.decoder.JSONDecodeError:
+                except Exception:
                     pass
                 # evaluate path only if the secret is not str
                 # this introduced because at some cases we are getting
