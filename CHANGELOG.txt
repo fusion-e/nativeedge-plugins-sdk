@@ -1,4 +1,8 @@
 releases:
+  0.0.154:
+  - ticket: DSPE-3297
+    developer: adam.terramel
+    description: Proxy discovery.
   0.0.153:
   - ticket: NE01D-189
     developer: adam.terramel

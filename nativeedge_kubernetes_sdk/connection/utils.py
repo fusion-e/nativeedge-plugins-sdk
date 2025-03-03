@@ -312,8 +312,8 @@ def get_proxy_settings(client_config):
             'Invalid proxy_settings, service_tag was provided, '
             'but target_ip is missing.'
         )
-    elif all([target_ip, service_tag]):
-        proxy = get_proxy_url(target_ip, service_tag)
+    elif all([service_tag, target_ip]):
+        proxy = get_proxy_url(service_tag, target_ip)
     return {
         'proxy': proxy,
         'no_proxy': no_proxy
