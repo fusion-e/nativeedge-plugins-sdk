@@ -1,4 +1,12 @@
 releases:
+  0.0.155:
+  - ticket:DSPE-4298
+    developer: adam.terramel
+    description: Proxy and Token
+  - ticket:DSPE-4578
+    developer: adam.terramel
+    description: Proxy and Token
+
   0.0.154:
   - ticket: DSPE-3297
     developer: adam.terramel

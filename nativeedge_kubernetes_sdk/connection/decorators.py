@@ -34,12 +34,15 @@ CERT_KEYS = ['ssl_ca_cert', 'cert_file', 'key_file', 'ca_file']
 def setup_configuration(**kwargs):
     if 'kubeconfig' in kwargs:
         if isinstance(kwargs['kubeconfig'], client.Configuration):
-            return client.ApiClient(kwargs['kubeconfig'])
+            api_client = client.ApiClient(kwargs['kubeconfig'])
         elif isinstance(kwargs['kubeconfig'], str) and \
                 os.path.exists(kwargs['kubeconfig']):
-            return config.new_client_from_config(kwargs['kubeconfig'])
+            api_client = config.new_client_from_config(kwargs['kubeconfig'])
         else:
-            return config.new_client_from_config_dict(kwargs['kubeconfig'])
+            api_client = config.new_client_from_config_dict(
+                kwargs['kubeconfig'])
+        assign_proxy_to_configuration(api_client.configuration, kwargs)
+        return api_client
     configuration = client.Configuration()
     if 'host' in kwargs:
         configuration.host = kwargs['host']
@@ -55,7 +58,11 @@ def setup_configuration(**kwargs):
     if ca_file:
         configuration.ssl_ca_cert = ca_file
         configuration.verify_ssl = kwargs.get('verify_ssl', True)
+    assign_proxy_to_configuration(configuration, kwargs)
+    return client.ApiClient(configuration)
 
+
+def assign_proxy_to_configuration(configuration, kwargs):
     proxy_url = kwargs.get('proxy')
     if proxy_url:
         ctx_from_import.logger.debug(f'Setting proxy_url: {proxy_url}')
@@ -66,8 +73,6 @@ def setup_configuration(**kwargs):
         no_proxy = kwargs.get('no_proxy')
         if no_proxy:
             configuration.no_proxy = no_proxy
-
-    return client.ApiClient(configuration)
 
 
 def with_connection_details(fn):

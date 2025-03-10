@@ -121,17 +121,23 @@ class ApiOptionsConfiguration(KubernetesConfiguration):
             cert_file = api_options.get('cert_file')
             key_file = api_options.get('key_file')
             ssl_ca_cert = api_options.get('ssl_ca_cert')
+            verify_ssl = api_options.get('verify_ssl', False)
             if api_key:
                 api_options['api_key'] = {
                     "authorization": "Bearer {0}".format(api_key)
                 }
                 setattr(configuration, 'api_key', api_options['api_key'])
+                if host:
+                    setattr(configuration, 'host', host)
+                if ssl_ca_cert:
+                    setattr(configuration, 'ssl_ca_cert', ssl_ca_cert)
+                if verify_ssl:
+                    setattr(configuration, 'verify_ssl', verify_ssl)
             elif all([host, ssl_ca_cert, cert_file, key_file]):
                 setattr(configuration, 'host', host)
                 setattr(configuration, 'ssl_ca_cert', ssl_ca_cert)
                 setattr(configuration, 'cert_file', cert_file)
                 setattr(configuration, 'key_file', key_file)
-                verify_ssl = api_options.get('verify_ssl', False)
                 if verify_ssl is False:
                     setattr(configuration, 'verify_ssl', False)
             return configuration
