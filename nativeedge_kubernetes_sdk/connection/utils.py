@@ -258,7 +258,7 @@ def get_nex(config):
             nex['verify_ssl'] = True
         elif verify_ssl.lower() == 'token':
             nex['api_key'] = assign_nex_param('token', token)
-            nex['verify_ssl'] = False
+            nex['verify_ssl'] = True if ssl_ca_cert else False
         if missing:
             raise NonRecoverableError(
                 'The NativeEdge connection is incomplete. '
