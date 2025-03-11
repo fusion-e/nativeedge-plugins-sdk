@@ -32,8 +32,11 @@ class SecureLogger(object):
             hide = parent_hide or (key in self.sensitive_keys)
             value = data[key]
             if isinstance(value, (list, dict)):
-                value = self.filter_message(value)
-            data[key] = '*' * len(str(value)) if hide else value
+                value = self.filter_message(value, hide)
+            if hide and isinstance(value, str):
+                data[key] = '*' * len(str(value))
+            else:
+                data[key] = value
         return data
 
     def format_data(self, data, parent_hide=False):
@@ -46,12 +49,13 @@ class SecureLogger(object):
             return items
         return data
 
-    def filter_message(self, data):
-        log_message = self.format_data(data)
+    def filter_message(self, data, parent_hide=False):
+        log_message = self.format_data(data, parent_hide)
         log_message = obfuscate_passwords(
             log_message,
             self.obfuscation_re,
-            self.sensitive_keys)
+            self.sensitive_keys
+        )
         return log_message
 
     def info(self, message):

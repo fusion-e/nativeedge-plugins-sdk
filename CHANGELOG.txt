@@ -1,4 +1,8 @@
 releases:
+  0.0.157:
+  - ticket: DSPE-4685
+    developer: adam.terramel
+    description: secure logger
   0.0.156:
   - ticket: DSPE-4298
     developer: adam.terramel
