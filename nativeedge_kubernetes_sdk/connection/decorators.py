@@ -82,7 +82,6 @@ def with_connection_details(fn):
             kwargs.get('client_config'))
         shared_cluster = get_connection_details_from_shared_cluster()
         token = get_auth_token(client_config, shared_cluster.get('api_key'))
-        verify_ssl = get_verify_ssl(client_config)
         host = get_host(client_config, shared_cluster.get('host'))
         kubeconfig = get_kubeconfig_file(
             client_config,
@@ -90,6 +89,7 @@ def with_connection_details(fn):
             ctx.download_resource)
         ca_file = get_ssl_ca_file(
             client_config, shared_cluster.get('ssl_ca_cert'))
+        verify_ssl = get_verify_ssl(client_config, ca_file)
         key_file = get_key_file(client_config)
         cert_file = get_cert_file(client_config)
         kwargs.update(
