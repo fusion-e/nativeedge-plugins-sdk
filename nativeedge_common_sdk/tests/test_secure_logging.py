@@ -10,13 +10,25 @@ class TestSecureLogging(unittest.TestCase):
         mock_logger = mock.MagicMock()
         secure_logger = SecureLogger(mock_logger, ['foo', 'bar', 'baz'])
         sent = [{'foo': 'foo', 'bar': 'bar', 'baz': 'baz'}]
+        sent2 = {
+            'foo': {
+                'bar': 'baz'
+            }
+        }
+        expected2 = {
+            'foo': {
+                'bar': '***'
+            }
+        }
         expected = [{'foo': '***', 'bar': '***', 'baz': '***'}]
         secure_logger.info(sent)
+        secure_logger.info(sent2)
         secure_logger.info(f'Result: {sent}')
         secure_logger.info(f'Filter foo, bar, baz and got {sent}.')
         mock_logger.info.assert_has_calls(
             [
                 mock.call(expected),
+                mock.call(expected2),
                 mock.call(f'Result: {expected}'),
                 mock.call(
                     f'Filter foo, bar, baz and got {expected}.'
