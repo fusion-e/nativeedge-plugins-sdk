@@ -3,8 +3,7 @@ import requests
 from nativeedge import ctx
 from nativeedge.exceptions import NonRecoverableError
 
-EOPROXY_URL = \
-    'http://hzp-eoproxy-svc.hzp.svc.cluster.local:8080/api/v1/eoproxy'
+EOPROXY_URL = 'http://hzp-eoproxy-svc:8080/api/v1/eoproxy'
 HEADERS = {
     'Content-Type': 'application/json',
 }

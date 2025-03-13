@@ -42,7 +42,7 @@ class TestSecureLogging(unittest.TestCase):
         sent = [{'foo': 'foo', 'bar': 'bar', 'baz': 'baz'}]
         expected = [{'foo': '***', 'bar': '***', 'baz': '***'}]
         secure_logger.format_message('my dict {sent}', {'sent': sent})
-        mock_logger.info.assert_has_calls(
+        mock_logger.debug.assert_has_calls(
             [
                 mock.call('my dict {expected}'.format(expected=expected)),
             ]

@@ -1,9 +1,16 @@
 import re
+from copy import deepcopy
 
 from nativeedge_common_sdk.filters import (
     obfuscate_passwords,
     OBFUSCATION_KEYWORDS
 )
+
+VALID_LEVELS = {
+    'info': 'info',
+    'error': 'error',
+    'debug': 'debug'
+}
 
 
 class SecureLogger(object):
@@ -31,8 +38,12 @@ class SecureLogger(object):
         for key in list(data.keys()):
             hide = parent_hide or (key in self.sensitive_keys)
             value = data[key]
-            if isinstance(value, (list, dict)):
-                value = self.filter_message(value, hide)
+            if isinstance(value, list):
+                value = self.filter_message(value)
+            elif isinstance(value, dict):
+                value = self.format_dict(value, hide)
+            elif hasattr(value, 'to_dict'):
+                value = self.format_dict(value.to_dict(), hide)
             if hide and isinstance(value, str):
                 data[key] = '*' * len(str(value))
             else:
@@ -67,7 +78,13 @@ class SecureLogger(object):
     def error(self, message):
         self._logger.error(self.filter_message(message))
 
-    def format_message(self, message, format_kwargs):
-        self._logger.info(
-            message.format(**self.filter_message(format_kwargs))
+    def format_message(self, message, format_kwargs, level=None):
+        level = VALID_LEVELS.get(level, 'debug')
+        logger = getattr(self._logger, level)
+        logger(
+            message.format(
+                **self.filter_message(
+                    deepcopy(format_kwargs)
+                )
+            )
         )
