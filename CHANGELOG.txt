@@ -1,8 +1,15 @@
 releases:
+  0.0.159:
+  - ticket: DSPE-4298
+    developer: adam.terramel
+    description: Proxy and Token
   0.0.158:
   - ticket: DSPE-4745
     developer: adam.terramel
     description: Change URL for proxy discovery.
+  - ticket: DSPE-4685
+    developer: adam.terramel
+    description: secure logger improvements
   0.0.157:
   - ticket: DSPE-4685
     developer: adam.terramel
