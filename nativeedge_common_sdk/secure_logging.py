@@ -1,7 +1,6 @@
 import re
 from copy import deepcopy
 
-from nativeedge_common_sdk.clean_json import JsonCleanuper
 from nativeedge_common_sdk.filters import (
     obfuscate_passwords,
     OBFUSCATION_KEYWORDS
