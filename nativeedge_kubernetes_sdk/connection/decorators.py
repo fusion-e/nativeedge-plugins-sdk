@@ -1,7 +1,7 @@
 # Copyright © 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 import os
-import urllib.parse
+from urllib.parse import urlparse
 
 from kubernetes import client, config
 from nativeedge_common_sdk.utils import uses_debug_node
@@ -66,7 +66,7 @@ def setup_configuration(**kwargs):
 def assign_proxy_to_configuration(configuration, kwargs):
     proxy_url = kwargs.get('proxy')
     if proxy_url:
-        hostname = urllib.parse(configuration.host).hostname
+        hostname = urlparse(configuration.host).hostname
         ctx_from_import.logger.debug(f'Setting proxy_url: {proxy_url}')
         configuration.proxy = proxy_url
         configuration.tls_server_name = hostname
