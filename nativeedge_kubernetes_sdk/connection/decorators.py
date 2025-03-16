@@ -71,6 +71,13 @@ def assign_proxy_to_configuration(configuration, kwargs):
             configuration.http_proxy_url = proxy_url
         except Exception:
             ctx_from_import.logger.info('configuration.http_proxy_url = proxy_url did not work')
+        try:
+            ctx_from_import.logger.info('Attempting to override loggers')
+            configuration.logger['package_logger'] = ctx_from_import.logger
+            configuration.logger['urllib3_logger'] = ctx_from_import.logger
+            configuration.debug = True
+        except Exception as e:
+            ctx_from_import.logger.error(f'Failed to override loggers: {e}')
         ctx_from_import.logger.info('.01')
         # os.environ['HTTP_PROXY'] = proxy_url
         ctx_from_import.logger.info('.02')
