@@ -74,6 +74,11 @@ def assign_proxy_to_configuration(configuration, kwargs):
             configuration.http_proxy_url = proxy_url
         except Exception:
             ctx_from_import.logger.info('configuration.http_proxy_url = proxy_url did not work')
+        try:
+            import ssl
+            ctx_from_import.logger.info(f'{ssl.OPENSSL_VERSION}')
+        except Exception:
+            ctx_from_import.logger.info(f'Failed to get openssl version.')
         # try:
         #     ctx_from_import.logger.info('Delete proxy from host')
         #     configuration.host = None
