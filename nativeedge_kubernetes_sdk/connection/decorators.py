@@ -72,6 +72,11 @@ def assign_proxy_to_configuration(configuration, kwargs):
         except Exception:
             ctx_from_import.logger.info('configuration.http_proxy_url = proxy_url did not work')
         try:
+            ctx_from_import.logger.info('Delete proxy from host')
+            configuration.host = None
+        except Exception as e:
+            ctx_from_import.logger.error(f'failed to del config host: {e}')
+        try:
             ctx_from_import.logger.info('Attempting to override loggers')
             configuration.logger['package_logger'] = ctx_from_import.logger
             configuration.logger['urllib3_logger'] = ctx_from_import.logger
