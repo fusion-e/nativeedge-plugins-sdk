@@ -84,13 +84,13 @@ def assign_proxy_to_configuration(configuration, kwargs):
         #     configuration.host = None
         # except Exception as e:
         #     ctx_from_import.logger.error(f'failed to del config host: {e}')
-        try:
-            ctx_from_import.logger.info('Attempting to override loggers')
-            configuration.logger['package_logger'] = ctx_from_import.logger
-            configuration.logger['urllib3_logger'] = ctx_from_import.logger
-            configuration.debug = True
-        except Exception as e:
-            ctx_from_import.logger.error(f'Failed to override loggers: {e}')
+        # try:
+        #     ctx_from_import.logger.info('Attempting to override loggers')
+        #     configuration.logger['package_logger'] = ctx_from_import.logger
+        #     configuration.logger['urllib3_logger'] = ctx_from_import.logger
+        #     configuration.debug = True
+        # except Exception as e:
+        #     ctx_from_import.logger.error(f'Failed to override loggers: {e}')
         ctx_from_import.logger.info('.01')
         # os.environ['HTTP_PROXY'] = proxy_url
         ctx_from_import.logger.info('.02')
