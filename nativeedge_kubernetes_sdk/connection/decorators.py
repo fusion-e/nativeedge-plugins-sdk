@@ -68,7 +68,7 @@ def assign_proxy_to_configuration(configuration, kwargs):
         ctx_from_import.logger.debug(f'Setting proxy_url: {proxy_url}')
         configuration.proxy = proxy_url
         ctx_from_import.logger.info('.01')
-        os.environ['HTTP_PROXY'] = proxy_url
+        # os.environ['HTTP_PROXY'] = proxy_url
         ctx_from_import.logger.info('.02')
         proxy_headers = kwargs.get('proxy_headers')
         if proxy_headers:
