@@ -70,6 +70,7 @@ def assign_proxy_to_configuration(configuration, kwargs):
         ctx_from_import.logger.debug(f'Setting proxy_url: {proxy_url}')
         configuration.proxy = proxy_url
         configuration.tls_server_name = hostname
+        # configuration.host = proxy_url
         try:
             configuration.http_proxy_url = proxy_url
         except Exception:

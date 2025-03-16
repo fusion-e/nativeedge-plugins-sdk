@@ -3,6 +3,9 @@
 import os
 from tempfile import NamedTemporaryFile
 
+import urllib3
+from kubernetes import client
+
 from nativeedge_common_sdk.utils import (
     mkdir_p,
     get_ctx_instance,
@@ -318,3 +321,15 @@ def get_proxy_settings(client_config):
         'proxy': proxy,
         'no_proxy': no_proxy
     }
+
+
+def assign_default_proxy(proxy=None, no_proxy=None):
+    no_proxy = no_proxy or []
+    conf = client.Configuration()
+    conf.debug = True
+    if proxy:
+        headers = urllib3.make_headers(user_agent='kubernetes-plugin')
+        conf.proxy_headers = headers
+        conf.proxy = proxy
+        conf.no_proxy = proxy
+    client.Configuration.set_default(conf)
