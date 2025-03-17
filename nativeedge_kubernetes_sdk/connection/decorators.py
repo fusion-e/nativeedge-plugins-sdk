@@ -34,8 +34,8 @@ CERT_KEYS = ['ssl_ca_cert', 'cert_file', 'key_file', 'ca_file']
 
 def setup_configuration(**kwargs):
     if 'kubeconfig' in kwargs:
-        http_env = os.environ.pop('HTTP_PROXY')
-        https_env = os.environ.pop('HTTPS_PROXY')
+        http_env = os.environ.pop('HTTP_PROXY', None)
+        https_env = os.environ.pop('HTTPS_PROXY', None)
         if isinstance(kwargs['kubeconfig'], client.Configuration):
             api_client = client.ApiClient(kwargs['kubeconfig'])
         elif isinstance(kwargs['kubeconfig'], str) and \
