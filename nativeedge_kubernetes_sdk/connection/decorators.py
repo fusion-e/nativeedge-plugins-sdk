@@ -85,11 +85,11 @@ def setup_configuration(**kwargs):
 def assign_proxy_to_configuration(configuration, kwargs):
     proxy_url = kwargs.get('proxy')
     if proxy_url:
-        hostname = urlparse(configuration.host).hostname
+        # hostname = urlparse(configuration.host).hostname
         ctx_from_import.logger.debug(f'Setting proxy_url: {proxy_url}')
         configuration.proxy = proxy_url
-        ctx_from_import.logger.debug(f'Setting tls_server_name: {hostname}')
-        configuration.tls_server_name = hostname
+        # ctx_from_import.logger.debug(f'Setting tls_server_name: {hostname}')
+        # configuration.tls_server_name = hostname
         ctx_from_import.logger.debug('Setting debug true.')
         configuration.debug = True
         proxy_headers = kwargs.get('proxy_headers')
