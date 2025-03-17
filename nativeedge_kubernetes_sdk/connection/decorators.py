@@ -34,17 +34,20 @@ CERT_KEYS = ['ssl_ca_cert', 'cert_file', 'key_file', 'ca_file']
 
 def setup_configuration(**kwargs):
     if 'kubeconfig' in kwargs:
+        http_env = os.environ.pop('HTTP_PROXY')
+        https_env = os.environ.pop('HTTPS_PROXY')
         if isinstance(kwargs['kubeconfig'], client.Configuration):
-            ctx_from_import.logger.info('c1')
             api_client = client.ApiClient(kwargs['kubeconfig'])
         elif isinstance(kwargs['kubeconfig'], str) and \
                 os.path.exists(kwargs['kubeconfig']):
-            ctx_from_import.logger.info('c2')
             api_client = config.new_client_from_config(kwargs['kubeconfig'])
         else:
-            ctx_from_import.logger.info('c3')
             api_client = config.new_client_from_config_dict(
                 kwargs['kubeconfig'])
+        if http_env:
+            os.environ['HTTP_PROXY'] = http_env
+        if https_env:
+            os.environ['HTTPS_PROXY'] = https_env
         assign_proxy_to_configuration(api_client.configuration, kwargs)
         return api_client
     configuration = client.Configuration()
@@ -72,39 +75,16 @@ def assign_proxy_to_configuration(configuration, kwargs):
         hostname = urlparse(configuration.host).hostname
         ctx_from_import.logger.debug(f'Setting proxy_url: {proxy_url}')
         configuration.proxy = proxy_url
+        ctx_from_import.logger.debug(f'Setting tls_server_name: {hostname}')
         configuration.tls_server_name = hostname
-        # configuration.host = proxy_url
-        try:
-            configuration.http_proxy_url = proxy_url
-        except Exception:
-            ctx_from_import.logger.info('configuration.http_proxy_url = proxy_url did not work')
-        try:
-            import ssl
-            ctx_from_import.logger.info(f'{ssl.OPENSSL_VERSION}')
-        except Exception:
-            ctx_from_import.logger.info(f'Failed to get openssl version.')
-        # try:
-        #     ctx_from_import.logger.info('Delete proxy from host')
-        #     configuration.host = None
-        # except Exception as e:
-        #     ctx_from_import.logger.error(f'failed to del config host: {e}')
-        # try:
-        #     ctx_from_import.logger.info('Attempting to override loggers')
-        #     configuration.logger['package_logger'] = ctx_from_import.logger
-        #     configuration.logger['urllib3_logger'] = ctx_from_import.logger
-        #     configuration.debug = True
-        # except Exception as e:
-        #     ctx_from_import.logger.error(f'Failed to override loggers: {e}')
-        ctx_from_import.logger.info('.01')
-        # os.environ['HTTP_PROXY'] = proxy_url
-        ctx_from_import.logger.info('.02')
+        ctx_from_import.logger.debug('Setting debug true.')
+        configuration.debug = True
         proxy_headers = kwargs.get('proxy_headers')
         if proxy_headers:
             configuration.proxy_headers = proxy_headers
         no_proxy = kwargs.get('no_proxy')
         if no_proxy:
             configuration.no_proxy = no_proxy
-        ctx_from_import.logger.info('.03')
 
 
 def with_connection_details(fn):
