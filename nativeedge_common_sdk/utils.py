@@ -412,7 +412,7 @@ def desecretize_client_config(config):
                 if isinstance(value, CommonSDKSecret):
                     resolved[res_key] = res_value.secret
         elif isinstance(resolved, CommonSDKSecret):
-            resolved = res_value.secret
+            resolved = resolved.secret
         config[key] = resolved
     return config
 

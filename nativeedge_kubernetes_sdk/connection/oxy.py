@@ -57,7 +57,7 @@ def get_proxy_url(service_tag, target_ip):
     response = call_request(data)
     host, port = get_host_and_port(response)
     if host and port:
-        proxy_url = f'http://{host}:{port}'
+        proxy_url = f'https://{host}:{port}'
         ctx.logger.info(f'Successfully got proxy URL: {proxy_url}.')
         return proxy_url
     else:
