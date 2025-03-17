@@ -35,11 +35,14 @@ CERT_KEYS = ['ssl_ca_cert', 'cert_file', 'key_file', 'ca_file']
 def setup_configuration(**kwargs):
     if 'kubeconfig' in kwargs:
         if isinstance(kwargs['kubeconfig'], client.Configuration):
+            ctx_from_import.logger.info('c1')
             api_client = client.ApiClient(kwargs['kubeconfig'])
         elif isinstance(kwargs['kubeconfig'], str) and \
                 os.path.exists(kwargs['kubeconfig']):
+            ctx_from_import.logger.info('c2')
             api_client = config.new_client_from_config(kwargs['kubeconfig'])
         else:
+            ctx_from_import.logger.info('c3')
             api_client = config.new_client_from_config_dict(
                 kwargs['kubeconfig'])
         assign_proxy_to_configuration(api_client.configuration, kwargs)

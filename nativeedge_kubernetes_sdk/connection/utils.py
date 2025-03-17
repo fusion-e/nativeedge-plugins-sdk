@@ -317,6 +317,7 @@ def get_proxy_settings(client_config):
         )
     elif all([service_tag, target_ip]):
         proxy = get_proxy_url(service_tag, target_ip)
+    assign_default_proxy(proxy, no_proxy)
     return {
         'proxy': proxy,
         'no_proxy': no_proxy
