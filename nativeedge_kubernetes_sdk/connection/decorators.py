@@ -33,6 +33,19 @@ CERT_KEYS = ['ssl_ca_cert', 'cert_file', 'key_file', 'ca_file']
 
 
 def setup_configuration(**kwargs):
+    try:
+        ctx_from_import.logger.info('Trying to intercept loggers.')
+        import logging
+        loggers = []
+        loggers.append(logging.getLogger('client'))
+        loggers.append(logging.getLogger('urllib3'))
+        for logger in loggers:
+            ctx_from_import.logger.info(f'Setting {logger} to INFO')
+            logger.setLevel(logging.INFO)
+            # logger.addHandler(ctx._endpoint.get_logging_handler())
+    except Exception:
+        ctx_from_import.logger.info(f'Failed intercepting loggers.')
+
     if 'kubeconfig' in kwargs:
         http_env = os.environ.pop('HTTP_PROXY', None)
         https_env = os.environ.pop('HTTPS_PROXY', None)
