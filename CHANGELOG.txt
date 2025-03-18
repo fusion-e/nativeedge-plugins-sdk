@@ -1,4 +1,12 @@
 releases:
+  0.0.161:
+  - ticket: DSPE-4745
+    developer: adam.terramel
+    description: Change URL for proxy discovery.
+  0.0.160:
+  - ticket: DSPE-4745
+    developer: adam.terramel
+    description: Unreleased.
   0.0.159:
   - ticket: DSPE-4298
     developer: adam.terramel

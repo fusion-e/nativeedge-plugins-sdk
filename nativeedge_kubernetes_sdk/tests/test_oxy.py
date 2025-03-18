@@ -73,4 +73,4 @@ class TestOxy(TestCase):
             }
         }
         mock_call_request.assert_called_once_with(expected_data)
-        self.assertEqual(result, 'http://host:port')
+        self.assertEqual(result, 'https://host:port')
