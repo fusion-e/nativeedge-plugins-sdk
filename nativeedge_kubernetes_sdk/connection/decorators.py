@@ -6,9 +6,14 @@ from kubernetes import client, config
 from nativeedge_common_sdk.utils import uses_debug_node
 from nativeedge_kubernetes_sdk.connection.utils import (
     get_host,
+    get_key_file,
+    get_cert_file,
+    get_verify_ssl,
     get_auth_token,
     get_ssl_ca_file,
+    get_proxy_settings,
     get_kubeconfig_file,
+    set_client_config_defaults,
     get_connection_details_from_shared_cluster,
 )
 
@@ -29,12 +34,15 @@ CERT_KEYS = ['ssl_ca_cert', 'cert_file', 'key_file', 'ca_file']
 def setup_configuration(**kwargs):
     if 'kubeconfig' in kwargs:
         if isinstance(kwargs['kubeconfig'], client.Configuration):
-            return client.ApiClient(kwargs['kubeconfig'])
+            api_client = client.ApiClient(kwargs['kubeconfig'])
         elif isinstance(kwargs['kubeconfig'], str) and \
                 os.path.exists(kwargs['kubeconfig']):
-            return config.new_client_from_config(kwargs['kubeconfig'])
+            api_client = config.new_client_from_config(kwargs['kubeconfig'])
         else:
-            return config.new_client_from_config_dict(kwargs['kubeconfig'])
+            api_client = config.new_client_from_config_dict(
+                kwargs['kubeconfig'])
+        assign_proxy_to_configuration(api_client.configuration, kwargs)
+        return api_client
     configuration = client.Configuration()
     if 'host' in kwargs:
         configuration.host = kwargs['host']
@@ -50,15 +58,28 @@ def setup_configuration(**kwargs):
     if ca_file:
         configuration.ssl_ca_cert = ca_file
         configuration.verify_ssl = kwargs.get('verify_ssl', True)
+    assign_proxy_to_configuration(configuration, kwargs)
     return client.ApiClient(configuration)
+
+
+def assign_proxy_to_configuration(configuration, kwargs):
+    proxy_url = kwargs.get('proxy')
+    if proxy_url:
+        ctx_from_import.logger.debug(f'Setting proxy_url: {proxy_url}')
+        configuration.proxy = proxy_url
+        proxy_headers = kwargs.get('proxy_headers')
+        if proxy_headers:
+            configuration.proxy_headers = proxy_headers
+        no_proxy = kwargs.get('no_proxy')
+        if no_proxy:
+            configuration.no_proxy = no_proxy
 
 
 def with_connection_details(fn):
     def wrapper(**kwargs):
         ctx = kwargs.get('ctx', ctx_from_import)
-        config_key = kwargs.get('config_key', 'client_config')
-        client_config = ctx.node.properties.get(config_key)
-        # TODO: Logic when to use stored property
+        client_config = set_client_config_defaults(
+            kwargs.get('client_config'))
         shared_cluster = get_connection_details_from_shared_cluster()
         token = get_auth_token(client_config, shared_cluster.get('api_key'))
         host = get_host(client_config, shared_cluster.get('host'))
@@ -68,14 +89,23 @@ def with_connection_details(fn):
             ctx.download_resource)
         ca_file = get_ssl_ca_file(
             client_config, shared_cluster.get('ssl_ca_cert'))
+        verify_ssl = get_verify_ssl(client_config)
+        key_file = get_key_file(client_config)
+        cert_file = get_cert_file(client_config)
         kwargs.update(
             {
                 'kubeconfig': kubeconfig,
                 'ca_file': ca_file,
                 'token': token,
                 'host': host,
+                'verify_ssl': verify_ssl,
+                'key_file': key_file,
+                'cert_file': cert_file
             }
         )
+        proxy_settings = get_proxy_settings(client_config)
+        if proxy_settings:
+            kwargs.update(proxy_settings)
         try:
             return fn(**kwargs)
         except Exception as e:

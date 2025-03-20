@@ -17,13 +17,10 @@ except ImportError:
 class KubernetesResourceStatus(object):
 
     def __init__(self, status=None, response=None, validate_status=False):
-        self._status = {}
-        if status:
-            self._status = status
-        elif response:
-            self._response = response or {}
+        self._status = status or {}
+        self._response = response or {}
+        if self._response:
             self._status = self.assign_status()
-
         self.validate_status = validate_status
 
     def assign_status(self):
@@ -51,6 +48,23 @@ class KubernetesResourceStatus(object):
             return self.is_resource_ready()
 
 
+class KubernetesJobStatus(KubernetesResourceStatus):
+
+    def is_resource_ready(self):
+        failed = self.status.get('failed') or 0
+        active = self.status.get('active') or 0
+        if failed > 0:
+            raise NonRecoverableError(
+                f'Job failed: {self.status}')
+        elif active > 0:
+            raise OperationRetry(
+                f'Waiting for jobs: {self.status}')
+        else:
+            ctx.logger.debug(
+                f'Jobs succeeded: {self.status}')
+            return True
+
+
 class KubernetesPodStatus(KubernetesResourceStatus):
 
     @property
@@ -75,9 +89,11 @@ class KubernetesServiceStatus(KubernetesResourceStatus):
 
     @property
     def status(self):
-        if self._response.get(
-                'spec', {}).get('type', '').lower() == 'loadbalancer':
-            return self._status.get('load_balancer', {}).get('ingress', False)
+        spec = self._response.get('spec', {})
+        service_type = spec.get('type', '').lower()
+        if service_type in ['loadbalancer', 'ingress']:
+            status = self._response.get('status', {})
+            return status.get('load_balancer', {}).get('ingress', False)
         return True
 
     def is_resource_ready(self):
@@ -120,7 +136,7 @@ class KubernetesPersistentVolumeStatus(KubernetesResourceStatus):
         return self._status['phase']
 
     def is_resource_ready(self):
-        if self.status['phase'] in ['Bound', 'Available']:
+        if self.status in ['Bound', 'Available']:
             ctx.logger.debug(self.status_message)
         else:
             raise OperationRetry(self.status_message)

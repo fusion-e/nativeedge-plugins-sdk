@@ -1,5 +1,63 @@
-releases:
-  0.0.150: 
+  0.0.161:
+  - ticket: DSPE-4745
+    developer: adam.terramel
+    description: Change URL for proxy discovery.
+  0.0.160:
+  - ticket: DSPE-4745
+    developer: adam.terramel
+    description: Unreleased.
+  0.0.159:
+  - ticket: DSPE-4298
+    developer: adam.terramel
+    description: Proxy and Token
+  0.0.158:
+  - ticket: DSPE-4745
+    developer: adam.terramel
+    description: Change URL for proxy discovery.
+  - ticket: DSPE-4685
+    developer: adam.terramel
+    description: secure logger improvements
+  0.0.157:
+  - ticket: DSPE-4685
+    developer: adam.terramel
+    description: secure logger
+  0.0.156:
+  - ticket: DSPE-4298
+    developer: adam.terramel
+    description: Proxy and Token
+  0.0.155:
+  - ticket: DSPE-4298
+    developer: adam.terramel
+    description: Proxy and Token
+  - ticket: DSPE-4578
+    developer: adam.terramel
+    description: Proxy and Token
+  0.0.154:
+  - ticket: DSPE-3297
+    developer: adam.terramel
+    description: Proxy discovery.
+  0.0.153:
+  - ticket: NE01D-189
+    developer: adam.terramel
+    description: Verify checksums.
+  - ticket: DSPE-3297
+    developer: adam.terramel
+    description: Proxy discovery.
+  0.0.152:
+  - ticket: ne01d-182
+    developer: adam.terramel
+    description: Add "Job" type to kubernetes validate resource status.
+  0.0.151:
+  - ticket: ne01d-183
+    developer: adam.terramel
+    description: Put the nativeedge kubernetes connection util in common.
+  - ticket: ne01d-214
+    developer: adam.terramel
+    description: Kubernetes client proxy settings.
+  - ticket: ne01d-182
+    developer: adam.terramel
+    description: Add "Job" type to kubernetes validate resource status.
+  0.0.150:
   - ticket: ne-56651
     developer: yaniv.kaplan
     description: clean requirments file.

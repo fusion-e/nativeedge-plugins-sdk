@@ -103,7 +103,7 @@ class AKSConnection(object):
             'cluster_name', None)
         self.profile_name = azure_config.pop(
             'profile_name', None)
-    
+
         try:
             self.account = AzureContainerServiceConnection(
                 azure_config=self.azure_config)
