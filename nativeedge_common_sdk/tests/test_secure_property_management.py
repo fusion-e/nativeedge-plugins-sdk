@@ -5,16 +5,13 @@ from mock import call
 
 import unittest
 
-from nativeedge_common_sdk import utils
-from nativeedge_common_sdk import secure_property_management
+from plugins_sdk import utils
+from plugins_sdk import secure_property_management
 
-try:
-    from nativeedge.state import current_ctx
-    from nativeedge.mocks import MockNativeEdgeContext
-except ImportError:
-    from cloudify.state import current_ctx
-    from cloudify.mocks import MockCloudifyContext \
-        as MockNativeEdgeContext
+from nativeedge_common_sdk._compat import (
+    current_ctx,
+    MockNativeEdgeContext
+)
 
 
 class SecurePropertyTests(unittest.TestCase):

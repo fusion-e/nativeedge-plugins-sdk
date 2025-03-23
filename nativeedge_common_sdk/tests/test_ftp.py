@@ -3,7 +3,7 @@
 import unittest
 from mock import Mock, patch
 
-import nativeedge_common_sdk.ftp as ftp
+from plugins_sdk import ftp
 
 
 class TestFTP(unittest.TestCase):

@@ -12,17 +12,11 @@ from botocore.exceptions import (
     ClientError,
     ParamValidationError
 )
-from nativeedge_common_sdk.utils import (
-    get_client_config,
-    desecretize_client_config
+from plugins_sdk import utils
+from plugins_sdk._compat import (
+    NonRecoverableError,
+    exception_to_error_cause
 )
-
-try:
-    from cloudify.exceptions import NonRecoverableError
-    from cloudify.utils import exception_to_error_cause
-except ImportError:
-    from nativeedge.exceptions import NonRecoverableError
-    from nativeedge.utils import exception_to_error_cause
 
 
 FATAL_EXCEPTIONS = (ClientError, ParamValidationError)
@@ -48,7 +42,7 @@ class Boto3Connection(object):
             'aws_session_token',
             'api_version']
 
-        config_from_utils = get_client_config(
+        config_from_utils = utils.get_client_config(
             ctx_node=node, alternate_key='aws_config')
 
         # config_from_props = node.properties.get(AWS_CONFIG_PROPERTY, dict())
@@ -62,7 +56,7 @@ class Boto3Connection(object):
 
         # config_from_plugin_props.update(config_from_props)
         # Merge user-provided AWS config with generated config
-        self._aws_config = desecretize_client_config(
+        self._aws_config = utils.desecretize_client_config(
             config_from_utils)
         self._aws_config['region_name'] = self._aws_config.get('region_name')
         if aws_config:

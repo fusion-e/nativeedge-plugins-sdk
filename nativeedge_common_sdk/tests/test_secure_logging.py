@@ -1,7 +1,7 @@
 import mock
 import unittest
 
-from nativeedge_common_sdk.secure_logging import SecureLogger
+from plugins_sdk.secure_logging import SecureLogger
 
 
 class TestSecureLogging(unittest.TestCase):

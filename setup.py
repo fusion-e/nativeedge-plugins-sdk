@@ -1,21 +1,7 @@
 # Copyright © 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
-import os
-import re
 import sys
-import pathlib
 from setuptools import setup, find_packages
-
-
-def get_version():
-    current_dir = pathlib.Path(__file__).parent.resolve()
-    with open(
-            os.path.join(
-                current_dir,
-                'nativeedge_common_sdk/__version__.py'),
-            'r') as outfile:
-        var = outfile.read()
-        return re.search(r'\d+.\d+.\d+', var).group()
 
 
 install_requires = [
@@ -53,7 +39,7 @@ else:
 
 setup(
     name='orchestrator-plugins-sdk',
-    version=get_version(),
+    version='0.1.0.0',
     # author='Dell, Inc',
     # author_email='adam.terramel@dell.com',
     # description='Dell Orchestrator Plugins SDK',

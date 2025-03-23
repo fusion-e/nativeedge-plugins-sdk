@@ -3,7 +3,7 @@
 import unittest
 from mock import Mock
 
-import nativeedge_common_sdk.iso9660 as iso9660
+from plugins_sdk import iso9660
 
 
 class ISO9660DataTest(unittest.TestCase):

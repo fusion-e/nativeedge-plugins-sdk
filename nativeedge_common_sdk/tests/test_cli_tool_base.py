@@ -6,16 +6,11 @@ import shutil
 from mock import MagicMock, patch, call
 from tempfile import mkdtemp, NamedTemporaryFile
 
-from nativeedge_common_sdk import cli_tool_base
-
-try:
-    from nativeedge.state import current_ctx
-    from nativeedge.mocks import \
-        MockNativeEdgeContext
-except ImportError:
-    from cloudify.state import current_ctx
-    from cloudify.mocks import \
-        MockCloudifyContext as MockNativeEdgeContext
+from nativeedge_common_sdk._compat import (
+    current_ctx,
+    MockNativeEdgeContext
+)
+from plugins_sdk import cli_tool_base
 
 
 def get_tf_tools_params():
@@ -67,7 +62,7 @@ def test_format_log():
     assert tool.format_log('foo') == 'test_format_log: foo'
 
 
-@patch('nativeedge_common_sdk.cli_tool_base.sdk_utils')
+@patch('nativeedge_common_sdk.cli_tool_base.utils')
 def test_properties(sdk_utils_mock, ):
     args, kwargs, info, error = get_tf_tools_params()
     sdk_utils_mock.get_deployment_dir.return_value = '/foo'

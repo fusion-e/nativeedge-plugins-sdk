@@ -333,8 +333,8 @@ def handle_max_sleep(pid,
         'Checking if PID {0} is still alive '.format(pid))
 
     last_clock = last_clock or time.time()  # the most recent measurement.
-    psutil_process = psutil.Process(pid)
     try:
+        psutil_process = psutil.Process(pid)
         current_state = psutil_process.status()
     except psutil.NoSuchProcess:
         # Sometimes we get here, from the call below for zombie processes

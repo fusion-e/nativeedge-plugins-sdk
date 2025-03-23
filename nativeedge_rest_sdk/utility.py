@@ -10,19 +10,20 @@ import tempfile
 import xmltodict
 from six import StringIO, string_types
 
-from nativeedge_rest_sdk import LOGGER_NAME
-from nativeedge_common_sdk.filters import (
-    translate_and_save,
+from plugins_rest_sdk import LOGGER_NAME
+from plugins_sdk.filters import (
     shorted_text,
     render_template,
+    translate_and_save,
     obfuscate_passwords,
 )
-from nativeedge_common_sdk.exceptions import (
-    RecoverableStatusCodeCodeException,
+from plugins_sdk.exceptions import (
     ExpectationException,
     WrongTemplateDataException,
+    RecoverableResponseException,
     NonRecoverableResponseException,
-    RecoverableResponseException)
+    RecoverableStatusCodeCodeException,
+)
 
 logger = logging.getLogger(LOGGER_NAME)
 
