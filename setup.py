@@ -52,13 +52,13 @@ else:
 
 
 setup(
-    name='nativeedge-plugins-sdk',
+    name='orchestrator-plugins-sdk',
     version=get_version(),
     # author='Dell, Inc',
     # author_email='adam.terramel@dell.com',
-    # description='Dell Native Edge Plugins SDK',
+    # description='Dell Orchestrator Plugins SDK',
     license='Apache License 2.0',
-    # url="https://github.com/fusion-e/nativeedge-plugins-sdk",
+    # url="https://github.com/fusion-e/plugins-sdk",
     packages=find_packages(),
     install_requires=install_requires
 )
