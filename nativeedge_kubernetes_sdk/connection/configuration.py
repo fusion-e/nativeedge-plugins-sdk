@@ -6,7 +6,7 @@ import tempfile
 from shutil import copyfile
 from kubernetes.client import Configuration
 
-from nativeedge_kubernetes_sdk.exceptions import \
+from plugins_kube_sdk.exceptions import \
     NativeEdgeKubernetesSDKException
 
 

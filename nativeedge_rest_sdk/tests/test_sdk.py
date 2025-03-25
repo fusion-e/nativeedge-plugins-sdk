@@ -5,7 +5,7 @@ import json
 import mock
 import six
 
-from nativeedge_rest_sdk import utility
+from plugins_rest_sdk import utility
 from nativeedge_common_sdk import exceptions
 
 

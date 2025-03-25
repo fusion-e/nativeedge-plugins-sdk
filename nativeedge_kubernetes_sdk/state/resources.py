@@ -1,7 +1,7 @@
 # Copyright © 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
-from nativeedge_kubernetes_sdk.state import models
-from nativeedge_common_sdk.clean_json import JsonCleanuper
+from plugins_kube_sdk.state import models
+from plugins_sdk.clean_json import JsonCleanuper
 
 try:
     from nativeedge import ctx

@@ -4,7 +4,7 @@ import os
 import mock
 import unittest
 
-import nativeedge_common_sdk.resource_downloader as resource_downloader
+from plugins_sdk import resource_downloader
 
 FILE_WITH_TYPE_URL = \
     "https://github.com/fusion-e/nativeedge-plugins-sdk/"\

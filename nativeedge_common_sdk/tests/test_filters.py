@@ -1,11 +1,11 @@
 # Copyright © 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
-import unittest
 import json
 import six
+import unittest
 from mock import Mock
 
-import nativeedge_common_sdk.filters as filters
+from plugins_sdk import filters
 
 
 class TestFilters(unittest.TestCase):

@@ -4,7 +4,7 @@ import io
 import os
 import yaml
 
-from nativeedge_common_sdk.utils import cleanup_empty_params
+from plugins_sdk.utils import cleanup_empty_params
 
 from azure.mgmt.containerservice import ContainerServiceClient
 from msrestazure.azure_active_directory import UserPassCredentials

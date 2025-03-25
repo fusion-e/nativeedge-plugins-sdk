@@ -12,7 +12,21 @@ from packaging import version
 from distutils.util import strtobool
 from tempfile import NamedTemporaryFile
 
-from nativeedge_common_sdk._compat import PY2, text_type
+from nativeedge_common_sdk._compat import (
+    PY2,
+    ne_exc,
+    text_type,
+    NotInContext,
+    get_rest_client,
+    get_tenant_name,
+    ctx_from_import,
+    wtx_from_import,
+    NonRecoverableError,
+    NativeEdgeClientError,
+    RELATIONSHIP_INSTANCE,
+    DeploymentEnvironmentCreationPendingError,
+    DeploymentEnvironmentCreationInProgressError
+)
 from nativeedge_common_sdk.resource_downloader import (
     untar_archive,
     unzip_archive
@@ -22,46 +36,8 @@ from nativeedge_common_sdk.processes import (
     process_execution,
     general_executor
 )
-
-try:
-    from nativeedge.utils import get_tenant_name
-    from nativeedge import (
-        exceptions as ne_exc,
-        ctx as ctx_from_import
-    )
-    from nativeedge.state import NotInContext
-    from nativeedge.manager import get_rest_client
-    from nativeedge.exceptions import NonRecoverableError
-    from nativeedge.workflows import ctx as wtx_from_import
-    from nativeedge_common_sdk.exceptions import (
-        NonRecoverableError as SDKNonRecoverableError
-    )
-    from nativeedge_rest_client.exceptions import (
-        NativeEdgeClientError,
-        DeploymentEnvironmentCreationPendingError,
-        DeploymentEnvironmentCreationInProgressError)
-except ImportError:
-    from cloudify import exceptions as ne_exc
-    from cloudify.utils import get_tenant_name
-    from cloudify import ctx as ctx_from_import
-    from cloudify.manager import get_rest_client
-    from cloudify.exceptions import NonRecoverableError
-    from cloudify.workflows import ctx as wtx_from_import
-    from cloudify_common_sdk.exceptions import (
-        NonRecoverableError as SDKNonRecoverableError
-    )
-    from cloudify_rest_client.exceptions import (
-        CloudifyClientError as NativeEdgeClientError,
-        DeploymentEnvironmentCreationPendingError,
-        DeploymentEnvironmentCreationInProgressError
-    )
-
-try:
-    from cloudify.constants import RELATIONSHIP_INSTANCE, NODE_INSTANCE
-except ImportError:
-    NODE_INSTANCE = 'node-instance'
-    RELATIONSHIP_INSTANCE = 'relationship-instance'
-
+from nativeedge_common_sdk.exceptions import \
+    NonRecoverableError as SDKNonRecoverableError
 
 NE_TAGGED_EXT = '__ne_tagged_external_resource'
 
@@ -969,8 +945,8 @@ def get_label(label_key, label_val_index, deployment_id, rest_client):
         if isinstance(labels, list) and label_val_index:
             return labels[label_val_index]
         return labels
-    else:
-        raise NonRecoverableError('label [{0}] not found'.format(label_key))
+    raise ne_exc.NonRecoverableError(
+        'label [{0}] not found'.format(label_key))
 
 
 @with_rest_client

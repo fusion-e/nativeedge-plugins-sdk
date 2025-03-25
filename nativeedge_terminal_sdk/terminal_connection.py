@@ -1,8 +1,8 @@
 # Copyright © 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
-from nativeedge_common_sdk import exceptions
-from nativeedge_terminal_sdk import base_connection
-from nativeedge_common_sdk.filters import remove_nonascii
+from plugins_sdk import exceptions
+from plugins_sdk.filters import remove_nonascii
+from plugins_terminal_sdk import base_connection
 
 DEFAULT_PROMT = ["#", "$"]
 LINE_SIZE = 256

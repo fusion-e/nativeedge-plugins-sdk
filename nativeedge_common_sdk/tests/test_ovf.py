@@ -3,7 +3,7 @@
 import os
 import unittest
 
-import nativeedge_common_sdk.ovf as ovf
+from plugins_sdk import ovf
 
 # constants
 CENTOS_SINGLE_CPU = [{

@@ -1,7 +1,7 @@
 import mock
 import unittest
 
-from nativeedge_common_sdk.verify_hashes import verify_hash
+from plugins_sdk.verify_hashes import verify_hash
 
 
 class TestVerifyHash(unittest.TestCase):

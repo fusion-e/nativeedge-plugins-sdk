@@ -6,8 +6,7 @@ import tempfile
 
 import requests
 
-from nativeedge_common_sdk import utils as sdk_utils
-from .utils import run_subprocess
+from plugins_sdk import utils
 
 
 class CliTool(object):
@@ -70,7 +69,7 @@ class CliTool(object):
     @property
     def deployment_directory(self):
         if not self._deployment_directory:
-            self._deployment_directory = sdk_utils.get_deployment_dir(
+            self._deployment_directory = utils.get_deployment_dir(
                 self._deployment_name)
         return self._deployment_directory
 
@@ -152,7 +151,7 @@ class CliTool(object):
 
     @staticmethod
     def download_tool(source, target):
-        sdk_utils.download_file(target, source)
+        utils.download_file(target, source)
         return target
 
     @staticmethod
@@ -172,7 +171,7 @@ class CliTool(object):
     def unpack_zipped_archive(self, archive, destination):
         if os.path.isfile(destination):
             destination = os.path.dirname(destination)
-        return sdk_utils.unzip_and_set_permissions(archive, destination)
+        return utils.unzip_and_set_permissions(archive, destination)
 
     def uninstall_binary(self):
         try:
@@ -193,7 +192,7 @@ class CliTool(object):
             target = os.path.join(target, desired_file_name)
         elif os.path.isdir(target):
             target = os.path.join(target, os.path.basename(executable_path))
-        sdk_utils.download_file(target, source)
+        utils.download_file(target, source)
         if target.endswith('.zip') or source.endswith('.zip'):
             results = self.unpack_zipped_archive(
                 target, os.path.dirname(executable_path))
@@ -202,13 +201,13 @@ class CliTool(object):
                 for file in sorted(results, reverse=True):
                     if file.endswith(desired_file_name):
                         found = True
-                        sdk_utils.set_permissions(file)
+                        utils.set_permissions(file)
                         os.rename(file, executable_path)
             if not found:
                 return results
         # else:
         #     os.rename(target, executable_path)
-        sdk_utils.set_permissions(executable_path)
+        utils.set_permissions(executable_path)
         return executable_path
 
     @staticmethod
@@ -233,7 +232,7 @@ class CliTool(object):
                  env,
                  additional_args=None,
                  return_output=True):
-        return run_subprocess(
+        return utils.run_subprocess(
             command,
             self.logger,
             cwd,
