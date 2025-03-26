@@ -1,0 +1,43 @@
+name: Merge PR on main
+
+on:
+  push:
+    branches:
+      - main
+jobs:
+  build:
+    runs-on: [self-hosted, can-access-dell-network]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: download build cli
+        run: |
+            curl -L \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer ${{ secrets.BAB_PAT }}" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              -X GET "https://api.github.com/repos/fusion-e/blueprint-assist-build/zipball/main" -o ./.github/workflows/main.zip
+            unzip ./.github/workflows/main.zip -d ./.github/workflows/main
+            find ./.github/workflows/ -name requirements.txt -exec pip install -r {} \;
+            pip install ./.github/workflows/main.zip
+            which bab
+
+      - name: Install GH CLI
+        uses: dev-hanz-ops/install-gh-cli-action@v0.1.0
+        with:
+          gh-cli-version: 2.55.0 
+
+      - name: Extract branch name
+        shell: bash
+        run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+        id: extract_branch
+
+      - name: Build VSIX
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GIT_BRANCH_NAME: ${{ steps.extract_branch.outputs.branch }}
+        run: |
+          /usr/local/bin/bab package-release \
+              --version-filename setup.py \
+              --org-name fusion-e \
+              --repo-name nativeedge-plugins-sdk
