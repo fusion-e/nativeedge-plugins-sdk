@@ -2,32 +2,29 @@
 
 from functools import wraps
 
-try:
-    from nativeedge import ctx
-except ImportError:
-    from cloudify import ctx
-
+from nativeedge_common_sdk._compat import (
+    NODE_INSTANCE,
+    RELATIONSHIP_INSTANCE,
+    ctx_from_import,
+)
 from nativeedge_common_sdk.constants import (
     deprecated_node_types,
     deprecated_relationship_types
 )
-try:
-    from cloudify.constants import RELATIONSHIP_INSTANCE, NODE_INSTANCE
-except ImportError:
-    NODE_INSTANCE = 'node-instance'
-    RELATIONSHIP_INSTANCE = 'relationship-instance'
 
 
 def deprecation_warning(func):
     @wraps(func)
     def inner(*args, **kwargs):
-        check_deprecated_node_type()
-        check_deprecated_relationship()
+        ctx = kwargs.get('ctx', ctx_from_import)
+        check_deprecated_node_type(ctx=ctx)
+        check_deprecated_relationship(ctx=ctx)
         return func(*args, **kwargs)
     return inner
 
 
-def check_deprecated_relationship():
+def check_deprecated_relationship(ctx=None):
+    ctx = ctx or ctx_from_import
     if ctx.type == RELATIONSHIP_INSTANCE:
         for rel in ctx.source.instance.relationships:
             if rel.target.node.id == ctx.target.node.id:
@@ -59,7 +56,8 @@ def check_deprecated_relationship():
                 )
 
 
-def check_deprecated_node_type():
+def check_deprecated_node_type(ctx=None):
+    ctx = ctx or ctx_from_import
     if ctx.type != NODE_INSTANCE:
         return
     new_node_type = deprecated_node_types.get(ctx.node.type)
@@ -67,7 +65,8 @@ def check_deprecated_node_type():
         log_deprecation(ctx.node.type, new_node_type)
 
 
-def log_deprecation(old_type, new_type, rel_or_node=None):
+def log_deprecation(old_type, new_type, rel_or_node=None, ctx=None):
+    ctx = ctx or ctx_from_import
     rel_or_node = rel_or_node or 'node'
     ctx.logger.error(
         'The {rel_or_node} type {old_type} is deprecated, '

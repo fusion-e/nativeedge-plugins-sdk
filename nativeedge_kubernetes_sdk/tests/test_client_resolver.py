@@ -1,7 +1,7 @@
 # Copyright © 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 from mock import patch
-from nativeedge_kubernetes_sdk import client_resolver as cr
+from plugins_kube_sdk import client_resolver as cr
 
 various_mappings = [
     {'apiVersion': 'v1', 'kind': 'Pod'},

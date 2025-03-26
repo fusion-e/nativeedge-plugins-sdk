@@ -3,17 +3,17 @@
 import os
 from tempfile import NamedTemporaryFile
 
-from nativeedge_common_sdk.utils import (
+from plugins_sdk.utils import (
     mkdir_p,
     get_ctx_instance,
     get_node_instance_dir,
     desecretize_client_config
 )
-from nativeedge_kubernetes_sdk.connection.configuration import \
+from plugins_kube_sdk.connection.configuration import \
     KubeConfigConfigurationVariants
-from nativeedge_kubernetes_sdk.connection.authentication import \
+from plugins_kube_sdk.connection.authentication import \
     KubernetesApiAuthenticationVariants
-from nativeedge_kubernetes_sdk.connection.oxy import get_proxy_url
+from plugins_kube_sdk.connection.oxy import get_proxy_url
 
 try:
     from nativeedge import ctx as ctx_from_import

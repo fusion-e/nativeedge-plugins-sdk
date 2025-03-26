@@ -1,7 +1,7 @@
 # Copyright © 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
-from nativeedge_common_sdk import exceptions
-from nativeedge_terminal_sdk import base_connection
+from plugins_sdk import exceptions
+from plugins_terminal_sdk import base_connection
 
 # final of any package
 NETCONF_1_0_END = "]]>]]>"

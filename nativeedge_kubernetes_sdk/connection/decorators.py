@@ -3,8 +3,8 @@
 import os
 
 from kubernetes import client, config
-from nativeedge_common_sdk.utils import uses_debug_node
-from nativeedge_kubernetes_sdk.connection.utils import (
+from plugins_sdk.utils import uses_debug_node
+from plugins_kube_sdk.connection.utils import (
     get_host,
     get_key_file,
     get_cert_file,

@@ -9,25 +9,17 @@ import zipfile
 import tempfile
 import unittest
 
+from nativeedge_common_sdk._compat import (
+    ne_exc,
+    current_ctx,
+    NODE_INSTANCE,
+    MockNativeEdgeContext,
+    NativeEdgeClientError,
+)
 from nativeedge_common_sdk import utils
 from nativeedge_common_sdk.exceptions import (
     NonRecoverableError as SDKNonRecoverableError
 )
-try:
-    from nativeedge.state import current_ctx
-    from nativeedge import exceptions as ne_exc
-    from nativeedge.constants import NODE_INSTANCE
-    from nativeedge.mocks import \
-        MockNativeEdgeContext
-    from nativeedge_rest_client.exceptions import NativeEdgeClientError
-except ImportError:
-    from cloudify.state import current_ctx
-    from cloudify import exceptions as ne_exc
-    from cloudify.constants import NODE_INSTANCE
-    from cloudify.mocks import MockCloudifyContext as \
-        MockNativeEdgeContext
-    from cloudify_rest_client.exceptions import CloudifyClientError \
-        as NativeEdgeClientError
 
 
 class TestUtils(unittest.TestCase):
@@ -451,8 +443,12 @@ class BatchUtilsTests(unittest.TestCase):
     def test_get_label(self, mock_client):
         deployment_id = 'mock'
         prop = ['some_label']
+        mock_dep = mock.MagicMock()
+        mock_dep.labels = []
+        mock_client().deployments.get.return_value = mock_dep
         with self.assertRaisesRegexp(
-                ne_exc.NonRecoverableError, 'not found'):
+                ne_exc.NonRecoverableError,
+                'not found'):
             utils.get_label(
                 label_key=prop[0],
                 label_val_index=None,

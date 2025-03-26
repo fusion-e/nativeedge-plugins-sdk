@@ -1,8 +1,9 @@
 import unittest
-from unittest.mock import MagicMock, mock_open, patch
-from nativeedge_common_sdk.key_manager import KeyManager
-from nativeedge_common_sdk.constants import SUPP_KEYS
 from paramiko import RSAKey, SSHException, ECDSAKey
+from unittest.mock import MagicMock, mock_open, patch
+
+from plugins_sdk.key_manager import KeyManager
+from plugins_sdk.constants import SUPP_KEYS
 
 
 class TestKeyManager(unittest.TestCase):

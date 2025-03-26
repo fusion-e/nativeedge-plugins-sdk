@@ -5,18 +5,14 @@ import unittest
 import subprocess
 from tempfile import NamedTemporaryFile
 
+from nativeedge_common_sdk._compat import (
+    current_ctx,
+    MockNativeEdgeContext
+)
 from nativeedge_common_sdk.processes import (
     general_executor,
     handle_max_sleep,
 )
-
-try:
-    from nativeedge.state import current_ctx
-    from nativeedge.mocks import MockNativeEdgeContext
-except ImportError:
-    from cloudify.state import current_ctx
-    from cloudify.mocks import MockCloudifyContext \
-        as MockNativeEdgeContext
 
 many_children = """#!/bin/bash
 fpfunction(){

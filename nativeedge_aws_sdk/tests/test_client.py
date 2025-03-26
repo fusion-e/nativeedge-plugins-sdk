@@ -4,15 +4,10 @@ import mock
 import unittest
 from datetime import datetime
 
-try:
-    from cloudify.state import current_ctx
-    from cloudify.mocks import MockCloudifyContext as MockCTX
-except ImportError:
-    from nativeedge.state import current_ctx
-    from nativeedge.mocks import MockNativeEdgeContext as MockCTX
-
-from nativeedge_aws_sdk import client
+from nativeedge.state import current_ctx
+from plugins_aws_sdk import client
 from botocore.exceptions import UnknownServiceError
+from nativeedge.mocks import MockNativeEdgeContext as MockCTX
 
 
 class TestClient(unittest.TestCase):

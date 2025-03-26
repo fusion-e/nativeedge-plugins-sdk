@@ -9,9 +9,9 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 
-from nativeedge_kubernetes_sdk.connection import configuration
-from nativeedge_kubernetes_sdk.connection import authentication
-from nativeedge_kubernetes_sdk.exceptions import \
+from plugins_kube_sdk.connection import configuration
+from plugins_kube_sdk.connection import authentication
+from plugins_kube_sdk.exceptions import \
     NativeEdgeKubernetesSDKException
 
 FILE_CONTENT = {

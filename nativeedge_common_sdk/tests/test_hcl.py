@@ -1,6 +1,6 @@
 # Copyright © 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
-from nativeedge_common_sdk import hcl
+from plugins_sdk import hcl
 
 CONFIG_RESULT = """config {
    variables = "[foo=bar, bar=[baz]]"
