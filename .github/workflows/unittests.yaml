@@ -1,0 +1,36 @@
+name: unittesting
+on:
+  push:
+    branches: []
+jobs:
+  unittesting-job:
+    runs-on: ubuntu-latest
+    container:
+      image: earthmancfy/unittesting:latest
+      env:
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      options: --user root
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+          submodules: true
+      - name: Git Submodule Update
+        run: |
+          git config --global --add safe.directory '*'
+          git pull --recurse-submodules
+          git submodule update --remote --recursive
+      - name: Download stuff
+        run: |
+          git clone --depth 1 https://${GH_TOKEN}@github.com/fusion-e/fusion-common.git ${HOME}/fusion-common -b master
+          git clone --depth 1 https://${GH_TOKEN}@github.com/fusion-e/fusion-agent.git ${HOME}/fusion-agent -b master
+          git clone --depth 1 https://${GH_TOKEN}@github.com/fusion-e/fusion-manager.git ${HOME}/fusion-manager -b master
+      - name: Update Git
+        run: |
+          git submodule init
+          git submodule update --remote --recursive | true
+      - name: Install tox
+        run: pip install tox
+      - name: Run Tests
+        run: HOME=${HOME} VIRTUAL_ENV=${HOME}/.pyenv/${VENVS} tox
