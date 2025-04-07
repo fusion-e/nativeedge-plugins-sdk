@@ -10,7 +10,7 @@ import tempfile
 import xmltodict
 from six import StringIO, string_types
 
-from plugins_rest_sdk import LOGGER_NAME
+from nativeedge_rest_sdk import LOGGER_NAME
 from plugins_sdk.filters import (
     shorted_text,
     render_template,

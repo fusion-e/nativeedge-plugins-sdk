@@ -2,7 +2,7 @@
 
 from plugins_sdk import exceptions
 from plugins_sdk.filters import remove_nonascii
-from plugins_terminal_sdk import base_connection
+from nativeedge_terminal_sdk import base_connection
 
 DEFAULT_PROMT = ["#", "$"]
 LINE_SIZE = 256

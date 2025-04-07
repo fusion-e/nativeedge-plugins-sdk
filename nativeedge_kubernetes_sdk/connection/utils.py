@@ -3,30 +3,22 @@
 import os
 from tempfile import NamedTemporaryFile
 
-from plugins_sdk.utils import (
+from nativeedge_common_sdk._compat import (
+    HttpException,
+    ctx_from_import,
+    NonRecoverableError,
+)
+from nativeedge_common_sdk.utils import (
     mkdir_p,
     get_ctx_instance,
     get_node_instance_dir,
     desecretize_client_config
 )
-from plugins_kube_sdk.connection.configuration import \
+from nativeedge_kubernetes_sdk.connection.oxy import get_proxy_url
+from nativeedge_kubernetes_sdk.connection.configuration import \
     KubeConfigConfigurationVariants
-from plugins_kube_sdk.connection.authentication import \
+from nativeedge_kubernetes_sdk.connection.authentication import \
     KubernetesApiAuthenticationVariants
-from plugins_kube_sdk.connection.oxy import get_proxy_url
-
-try:
-    from nativeedge import ctx as ctx_from_import
-    from nativeedge.exceptions import (
-        HttpException,
-        NonRecoverableError
-    )
-except ImportError:
-    from cloudify import ctx as ctx_from_import
-    from cloudify.exceptions import (
-        HttpException,
-        NonRecoverableError
-    )
 
 
 HOST = 'host'

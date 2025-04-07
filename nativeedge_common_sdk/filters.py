@@ -1,12 +1,12 @@
 # Copyright © 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
-from jinja2 import Environment
-import xmltodict
-from six import string_types, ensure_text
-from copy import deepcopy
 import re
+import xmltodict
+from copy import deepcopy
+from jinja2 import Environment
+from six import string_types, ensure_text
 
-from ._compat import text_type
+from nativeedge_common_sdk._compat import text_type
 
 OBFUSCATION_KEYWORDS = (
     'AUTHORIZATION',

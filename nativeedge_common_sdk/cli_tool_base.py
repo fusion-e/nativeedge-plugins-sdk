@@ -6,7 +6,7 @@ import tempfile
 
 import requests
 
-from plugins_sdk import utils
+from nativeedge_common_sdk import utils
 
 
 class CliTool(object):

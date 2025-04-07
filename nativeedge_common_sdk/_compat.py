@@ -9,6 +9,11 @@ NODE_INSTANCE = 'node-instance'
 RELATIONSHIP_INSTANCE = 'relationship-instance'
 
 try:
+    from cloudify.proxy.client import ScriptException
+except ImportError:
+    ScriptException = Exception
+
+try:
     from dell import (
         exceptions as ne_exc,
         ctx as ctx_from_import,
@@ -19,7 +24,10 @@ try:
         )
     from dell.manager import get_rest_client
     from dell.mocks import MockNativeEdgeContext
-    from dell.exceptions import NonRecoverableError
+    from dell.exceptions import (
+        HttpException,
+        NonRecoverableError
+    )
     from dell.utils import (
         get_tenant_name,
         exception_to_error_cause
@@ -42,7 +50,10 @@ except ImportError:
         )
         from nativeedge.manager import get_rest_client
         from nativeedge.mocks import MockNativeEdgeContext
-        from nativeedge.exceptions import NonRecoverableError
+        from nativeedge.exceptions import (
+            HttpException,
+            NonRecoverableError
+        )
         from nativeedge.utils import (
             get_tenant_name,
             exception_to_error_cause
@@ -64,7 +75,10 @@ except ImportError:
         )
         from cloudify.manager import get_rest_client
         from cloudify.mocks import MockNativeEdgeContext
-        from cloudify.exceptions import NonRecoverableError
+        from cloudify.exceptions import (
+            HttpException,
+            NonRecoverableError
+        )
         from cloudify.utils import (
             get_tenant_name,
             exception_to_error_cause
@@ -99,11 +113,13 @@ __all__ = [
     'StringIO',
     'current_ctx',
     'NotInContext',
+    'NODE_INSTANCE',
+    'HttpException',
+    'ScriptException',
     'ctx_from_import',
     'wtx_from_import',
     'get_tenant_name',
     'get_rest_client',
-    'NODE_INSTANCE',
     'NonRecoverableError',
     'RELATIONSHIP_INSTANCE',
     'NativeEdgeClientError',

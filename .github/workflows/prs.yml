@@ -1,15 +1,19 @@
-name: unittesting
+name: PRs
+
 on:
   push:
-    branches: []
+    branches:
+      - !main
+      - '!**-build'
+
 jobs:
-  unittesting-job:
+
+  unittesting:
     runs-on: ubuntu-latest
     container:
-      image: earthmancfy/unittesting:latest
+      image: earthmancfy/unittesting:v9
       env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
-      options: --user root
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,6 +30,7 @@ jobs:
           git clone --depth 1 https://${GH_TOKEN}@github.com/fusion-e/fusion-common.git ${HOME}/fusion-common -b master
           git clone --depth 1 https://${GH_TOKEN}@github.com/fusion-e/fusion-agent.git ${HOME}/fusion-agent -b master
           git clone --depth 1 https://${GH_TOKEN}@github.com/fusion-e/fusion-manager.git ${HOME}/fusion-manager -b master
+          git clone --depth 1 https://${GH_TOKEN}@github.com/fusion-e/nativeedge-plugins-sdk.git ${HOME}/nativeedge-plugins-sdk -b main
       - name: Update Git
         run: |
           git submodule init

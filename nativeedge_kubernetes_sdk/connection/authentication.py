@@ -4,9 +4,9 @@ import json
 
 import google.auth.transport.requests
 from google.oauth2 import service_account
-from plugins_sdk.filters import obfuscate_passwords
+from nativeedge_common_sdk.filters import obfuscate_passwords
 
-from plugins_kube_sdk.exceptions import \
+from nativeedge_kubernetes_sdk.exceptions import \
     NativeEdgeKubernetesSDKException
 
 

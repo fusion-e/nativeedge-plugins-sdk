@@ -6,11 +6,11 @@ import shutil
 from mock import MagicMock, patch, call
 from tempfile import mkdtemp, NamedTemporaryFile
 
+from plugins_sdk import cli_tool_base
 from nativeedge_common_sdk._compat import (
     current_ctx,
     MockNativeEdgeContext
 )
-from plugins_sdk import cli_tool_base
 
 
 def get_tf_tools_params():
@@ -220,4 +220,4 @@ def test_download_archive():
             test_node_inst_dir,
             executable_file,
             'README.md')
-        assert os.stat(result).st_size == 6968
+        assert result == executable_file

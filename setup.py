@@ -12,7 +12,7 @@ install_requires = [
     "Jinja2>=3.1.4",  # terminal
     'azure-identity',
     'paramiko>=2.7.1',  # terminal
-    'kubernetes==31.0.0',
+    'kubernetes==32.0.1',
     'msrestazure==0.6.4',
     'azure-mgmt-containerservice==17.0.0'
 ]
@@ -39,7 +39,7 @@ else:
 
 setup(
     name='orchestrator-plugins-sdk',
-    version='0.1.0.0',
+    version='0.1.0.1',
     # author='Dell, Inc',
     # author_email='adam.terramel@dell.com',
     # description='Dell Orchestrator Plugins SDK',

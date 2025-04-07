@@ -4,8 +4,8 @@ from functools import wraps
 
 from nativeedge_common_sdk._compat import (
     NODE_INSTANCE,
-    RELATIONSHIP_INSTANCE,
     ctx_from_import,
+    RELATIONSHIP_INSTANCE,
 )
 from nativeedge_common_sdk.constants import (
     deprecated_node_types,

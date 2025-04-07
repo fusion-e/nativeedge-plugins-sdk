@@ -1,7 +1,9 @@
 import requests
 
-from nativeedge import ctx
-from nativeedge.exceptions import NonRecoverableError
+from nativeedge_common_sdk._compat import (
+    NonRecoverableError,
+    ctx_from_import as ctx,
+)
 
 EOPROXY_URL = 'http://hzp-eoproxy-svc:8080/api/v1/eoproxy'
 HEADERS = {

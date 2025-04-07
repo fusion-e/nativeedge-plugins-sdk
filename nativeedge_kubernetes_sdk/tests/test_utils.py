@@ -2,7 +2,7 @@ import mock
 from unittest import TestCase
 
 from nativeedge.exceptions import NonRecoverableError
-from plugins_kube_sdk.connection import utils
+from nativeedge_kubernetes_sdk.connection import utils
 
 MODULE_PATH = 'nativeedge_kubernetes_sdk.connection.utils'
 
