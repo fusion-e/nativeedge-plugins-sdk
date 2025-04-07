@@ -1,5 +1,10 @@
 # Copyright © 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
+from nativeedge_common_sdk._compat import (
+    NativeEdgeClientError,
+    ctx_from_import as ctx,
+)
+
 from nativeedge_common_sdk.utils import (
     get_node,
     get_ctx_node,
@@ -8,15 +13,6 @@ from nativeedge_common_sdk.utils import (
     IntrinsicFunction,
     RELATIONSHIP_INSTANCE,
     resolve_intrinsic_functions)
-
-try:
-    from nativeedge import ctx
-    from nativeedge_rest_client.exceptions import \
-        NativeEdgeClientError
-except ImportError:
-    from cloudify import ctx
-    from cloudify_rest_client.exceptions import \
-        CloudifyClientError as NativeEdgeClientError
 
 
 def get_stored_property(_ctx, property_name, target=False, force_node=None):

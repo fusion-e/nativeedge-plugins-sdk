@@ -1,0 +1,115 @@
+name: Main Branch
+
+on:
+  push:
+    branches:
+      - 'main'
+
+jobs:
+
+  unittesting:
+    runs-on: ubuntu-latest
+    container:
+      image: earthmancfy/unittesting:v9
+      env:
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: ${{ github.sha }}
+          token: ${{ secrets.GH_TOKEN }}
+          submodules: true
+      - name: Git Submodule Update
+        working-directory: ./${{ github.sha }}
+        run: |
+          git config --global --add safe.directory '*'
+          git pull --recurse-submodules
+          git submodule init
+          git submodule update --remote --recursive | true
+      - name: Download Fusion Packages
+        run: |
+          git clone --depth 1 https://${GH_TOKEN}@github.com/fusion-e/fusion-common.git ${HOME}/fusion-common -b master
+          git clone --depth 1 https://${GH_TOKEN}@github.com/fusion-e/fusion-agent.git ${HOME}/fusion-agent -b master
+          git clone --depth 1 https://${GH_TOKEN}@github.com/fusion-e/fusion-manager.git ${HOME}/fusion-manager -b master
+      - name: Install tox
+        run: pip install tox
+      - name: Run Tests
+        working-directory: ./${{ github.sha }}
+        run: HOME=${HOME} VIRTUAL_ENV=${HOME}/.pyenv/${VENVS} tox
+
+  validate:
+    runs-on: ubuntu-latest
+    # runs-on: [self-hosted, can-access-dell-network]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: ${{ github.sha }}
+          token: ${{ secrets.GH_TOKEN }}
+          submodules: true
+
+      - name: download build cli
+        run: |
+            sudo apt-get install -y libpq-dev
+            pip install -U pyopenssl
+            export PATH=$PATH:/home/ubuntu/.local/bin
+            curl -L \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer ${{ secrets.BAB_PAT }}" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              -X GET "https://api.github.com/repos/fusion-e/blueprint-assist-build/zipball/main" -o ./main.zip
+            unzip -o ./main.zip -d ./main
+            find ./ -name requirements.txt -exec pip install -r {} \;
+            pip install ./main.zip
+
+      - name: Validate Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          DIR: ${{ github.sha }}
+        run: |
+          /home/runner/.local/bin/bab validate-package \
+              --version-filename ${DIR}/plugins_sdk/__version__.py \
+              --changelog ${DIR}/CHANGELOG.txt
+
+  release:
+    needs: validate
+    runs-on: ubuntu-latest
+    # runs-on: [self-hosted, can-access-dell-network]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: ${{ github.sha }}_release
+          token: ${{ secrets.GH_TOKEN }}
+          submodules: true
+
+      - name: download build cli
+        working-directory: ./${{ github.sha }}_release
+        run: |
+            sudo apt-get install -y libpq-dev
+            pip install -U pyopenssl
+            export PATH=$PATH:/home/ubuntu/.local/bin
+            curl -L \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer ${{ secrets.BAB_PAT }}" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              -X GET "https://api.github.com/repos/fusion-e/blueprint-assist-build/zipball/main" -o ./main.zip
+            unzip -o ./main.zip -d ./main
+            find ./ -name requirements.txt -exec pip install -r {} \;
+            pip install ./main.zip
+
+      - name: Install GH CLI
+        uses: dev-hanz-ops/install-gh-cli-action@v0.1.0
+        with:
+          gh-cli-version: 2.55.0
+
+      - name: Package Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          DIR: ${{ github.sha }}_release
+        run: |
+          /home/runner/.local/bin/bab package-release \
+              --version-filename $DIR/setup.py \
+              --org-name fusion-e \
+              --repo-name nativeedge-plugins-sdk

@@ -6,7 +6,7 @@ from unittest import TestCase
 
 from nativeedge.state import current_ctx
 from nativeedge.mocks import MockNativeEdgeContext
-from plugins_kube_sdk.connection import oxy
+from nativeedge_kubernetes_sdk.connection import oxy
 
 
 class TestOxy(TestCase):

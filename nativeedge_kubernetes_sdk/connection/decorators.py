@@ -3,8 +3,9 @@
 import os
 
 from kubernetes import client, config
-from plugins_sdk.utils import uses_debug_node
-from plugins_kube_sdk.connection.utils import (
+from nativeedge_common_sdk.utils import uses_debug_node
+from nativeedge_common_sdk._compat import ctx_from_import
+from nativeedge_kubernetes_sdk.connection.utils import (
     get_host,
     get_key_file,
     get_cert_file,
@@ -16,12 +17,6 @@ from plugins_kube_sdk.connection.utils import (
     set_client_config_defaults,
     get_connection_details_from_shared_cluster,
 )
-
-try:
-    from nativeedge import ctx as ctx_from_import
-except ImportError:
-    from cloudify import ctx as ctx_from_import
-
 
 HOST = 'host'
 API_KEY = 'api_key'

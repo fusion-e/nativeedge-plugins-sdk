@@ -33,8 +33,8 @@ from nativeedge_common_sdk.resource_downloader import (
 )
 from nativeedge_common_sdk.constants import MASKED_ENV_VARS
 from nativeedge_common_sdk.processes import (
+    general_executor,
     process_execution,
-    general_executor
 )
 from nativeedge_common_sdk.exceptions import \
     NonRecoverableError as SDKNonRecoverableError

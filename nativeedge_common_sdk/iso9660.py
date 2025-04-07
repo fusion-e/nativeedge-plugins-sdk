@@ -1,7 +1,7 @@
 # Copyright © 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
-import pycdlib
 import re
+import pycdlib
 from io import BytesIO
 
 

@@ -1,12 +1,8 @@
 # Copyright © 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
-from plugins_kube_sdk.state import models
-from plugins_sdk.clean_json import JsonCleanuper
-
-try:
-    from nativeedge import ctx
-except ImportError:
-    from cloudify import ctx
+from nativeedge_common_sdk._compat import ctx_from_import
+from nativeedge_common_sdk.clean_json import JsonCleanuper
+from nativeedge_kubernetes_sdk.state import models
 
 
 class Resource(object):
@@ -42,11 +38,12 @@ class Resource(object):
 
     def check_status(self):
         if not self.state:
-            ctx.logger.error(
+            ctx_from_import.logger.error(
                 'Check status did not provide a read response '
                 'from the Kubernetes API, so no status can be verified.')
         try:
             return self.model.is_resource_ready()
         except Exception as e:
-            ctx.logger.error('Check status failed: {}'.format(str(e)))
+            ctx_from_import.logger.error(
+                'Check status failed: {}'.format(str(e)))
         return False

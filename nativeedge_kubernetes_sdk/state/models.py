@@ -1,17 +1,10 @@
 # Copyright © 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
-try:
-    from nativeedge import ctx
-    from nativeedge.exceptions import (
-        OperationRetry,
-        NonRecoverableError
-    )
-except ImportError:
-    from cloudify import ctx
-    from cloudify.exceptions import (
-        OperationRetry,
-        NonRecoverableError
-    )
+from nativeedge_common_sdk._compat import (
+    OperationRetry,
+    NonRecoverableError,
+    ctx_from_import as ctx,
+)
 
 
 class KubernetesResourceStatus(object):

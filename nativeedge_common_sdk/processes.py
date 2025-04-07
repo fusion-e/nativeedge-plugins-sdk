@@ -16,18 +16,11 @@ from script_runner.tasks import (
     UNSUPPORTED_SCRIPT_FEATURE_ERROR
 )
 from nativeedge_common_sdk.filters import obfuscate_passwords
-try:
-    from nativeedge import (
-        ctx as ctx_from_import,
-        exceptions as ne_exc
-    )
-except ImportError:
-    from cloudify import ctx as ctx_from_import
-    from cloudify import exceptions as ne_exc
-try:
-    from cloudify.proxy.client import ScriptException
-except ImportError:
-    ScriptException = Exception
+from nativeedge_common_sdk._compat import (
+    ne_exc,
+    ScriptException,
+    ctx_from_import,
+)
 
 
 class GeneralExecutor(object):

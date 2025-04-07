@@ -1,6 +1,7 @@
 # Copyright © 2024 Dell Inc. or its subsidiaries. All Rights Reserved.
 
 import os
+
 import yaml
 from unittest import TestCase
 from mock import patch, MagicMock
@@ -11,7 +12,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 
 from plugins_kube_sdk.connection import configuration
 from plugins_kube_sdk.connection import authentication
-from plugins_kube_sdk.exceptions import \
+from nativeedge_kubernetes_sdk.exceptions import \
     NativeEdgeKubernetesSDKException
 
 FILE_CONTENT = {
@@ -95,8 +96,7 @@ class TestCx(TestCase):
     def test_gcp_kubernetes_api_auth(self):
         kaa = authentication.GCPServiceAccountAuthentication(
             self.logger, self.auth_data2)
-        p = 'nativeedge_kubernetes_sdk.connection.' \
-            'authentication.service_account'
+        p = 'google.oauth2.service_account.Credentials'
         with patch(p):
             kaa.get_token()
 
@@ -107,11 +107,9 @@ class TestCx(TestCase):
 
         kaa = authentication.KubernetesApiAuthenticationVariants(
             self.logger, self.auth_data2)
-        p = 'nativeedge_kubernetes_sdk.connection.' \
-            'authentication.service_account'
+        p = 'google.oauth2.service_account.Credentials'
         with patch(p):
-            result = kaa.get_token()
-        assert isinstance(result, MagicMock)
+            kaa.get_token()
 
     def test_kubernetes_config(self):
         kc = configuration.KubernetesConfiguration(

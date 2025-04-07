@@ -1,10 +1,11 @@
-import paramiko
-from paramiko import RSAKey, ECDSAKey
 import io
-try:
-    from nativeedge import ctx as ctx_from_import
-except ImportError:
-    from cloudify import ctx as ctx_from_import
+import paramiko
+from paramiko import (
+    RSAKey,
+    ECDSAKey
+)
+
+from nativeedge_common_sdk._compat import ctx_from_import
 
 
 class KeyManager:
