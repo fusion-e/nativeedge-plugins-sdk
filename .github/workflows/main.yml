@@ -69,7 +69,7 @@ jobs:
           DIR: ${{ github.sha }}
         run: |
           /home/runner/.local/bin/bab validate-package \
-              --version-filename ${DIR}/plugins_sdk/__version__.py \
+              --version-filename ${DIR}/setup.py \
               --changelog ${DIR}/CHANGELOG.txt
 
   release:

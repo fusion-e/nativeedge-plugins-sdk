@@ -26,6 +26,7 @@ try:
     from dell.mocks import MockNativeEdgeContext
     from dell.exceptions import (
         HttpException,
+        OperationRetry,
         NonRecoverableError
     )
     from dell.utils import (
@@ -52,6 +53,7 @@ except ImportError:
         from nativeedge.mocks import MockNativeEdgeContext
         from nativeedge.exceptions import (
             HttpException,
+            OperationRetry,
             NonRecoverableError
         )
         from nativeedge.utils import (
@@ -77,6 +79,7 @@ except ImportError:
         from cloudify.mocks import MockNativeEdgeContext
         from cloudify.exceptions import (
             HttpException,
+            OperationRetry,
             NonRecoverableError
         )
         from cloudify.utils import (
